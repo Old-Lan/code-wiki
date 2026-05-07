@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "code-wiki": {
+      "command": "npx",
+      "args": ["code-wiki-server"],
+      "env": {}
+    }
+  }
+}

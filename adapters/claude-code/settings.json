@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "code-wiki": {
+      "command": "code-wiki-server",
+      "args": [],
+      "env": {}
+    }
+  },
+  "permissions": {
+    "allow": [
+      "mcp__code-wiki__wiki_overview",
+      "mcp__code-wiki__wiki_module",
+      "mcp__code-wiki__wiki_flow",
+      "mcp__code-wiki__wiki_query",
+      "mcp__code-wiki__wiki_update",
+      "mcp__code-wiki__wiki_impact"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.code-wiki/
+reports/
+*.test.ts
+*.js
+!adapters/**/*.js
