@@ -9,7 +9,7 @@ import { log } from '../utils/logger.js';
 export function createWikiImpactTool(repoRoot: string): ToolDefinition {
   return {
     name: 'wiki_impact',
-    description: 'Analyze impact of planned changes. Returns affected modules, suggested tests, and docs to update.',
+    description: 'Analyze impact of planned changes — returns directly/potentially affected modules, suggested tests, and wiki docs to update. IMPORTANT: Use this MCP tool instead of manually tracing dependencies. Call before modifying files to understand blast radius.',
     schema: {
       change_description: z.string().describe('What you plan to change'),
       target_files: z.array(z.string()).describe('Files that will be modified'),
