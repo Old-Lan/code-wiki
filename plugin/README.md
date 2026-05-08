@@ -13,9 +13,10 @@ AI-powered code wiki that auto-generates and maintains project documentation via
 
 | Tool | Purpose |
 | ---- | ------- |
+| `wiki_init` | Initialize wiki for current project — detects framework, modules, creates `.code-wiki/` |
 | `wiki_overview` | Project architecture overview — modules, entry points, tech stack |
 | `wiki_module` | Detailed module context — exports, types, dependencies, gotchas |
-| `wiki_update` | Update wiki content (analysis + LLM generation) |
+| `wiki_update` | Two-phase update: analysis → LLM generation → persist |
 | `wiki_query` | Natural language query against project knowledge |
 | `wiki_impact` | Assess blast radius of proposed changes |
 | `wiki_flow` | Trace code execution paths |
@@ -36,7 +37,7 @@ AI-powered code wiki that auto-generates and maintains project documentation via
 
 ## Architecture
 
-The bundled MCP server (`server.js`) contains all dependencies — no npm install required. It uses:
+The bundled MCP server (`server.cjs`) contains all dependencies — no npm install required. All wiki operations go through MCP tools, not CLI commands. It uses:
 - Regex-based AST analysis for TypeScript, Python, Go, Java, Rust, Ruby
 - Dependency graph construction from import statements
 - Tech stack extraction from package manifests (package.json, pyproject.toml, etc.)
