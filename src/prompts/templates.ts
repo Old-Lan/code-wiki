@@ -133,3 +133,57 @@ Module Analysis:
 {{moduleData}}
 
 Respond with JSON matching: { answer: string, references: [{file: string, lines: string}], related_modules: string[], confidence: "high"|"medium"|"low" }`;
+
+export const PROJECT_OVERVIEW_PROMPT = `You are analyzing a codebase to produce a high-level project overview. Based on the module analysis and dependency data below, generate a structured project description.
+
+Output JSON matching this shape:
+{
+  "summary": "1-2 sentence elevator pitch — what this project IS and what it DOES",
+  "businessContext": "2-3 sentences describing the domain, problem space, or business purpose",
+  "coreCapabilities": [
+    "Capability 1 — specific to THIS codebase",
+    "Capability 2",
+    "..."
+  ],
+  "targetUsers": "Who uses this project — developers, end users, other systems?"
+}
+
+Rules:
+- summary: concise, specific to this codebase. NOT generic. Reference actual features.
+- businessContext: explain the WHY — what problem does this solve? What domain is it in?
+- coreCapabilities: 3-6 concrete capabilities. Each should be a single sentence with specific details from the code.
+- targetUsers: brief description of who interacts with this system
+- Be specific to THIS codebase. Reference actual module names, entry points, and functionality.
+
+Module Analysis:
+{{moduleData}}
+
+Dependency Data:
+{{depData}}
+
+Entry Points:
+{{entryPoints}}
+
+Respond with JSON only.`;
+
+export const TECH_STACK_DESCRIPTION_PROMPT = `You are enriching a tech stack analysis with brief descriptions. For each dependency below, provide a one-sentence description of what it does IN THE CONTEXT OF THIS PROJECT (not generic library descriptions).
+
+Output a JSON object mapping package name to description string:
+{
+  "package-name": "Brief description of what this package does in this project",
+  "..."
+}
+
+Rules:
+- Each description should be 1 sentence, 10-20 words
+- Focus on HOW this project uses the package, not what the package is generically
+- If unsure, write a brief generic description
+- Include ALL packages listed below
+
+Packages:
+{{packages}}
+
+Project Context:
+{{projectContext}}
+
+Respond with JSON only.`;
