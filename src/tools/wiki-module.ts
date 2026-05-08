@@ -10,7 +10,7 @@ import { log } from '../utils/logger.js';
 export function createWikiModuleTool(repoRoot: string): ToolDefinition {
   return {
     name: 'wiki_module',
-    description: 'Get module details — responsibilities, boundaries, exports, dependencies, gotchas. Use when about to modify or analyze a specific module.',
+    description: 'Get module details — responsibilities, boundaries, exports, dependencies, gotchas. Use when about to modify or analyze a specific module. IMPORTANT: Use this MCP tool instead of reading source files directly for architecture questions. Returns cached wiki content when available.',
     schema: {
       module_path: z.string().describe('Module path or name'),
       include_flows: z.boolean().optional().default(false).describe('Include flow analysis'),
