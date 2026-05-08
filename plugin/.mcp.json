@@ -1,6 +1,6 @@
 {
   "code-wiki": {
     "command": "node",
-    "args": ["./server.cjs"]
+    "args": ["${CLAUDE_PLUGIN_ROOT}/server.cjs"]
   }
 }
