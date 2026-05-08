@@ -10,7 +10,7 @@ import { log } from '../utils/logger.js';
 export function createWikiOverviewTool(repoRoot: string): ToolDefinition {
   return {
     name: 'wiki_overview',
-    description: 'Get project architecture overview — modules, entry points, tech stack. Use at session start or when needing project-level context.',
+    description: 'Get project architecture overview — modules, entry points, tech stack, and cached wiki content. Use at session start or when needing project-level context. IMPORTANT: Use this MCP tool instead of `npx code-wiki status` or any Bash/CLI command.',
     schema: {
       depth: z.enum(['brief', 'full']).optional().default('brief').describe('Detail level'),
     },
@@ -44,11 +44,21 @@ export function createWikiOverviewTool(repoRoot: string): ToolDefinition {
       await cache.init();
       await cache.cacheGraph(graph);
 
+      // Load cached overview and tech stack content
+      const cachedOverview = await cache.getCachedOverview();
+      const cachedTechStack = await cache.getCachedTechStack();
+
+      const enrichedOverview = {
+        ...overview,
+        overview: cachedOverview ?? undefined,
+        techStack: cachedTechStack ?? undefined,
+      };
+
       log.info(`wiki_overview completed in ${Date.now() - start}ms`);
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify(overview, null, 2),
+          text: JSON.stringify(enrichedOverview, null, 2),
         }],
       };
     },
