@@ -1,5 +1,7 @@
 Verify Code Wiki consistency with the current codebase.
 
+IMPORTANT: You MUST use MCP tools only. Do NOT use `npx code-wiki verify` or any Bash/CLI command.
+
 Steps:
 1. Call `wiki_overview({ depth: "full" })` to get current project state
 2. Compare with the existing `.code-wiki/team/` content
