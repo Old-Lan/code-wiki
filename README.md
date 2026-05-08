@@ -6,21 +6,24 @@ Code Wiki analyzes your source code, generates a structured knowledge base, and 
 
 ## Quick Start
 
+**Option A: Claude Code Plugin (recommended)**
+
+```
+/plugin install code-wiki@marketplace
+/wiki-init
+/wiki-update
+```
+
+**Option B: CLI + MCP Server**
+
 ```bash
 # Install globally
 npm install -g code-wiki
 
 # In your project directory
 cd your-project
-code-wiki init          # Analyze project and generate wiki
-code-wiki update        # Incremental update after code changes
-code-wiki query "How does authentication work?"  # Natural language query
-```
-
-Or use as an MCP server (recommended for AI assistant integration):
-
-```bash
-npx code-wiki-server
+code-wiki init          # Analyze project and generate wiki skeleton
+/wiki-update            # Generate detailed wiki content via MCP
 ```
 
 ## Architecture
@@ -28,13 +31,13 @@ npx code-wiki-server
 ```
 ┌──────────────┐     MCP (stdio)     ┌──────────────────┐
 │  AI Assistant │ ◄────────────────► │  Code Wiki Server │
-│ (Claude/Cursor│   wiki_overview     │                  │
-│  /Gemini/...) │   wiki_module       │  ┌────────────┐  │
-└──────────────┘   wiki_flow          │  │  Analyzers  │  │
-                   wiki_query         │  │  TS/Py/Go/  │  │
-                   wiki_update        │  │  Java/RS/RB │  │
-                   wiki_impact        │  └────────────┘  │
-                                      │                  │
+│ (Claude/Cursor│   wiki_init         │                  │
+│  /Gemini/...) │   wiki_overview     │  ┌────────────┐  │
+└──────────────┘   wiki_module       │  │  Analyzers  │  │
+                   wiki_flow          │  │  TS/Py/Go/  │  │
+                   wiki_query         │  │  Java/RS/RB │  │
+                   wiki_update        │  └────────────┘  │
+                   wiki_impact        │                  │
                                       │  ┌────────────┐  │
                                       │  │  Storage    │  │
                                       │  │ team/ cache/│  │
@@ -50,12 +53,13 @@ npx code-wiki-server
 
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `wiki_overview` | `{ depth: "summary" \| "full" }` | Project modules, architecture, stats |
+| `wiki_init` | `{ force?: boolean }` | Project framework, modules, `.code-wiki/` structure |
+| `wiki_overview` | `{ depth: "brief" \| "full" }` | Project modules, architecture, stats |
 | `wiki_module` | `{ module_path: string }` | Exports, deps, gotchas, boundaries |
-| `wiki_flow` | `{ from: string, to?: string }` | Data/control flow between modules |
-| `wiki_query` | `{ question: string }` | Cross-wiki natural language search |
-| `wiki_update` | `{ scope: "changed" \| "full", paths?: string[] }` | Refresh wiki content |
-| `wiki_impact` | `{ target: string, change_type: string }` | Impact analysis for proposed changes |
+| `wiki_flow` | `{ description: string }` | Code execution path matching description |
+| `wiki_query` | `{ question: string, scope?: string[] }` | Analysis data for natural language search |
+| `wiki_update` | `{ scope: "changed" \| "full" }` then `{ module, generated_content }` | Two-phase: analysis → LLM generate → persist |
+| `wiki_impact` | `{ change_description: string, target_files: string[] }` | Affected modules, suggested tests |
 
 ## Supported Languages
 
@@ -73,12 +77,16 @@ npx code-wiki-server
 ### Claude Code
 
 ```bash
+# Option 1: Plugin (recommended)
+/plugin install code-wiki@marketplace
+
+# Option 2: CLI install
 cd your-project
 bash path/to/code-wiki/adapters/claude-code/install.sh
 # Restart Claude Code, then run /wiki-init
 ```
 
-Provides: auto-context skill, 4 slash commands (`/wiki-init`, `/wiki-update`, `/wiki-query`, `/wiki-verify`).
+Provides: auto-context skill, 7 MCP tools (`wiki_init`, `wiki_overview`, `wiki_module`, `wiki_update`, `wiki_query`, `wiki_flow`, `wiki_impact`), 4 slash commands (`/wiki-init`, `/wiki-update`, `/wiki-query`, `/wiki-verify`).
 
 ### Cursor
 
