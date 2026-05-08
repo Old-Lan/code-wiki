@@ -3225,8 +3225,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path9) {
-      let input = path9;
+    function removeDotSegments(path11) {
+      let input = path11;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3425,8 +3425,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path9, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path9 && path9 !== "/" ? path9 : void 0;
+        const [path11, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path11 && path11 !== "/" ? path11 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -10402,12 +10402,12 @@ var init_esm5 = __esm({
       /**
        * Get the Path object referenced by the string path, resolved from this Path
        */
-      resolve(path9) {
-        if (!path9) {
+      resolve(path11) {
+        if (!path11) {
           return this;
         }
-        const rootPath = this.getRootString(path9);
-        const dir = path9.substring(rootPath.length);
+        const rootPath = this.getRootString(path11);
+        const dir = path11.substring(rootPath.length);
         const dirParts = dir.split(this.splitSep);
         const result = rootPath ? this.getRoot(rootPath).#resolveParts(dirParts) : this.#resolveParts(dirParts);
         return result;
@@ -11159,8 +11159,8 @@ var init_esm5 = __esm({
       /**
        * @internal
        */
-      getRootString(path9) {
-        return import_node_path.win32.parse(path9).root;
+      getRootString(path11) {
+        return import_node_path.win32.parse(path11).root;
       }
       /**
        * @internal
@@ -11206,8 +11206,8 @@ var init_esm5 = __esm({
       /**
        * @internal
        */
-      getRootString(path9) {
-        return path9.startsWith("/") ? "/" : "";
+      getRootString(path11) {
+        return path11.startsWith("/") ? "/" : "";
       }
       /**
        * @internal
@@ -11296,11 +11296,11 @@ var init_esm5 = __esm({
       /**
        * Get the depth of a provided path, string, or the cwd
        */
-      depth(path9 = this.cwd) {
-        if (typeof path9 === "string") {
-          path9 = this.cwd.resolve(path9);
+      depth(path11 = this.cwd) {
+        if (typeof path11 === "string") {
+          path11 = this.cwd.resolve(path11);
         }
-        return path9.depth();
+        return path11.depth();
       }
       /**
        * Return the cache of child entries.  Exposed so subclasses can create
@@ -11787,9 +11787,9 @@ var init_esm5 = __esm({
         process3();
         return results;
       }
-      chdir(path9 = this.cwd) {
+      chdir(path11 = this.cwd) {
         const oldCwd = this.cwd;
-        this.cwd = typeof path9 === "string" ? this.cwd.resolve(path9) : path9;
+        this.cwd = typeof path11 === "string" ? this.cwd.resolve(path11) : path11;
         this.cwd[setAsCwd](oldCwd);
       }
     };
@@ -12164,8 +12164,8 @@ var init_processor = __esm({
       }
       // match, absolute, ifdir
       entries() {
-        return [...this.store.entries()].map(([path9, n]) => [
-          path9,
+        return [...this.store.entries()].map(([path11, n]) => [
+          path11,
           !!(n & 2),
           !!(n & 1)
         ]);
@@ -12378,9 +12378,9 @@ var init_walker = __esm({
       signal;
       maxDepth;
       includeChildMatches;
-      constructor(patterns, path9, opts) {
+      constructor(patterns, path11, opts) {
         this.patterns = patterns;
-        this.path = path9;
+        this.path = path11;
         this.opts = opts;
         this.#sep = !opts.posix && opts.platform === "win32" ? "\\" : "/";
         this.includeChildMatches = opts.includeChildMatches !== false;
@@ -12399,11 +12399,11 @@ var init_walker = __esm({
           });
         }
       }
-      #ignored(path9) {
-        return this.seen.has(path9) || !!this.#ignore?.ignored?.(path9);
+      #ignored(path11) {
+        return this.seen.has(path11) || !!this.#ignore?.ignored?.(path11);
       }
-      #childrenIgnored(path9) {
-        return !!this.#ignore?.childrenIgnored?.(path9);
+      #childrenIgnored(path11) {
+        return !!this.#ignore?.childrenIgnored?.(path11);
       }
       // backpressure mechanism
       pause() {
@@ -12618,8 +12618,8 @@ var init_walker = __esm({
     };
     GlobWalker = class extends GlobUtil {
       matches = /* @__PURE__ */ new Set();
-      constructor(patterns, path9, opts) {
-        super(patterns, path9, opts);
+      constructor(patterns, path11, opts) {
+        super(patterns, path11, opts);
       }
       matchEmit(e) {
         this.matches.add(e);
@@ -12656,8 +12656,8 @@ var init_walker = __esm({
     };
     GlobStream = class extends GlobUtil {
       results;
-      constructor(patterns, path9, opts) {
-        super(patterns, path9, opts);
+      constructor(patterns, path11, opts) {
+        super(patterns, path11, opts);
         this.results = new Minipass({
           signal: this.signal,
           objectMode: true
@@ -13810,10 +13810,10 @@ var require_src2 = __commonJS({
     var fs_1 = require("fs");
     var debug_1 = __importDefault(require_src());
     var log2 = debug_1.default("@kwsites/file-exists");
-    function check2(path9, isFile, isDirectory) {
-      log2(`checking %s`, path9);
+    function check2(path11, isFile, isDirectory) {
+      log2(`checking %s`, path11);
       try {
-        const stat = fs_1.statSync(path9);
+        const stat = fs_1.statSync(path11);
         if (stat.isFile() && isFile) {
           log2(`[OK] path represents a file`);
           return true;
@@ -13833,8 +13833,8 @@ var require_src2 = __commonJS({
         throw e;
       }
     }
-    function exists2(path9, type = exports2.READABLE) {
-      return check2(path9, (type & exports2.FILE) > 0, (type & exports2.FOLDER) > 0);
+    function exists2(path11, type = exports2.READABLE) {
+      return check2(path11, (type & exports2.FILE) > 0, (type & exports2.FOLDER) > 0);
     }
     exports2.exists = exists2;
     exports2.FILE = 1;
@@ -13894,6 +13894,429 @@ var require_dist3 = __commonJS({
     exports2.deferred = deferred2;
     exports2.createDeferred = deferred2;
     exports2.default = deferred2;
+  }
+});
+
+// src/storage/team-writer.ts
+var team_writer_exports = {};
+__export(team_writer_exports, {
+  writeTeamWiki: () => writeTeamWiki
+});
+async function writeTeamWiki(repoRoot, overview, moduleWikis, flows) {
+  const paths = wikiPaths(repoRoot);
+  const written = [];
+  await ensureDir(paths.team);
+  await ensureDir(import_node_path8.default.join(paths.team, "modules"));
+  await ensureDir(import_node_path8.default.join(paths.team, "flows"));
+  const archPath = import_node_path8.default.join(paths.team, "architecture.md");
+  await writeFile(archPath, renderArchitectureMd(overview));
+  written.push(archPath);
+  for (const mod of moduleWikis) {
+    const modPath = import_node_path8.default.join(paths.team, "modules", `${mod.name}.md`);
+    await writeFile(modPath, renderModuleMd(mod, overview.lastUpdated, overview.modules));
+    written.push(modPath);
+  }
+  for (const flow of flows) {
+    const flowPath = import_node_path8.default.join(paths.team, "flows", `${flow.name}.md`);
+    await writeFile(flowPath, renderFlowMd(flow, overview.lastUpdated));
+    written.push(flowPath);
+  }
+  const allGotchas = moduleWikis.flatMap(
+    (m) => m.gotchas.map((g) => ({
+      module: m.name,
+      description: typeof g === "string" ? g : g.description,
+      severity: typeof g === "string" ? "note" : g.severity
+    }))
+  );
+  if (allGotchas.length > 0) {
+    const gotchasPath = import_node_path8.default.join(paths.team, "gotchas.md");
+    await writeFile(gotchasPath, renderGotchasMd(allGotchas, overview.lastUpdated));
+    written.push(gotchasPath);
+  }
+  const indexPath = import_node_path8.default.join(paths.team, "README.md");
+  await writeFile(indexPath, renderIndexMd(overview, moduleWikis));
+  written.push(indexPath);
+  return written;
+}
+function renderArchitectureMd(o2) {
+  const moduleMap = o2.modules.map((m) => m.name);
+  const overviewSection = o2.overview ? `
+### Business Context
+
+${o2.overview.businessContext}
+
+### Core Capabilities
+
+${o2.overview.coreCapabilities.map((c3) => `- ${c3}`).join("\n")}
+` : "";
+  const techStackSection = o2.techStack ? `
+## Tech Stack
+
+| Category | Key Technologies |
+| -------- | ---------------- |
+| Language | ${o2.techStack.language}${o2.techStack.languageVersion ? ` (${o2.techStack.languageVersion})` : ""} |
+| Framework | ${o2.techStack.framework} |
+${o2.techStack.runtime ? `| Runtime | ${o2.techStack.runtime} |` : ""}
+${o2.techStack.packageManager ? `| Package Manager | ${o2.techStack.packageManager} |` : ""}
+| Direct Dependencies | ${o2.techStack.dependencies.length} |
+` : "";
+  return `---
+summary: "${o2.name} architecture overview, module layout, and dependency direction"
+read_when:
+  - Understanding how modules relate to each other
+  - Onboarding to the project structure
+  - Planning cross-module changes
+title: "Architecture"
+---
+
+# Architecture Overview
+
+> Generated: ${o2.lastUpdated}
+
+## Overview
+
+${o2.name} is a **${o2.language}** project using the **${o2.framework}** framework. The codebase follows a **${o2.architecture}** architecture.
+${overviewSection}
+## Modules
+
+${o2.modules.map((m) => `- **[${m.name}](modules/${m.name}.md)** \u2014 ${m.responsibility}`).join("\n")}
+
+## Dependency Direction
+
+\`\`\`mermaid
+graph TD
+${renderMermaidModules(o2.modules)}
+\`\`\`
+
+## Entry Points
+
+${o2.entryPoints.map((p2) => `- \`${p2}\``).join("\n")}
+
+## Shared Libraries
+
+${o2.sharedLibs.length > 0 ? o2.sharedLibs.map((l) => `- \`${l}\``).join("\n") : "None"}
+${techStackSection}
+## Related
+
+- [Module Index](#modules) \u2014 individual module documentation
+- [Gotchas](gotchas.md) \u2014 aggregated pitfalls across all modules
+`;
+}
+function renderMermaidModules(modules) {
+  const lines = [];
+  for (const mod of modules) {
+    if (mod.deps.length === 0) {
+      lines.push(`  ${safeMermaidId(mod.name)}["${mod.name}"]`);
+    }
+    for (const dep of mod.deps) {
+      lines.push(`  ${safeMermaidId(mod.name)}["${mod.name}"] --> ${safeMermaidId(dep)}["${dep}"]`);
+    }
+  }
+  return [...new Set(lines)].join("\n");
+}
+function safeMermaidId(name) {
+  return name.replace(/[^a-zA-Z0-9]/g, "_");
+}
+function renderModuleMd(m, date3, allModules) {
+  const readWhenSection = m.readWhen.length > 0 ? m.readWhen.map((r2) => `  - ${r2}`).join("\n") : "  - Working with this module";
+  const quickStartSection = m.quickStart ? `## Quick Start
+
+${m.quickStart.description}
+
+\`\`\`${m.quickStart.language ?? "typescript"}
+${m.quickStart.codeExample}
+\`\`\`
+` : "";
+  const abstractionRows = (m.keyAbstractions ?? []).length > 0 ? (m.keyAbstractions ?? []).map(
+    (a) => `| \`${a.name}\` | ${a.kind} | ${a.description} |`
+  ).join("\n") : "| \u2014 | \u2014 | No key abstractions identified |";
+  const patternsSection = (m.usagePatterns ?? []).length > 0 ? (m.usagePatterns ?? []).map((p2) => {
+    const codeBlock = p2.codeExample ? `
+
+\`\`\`${p2.language ?? "typescript"}
+${p2.codeExample}
+\`\`\`` : "";
+    return `### ${p2.title}
+
+${p2.description}${codeBlock}`;
+  }).join("\n\n") : "No common patterns documented yet.";
+  const invariantsSection = (m.invariants ?? []).length > 0 ? `## Invariants
+
+${(m.invariants ?? []).map((i2) => `- ${i2}`).join("\n")}
+` : "";
+  const configSection = (m.configKeys ?? []).length > 0 ? `## Configuration
+
+| Key | Type | Default | Description |
+| --- | ---- | ------- | ----------- |
+${(m.configKeys ?? []).map((c3) => `| \`${c3.key}\` | ${c3.type} | ${c3.default ?? "\u2014"} | ${c3.description} |`).join("\n")}
+` : "";
+  const relatedSection = (m.relatedModules ?? []).length > 0 ? (m.relatedModules ?? []).map((rm) => {
+    const moduleFile = allModules?.find((am) => am.name === rm);
+    return moduleFile ? `- [${rm}](../modules/${rm}.md)` : `- ${rm}`;
+  }).join("\n") : "None";
+  const internalDeps = m.dependencies.internal.length > 0 ? m.dependencies.internal.map((d) => {
+    const moduleFile = allModules?.find((am) => am.name === d);
+    return moduleFile ? `- [${d}](../modules/${d}.md)` : `- ${d}`;
+  }).join("\n") : "None";
+  const externalDeps = m.dependencies.external.length > 0 ? m.dependencies.external.map((d) => `- \`${d}\``).join("\n") : "None";
+  const dependentsList = m.dependents.length > 0 ? m.dependents.map((d) => {
+    const moduleFile = allModules?.find((am) => am.name === d);
+    return moduleFile ? `- [${d}](../modules/${d}.md)` : `- ${d}`;
+  }).join("\n") : "None";
+  const gotchasSection = (m.gotchas ?? []).length > 0 ? (m.gotchas ?? []).map((g) => {
+    const gotcha = typeof g === "string" ? { description: g, severity: "note" } : g;
+    const label = gotcha.severity === "warning" ? "**Warning:**" : gotcha.severity === "caution" ? "**Caution:**" : "**Note:**";
+    return `- ${label} ${gotcha.description}`;
+  }).join("\n") : "None recorded";
+  return `---
+summary: "${escapeYaml(m.summary)}"
+read_when:
+${readWhenSection}
+title: "${escapeYaml(m.name)}"
+---
+
+# ${m.name}
+
+> Generated: ${date3}
+
+## Overview
+
+${m.responsibility}
+
+## Boundary
+
+${m.boundary}
+
+${quickStartSection}
+## Key Abstractions
+
+| Symbol | Kind | Description |
+| ------ | ---- | ----------- |
+${abstractionRows}
+
+## Usage Patterns
+
+${patternsSection}
+
+${invariantsSection}${configSection}
+## Exports
+
+${m.exports.length > 0 ? m.exports.map((e) => `- \`${e}\``).join("\n") : "None"}
+
+## Key Types
+
+${m.keyTypes.length > 0 ? m.keyTypes.map((t2) => `- \`${t2}\``).join("\n") : "None"}
+
+## Dependencies
+
+**Internal:**
+
+${internalDeps}
+
+**External:**
+
+${externalDeps}
+
+## Dependents
+
+${dependentsList}
+
+## Gotchas
+
+${gotchasSection}
+
+## Related
+
+${relatedSection}
+`;
+}
+function renderFlowMd(f, date3) {
+  const stepsSection = f.steps.map(
+    (s) => `${s.order}. **${s.action}** \u2014 \`${s.file}:${s.line}\` (\`${s.function}()\`)`
+  ).join("\n");
+  const errorSection = f.errorPaths.length > 0 ? `
+## Error Paths
+
+${f.errorPaths.map(
+    (e) => `- **If ${e.condition}:** \u2192 step ${e.gotoStep} (\`${e.file}:${e.line}\`)`
+  ).join("\n")}` : "";
+  const relatedSection = f.relatedModules.length > 0 ? `
+## Related Modules
+
+${f.relatedModules.map((rm) => `- [${rm}](../modules/${rm}.md)`).join("\n")}` : "";
+  const mermaidSection = `
+## Sequence
+
+\`\`\`mermaid
+sequenceDiagram
+${f.steps.map((s, i2) => {
+    const next = f.steps[i2 + 1];
+    if (next) {
+      return `    Step${s.order}->>Step${next.order}: ${next.action}`;
+    }
+    return `    Note over Step${s.order}: ${s.action} (end)`;
+  }).join("\n")}
+\`\`\``;
+  return `---
+summary: "${escapeYaml(f.description)}"
+read_when:
+  - Tracing the ${f.name} flow
+  - Debugging issues with ${f.name}
+title: "${escapeYaml(f.name)}"
+---
+
+# ${f.name}
+
+> Generated: ${date3}
+
+## Overview
+
+${f.description}
+
+## Trigger
+
+${f.trigger}
+
+## Steps
+
+${stepsSection}
+${mermaidSection}${errorSection}${relatedSection}
+`;
+}
+function renderGotchasMd(gotchas, date3) {
+  const warnings = gotchas.filter((g) => g.severity === "warning");
+  const cautions = gotchas.filter((g) => g.severity === "caution");
+  const notes = gotchas.filter((g) => g.severity === "note");
+  const renderGroup = (title, items) => items.length > 0 ? `### ${title}
+
+${items.map((g) => `- **[${g.module}]** ${g.description}`).join("\n")}
+` : "";
+  return `---
+summary: "Aggregated non-obvious pitfalls across all modules"
+read_when:
+  - Before making changes to unfamiliar modules
+  - Debugging unexpected behavior
+title: "Gotchas"
+---
+
+# Gotchas
+
+> Generated: ${date3}
+
+${renderGroup("Warnings (will cause bugs/data loss)", warnings)}${renderGroup("Cautions (subtle behavior, wastes debugging time)", cautions)}${renderGroup("Notes (non-obvious but harmless)", notes)}`;
+}
+function renderIndexMd(o2, modules) {
+  const overviewSection = o2.overview ? `## Project Overview
+
+${o2.overview.summary}
+
+${o2.overview.businessContext}
+
+### Core Capabilities
+
+${o2.overview.coreCapabilities.map((c3) => `- ${c3}`).join("\n")}
+
+### Target Users
+
+${o2.overview.targetUsers}
+` : `## Project Overview
+
+_Run [/wiki-update](commands/wiki-update.md) to generate project overview._
+`;
+  const techStackSection = o2.techStack ? `## Tech Stack
+
+| Category | Key Technologies |
+| -------- | ---------------- |
+| Language | ${o2.techStack.language}${o2.techStack.languageVersion ? ` (${o2.techStack.languageVersion})` : ""} |
+| Framework | ${o2.techStack.framework} |
+${o2.techStack.runtime ? `| Runtime | ${o2.techStack.runtime} |` : ""}
+${o2.techStack.packageManager ? `| Package Manager | ${o2.techStack.packageManager} |` : ""}
+
+${renderTechStackTable(o2.techStack)}
+` : `## Tech Stack
+
+_Run [/wiki-update](commands/wiki-update.md) to generate tech stack details._
+`;
+  return `---
+summary: "${o2.name} auto-generated project documentation"
+read_when:
+  - Onboarding to the project
+  - Looking up module responsibilities
+title: "Code Wiki"
+---
+
+# Code Wiki
+
+> Auto-generated project documentation
+
+${overviewSection}
+${techStackSection}
+## Architecture
+
+See [architecture.md](architecture.md) for the full architecture overview with dependency diagram.
+
+## Modules
+
+| Module | Summary |
+| ------ | ------- |
+${modules.map((m) => `| [${m.name}](modules/${m.name}.md) | ${m.summary} |`).join("\n")}
+
+## Flows
+
+See [flows/](flows/) for business flow documentation.
+
+## Gotchas
+
+See [gotchas.md](gotchas.md) for aggregated pitfalls.
+
+## Quick Stats
+
+- **Modules:** ${o2.modules.length}
+- **Entry Points:** ${o2.entryPoints.length}
+- **Last Updated:** ${o2.lastUpdated}
+`;
+}
+function escapeYaml(str) {
+  return str.replace(/"/g, '\\"').replace(/\n/g, " ");
+}
+function renderTechStackTable(ts) {
+  const groups = {};
+  for (const dep of ts.dependencies) {
+    const group = dep.role;
+    if (!groups[group]) groups[group] = [];
+    groups[group].push(dep);
+  }
+  const sections = Object.entries(groups).sort(([a], [b2]) => ROLE_ORDER.indexOf(a) - ROLE_ORDER.indexOf(b2)).map(([role, deps]) => {
+    const label = ROLE_LABELS[role] ?? role;
+    const rows = deps.map(
+      (d) => `| \`${d.name}\` | \`${d.version}\` | ${d.description ?? ""} |`
+    ).join("\n");
+    return `**${label}:**
+
+| Package | Version | Purpose |
+| ------- | ------- | ------- |
+${rows}`;
+  }).join("\n\n");
+  return sections;
+}
+var import_node_path8, ROLE_ORDER, ROLE_LABELS;
+var init_team_writer = __esm({
+  "src/storage/team-writer.ts"() {
+    "use strict";
+    init_file_utils();
+    init_constants();
+    import_node_path8 = __toESM(require("node:path"), 1);
+    ROLE_ORDER = ["framework", "core", "ui", "database", "build", "testing", "utility", "other"];
+    ROLE_LABELS = {
+      framework: "Framework & Runtime",
+      core: "Core Libraries",
+      ui: "UI & Frontend",
+      database: "Database & Storage",
+      testing: "Testing",
+      build: "Build & Tooling",
+      utility: "Utilities",
+      other: "Other"
+    };
   }
 });
 
@@ -14375,8 +14798,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path9, errorMaps, issueData } = params;
-  const fullPath = [...path9, ...issueData.path || []];
+  const { data, path: path11, errorMaps, issueData } = params;
+  const fullPath = [...path11, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -14492,11 +14915,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path9, key) {
+  constructor(parent, value, path11, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path9;
+    this._path = path11;
     this._key = key;
   }
   get path() {
@@ -18134,10 +18557,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path9) {
-  if (!path9)
+function getElementAtPath(obj, path11) {
+  if (!path11)
     return obj;
-  return path9.reduce((acc, key) => acc?.[key], obj);
+  return path11.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -18457,11 +18880,11 @@ function aborted(x2, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path9, issues) {
+function prefixIssues(path11, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path9);
+    iss.path.unshift(path11);
     return iss;
   });
 }
@@ -29178,8 +29601,8 @@ function toLinesWithContent(input = "", trimmed2 = true, separator = "\n") {
 function forEachLineWithContent(input, callback) {
   return toLinesWithContent(input, true).map((line) => callback(line));
 }
-function folderExists(path9) {
-  return (0, import_file_exists.exists)(path9, import_file_exists.FOLDER);
+function folderExists(path11) {
+  return (0, import_file_exists.exists)(path11, import_file_exists.FOLDER);
 }
 function append(target, item) {
   if (Array.isArray(target)) {
@@ -29581,8 +30004,8 @@ function checkIsRepoRootTask() {
     commands,
     format: "utf-8",
     onError,
-    parser(path9) {
-      return /^\.(git)?$/.test(path9.trim());
+    parser(path11) {
+      return /^\.(git)?$/.test(path11.trim());
     }
   };
 }
@@ -30016,11 +30439,11 @@ function parseGrep(grep) {
   const paths = /* @__PURE__ */ new Set();
   const results = {};
   forEachLineWithContent(grep, (input) => {
-    const [path9, line, preview] = input.split(NULL);
-    paths.add(path9);
-    (results[path9] = results[path9] || []).push({
+    const [path11, line, preview] = input.split(NULL);
+    paths.add(path11);
+    (results[path11] = results[path11] || []).push({
       line: asNumber(line),
-      path: path9,
+      path: path11,
       preview
     });
   });
@@ -30784,14 +31207,14 @@ var init_hash_object = __esm2({
     init_task();
   }
 });
-function parseInit(bare, path9, text) {
+function parseInit(bare, path11, text) {
   const response = String(text).trim();
   let result;
   if (result = initResponseRegex.exec(response)) {
-    return new InitSummary(bare, path9, false, result[1]);
+    return new InitSummary(bare, path11, false, result[1]);
   }
   if (result = reInitResponseRegex.exec(response)) {
-    return new InitSummary(bare, path9, true, result[1]);
+    return new InitSummary(bare, path11, true, result[1]);
   }
   let gitDir = "";
   const tokens = response.split(" ");
@@ -30802,7 +31225,7 @@ function parseInit(bare, path9, text) {
       break;
     }
   }
-  return new InitSummary(bare, path9, /^re/i.test(response), gitDir);
+  return new InitSummary(bare, path11, /^re/i.test(response), gitDir);
 }
 var InitSummary;
 var initResponseRegex;
@@ -30811,9 +31234,9 @@ var init_InitSummary = __esm2({
   "src/lib/responses/InitSummary.ts"() {
     "use strict";
     InitSummary = class {
-      constructor(bare, path9, existing, gitDir) {
+      constructor(bare, path11, existing, gitDir) {
         this.bare = bare;
-        this.path = path9;
+        this.path = path11;
         this.existing = existing;
         this.gitDir = gitDir;
       }
@@ -30825,7 +31248,7 @@ var init_InitSummary = __esm2({
 function hasBareCommand(command) {
   return command.includes(bareCommand);
 }
-function initTask(bare = false, path9, customArgs) {
+function initTask(bare = false, path11, customArgs) {
   const commands = ["init", ...customArgs];
   if (bare && !hasBareCommand(commands)) {
     commands.splice(1, 0, bareCommand);
@@ -30834,7 +31257,7 @@ function initTask(bare = false, path9, customArgs) {
     commands,
     format: "utf-8",
     parser(text) {
-      return parseInit(commands.includes("--bare"), path9, text);
+      return parseInit(commands.includes("--bare"), path11, text);
     }
   };
 }
@@ -31649,12 +32072,12 @@ var init_FileStatusSummary = __esm2({
     "use strict";
     fromPathRegex = /^(.+)\0(.+)$/;
     FileStatusSummary = class {
-      constructor(path9, index, working_dir) {
-        this.path = path9;
+      constructor(path11, index, working_dir) {
+        this.path = path11;
         this.index = index;
         this.working_dir = working_dir;
         if (index === "R" || working_dir === "R") {
-          const detail = fromPathRegex.exec(path9) || [null, path9, path9];
+          const detail = fromPathRegex.exec(path11) || [null, path11, path11];
           this.from = detail[2] || "";
           this.path = detail[1] || "";
         }
@@ -31685,14 +32108,14 @@ function splitLine(result, lineStr) {
     default:
       return;
   }
-  function data(index, workingDir, path9) {
+  function data(index, workingDir, path11) {
     const raw = `${index}${workingDir}`;
     const handler = parsers6.get(raw);
     if (handler) {
-      handler(result, path9);
+      handler(result, path11);
     }
     if (raw !== "##" && raw !== "!!") {
-      result.files.push(new FileStatusSummary(path9, index, workingDir));
+      result.files.push(new FileStatusSummary(path11, index, workingDir));
     }
   }
 }
@@ -32043,9 +32466,9 @@ var init_simple_git_api = __esm2({
           next
         );
       }
-      hashObject(path9, write) {
+      hashObject(path11, write) {
         return this._runTask(
-          hashObjectTask(path9, write === true),
+          hashObjectTask(path11, write === true),
           trailingFunctionArgument(arguments)
         );
       }
@@ -32399,8 +32822,8 @@ var init_branch = __esm2({
   }
 });
 function toPath(input) {
-  const path9 = input.trim().replace(/^["']|["']$/g, "");
-  return path9 && (0, import_node_path6.normalize)(path9);
+  const path11 = input.trim().replace(/^["']|["']$/g, "");
+  return path11 && (0, import_node_path6.normalize)(path11);
 }
 var parseCheckIgnore;
 var init_CheckIgnore = __esm2({
@@ -32685,8 +33108,8 @@ __export2(sub_module_exports, {
   subModuleTask: () => subModuleTask,
   updateSubModuleTask: () => updateSubModuleTask
 });
-function addSubModuleTask(repo, path9) {
-  return subModuleTask(["add", repo, path9]);
+function addSubModuleTask(repo, path11) {
+  return subModuleTask(["add", repo, path11]);
 }
 function initSubModuleTask(customArgs) {
   return subModuleTask(["init", ...customArgs]);
@@ -33000,8 +33423,8 @@ var require_git = __commonJS2({
       }
       return this._runTask(straightThroughStringTask2(command, this._trimmed), next);
     };
-    Git2.prototype.submoduleAdd = function(repo, path9, then) {
-      return this._runTask(addSubModuleTask2(repo, path9), trailingFunctionArgument2(arguments));
+    Git2.prototype.submoduleAdd = function(repo, path11, then) {
+      return this._runTask(addSubModuleTask2(repo, path11), trailingFunctionArgument2(arguments));
     };
     Git2.prototype.submoduleUpdate = function(args, then) {
       return this._runTask(
@@ -33580,6 +34003,11 @@ async function getModuleHash(repoRoot, moduleFiles) {
   const { createHash } = await import("node:crypto");
   return createHash("sha256").update(combined).digest("hex").slice(0, 12);
 }
+async function getCurrentCommit(repoRoot) {
+  const git = simpleGit(repoRoot);
+  const result = await git.revparse(["HEAD"]);
+  return result.trim().slice(0, 7);
+}
 
 // src/storage/manifest.ts
 init_file_utils();
@@ -33669,13 +34097,109 @@ var CacheManager = class {
     await saveManifest(this.paths.manifest, { ...manifest, modules: rest });
     log.debug(`Invalidated cache for module: ${moduleName}`);
   }
+  async cacheOverview(overview) {
+    const overviewPath = import_node_path7.default.join(this.paths.cache, "overview.json");
+    await writeJson(overviewPath, overview);
+  }
+  async getCachedOverview() {
+    const overviewPath = import_node_path7.default.join(this.paths.cache, "overview.json");
+    return readJson(overviewPath);
+  }
+  async cacheTechStack(ts) {
+    const tsPath = import_node_path7.default.join(this.paths.cache, "tech-stack.json");
+    await writeJson(tsPath, ts);
+  }
+  async getCachedTechStack() {
+    const tsPath = import_node_path7.default.join(this.paths.cache, "tech-stack.json");
+    return readJson(tsPath);
+  }
 };
+
+// src/tools/wiki-init.ts
+init_team_writer();
+function createWikiInitTool(repoRoot) {
+  return {
+    name: "wiki_init",
+    description: "Initialize Code Wiki for the current project. Detects language, framework, modules, and generates the .code-wiki/ directory structure. IMPORTANT: Use this MCP tool instead of `npx code-wiki init` or any Bash/CLI command.",
+    schema: {
+      force: external_exports.boolean().optional().default(false).describe("Force re-initialization even if .code-wiki/ exists")
+    },
+    handler: async (params) => {
+      const start = Date.now();
+      const { framework, language } = await detectFramework(repoRoot);
+      const modules = await detectModules(repoRoot, framework, language);
+      const graph = buildDependencyGraph(modules);
+      const commit = await getCurrentCommit(repoRoot);
+      const cache = new CacheManager(repoRoot);
+      await cache.init();
+      await cache.cacheGraph(graph);
+      const cachedOverview = await cache.getCachedOverview();
+      const cachedTechStack = await cache.getCachedTechStack();
+      const overview = {
+        name: repoRoot.split("/").pop() ?? "project",
+        language,
+        framework,
+        architecture: modules.length > 1 ? "multi-module" : "single-module",
+        modules: modules.map((m) => ({
+          name: m.name,
+          path: m.path,
+          responsibility: `${m.exports.length} exports`,
+          keyFiles: m.files.length,
+          deps: getDependencies(graph, m.name).internal
+        })),
+        entryPoints: modules.filter((m) => m.entryFile).map((m) => m.path),
+        sharedLibs: [],
+        lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+        overview: cachedOverview ?? void 0,
+        techStack: cachedTechStack ?? void 0
+      };
+      const moduleWikis = modules.map((m) => ({
+        name: m.name,
+        summary: `Run /wiki-update to generate detailed analysis`,
+        readWhen: [`Working with ${m.name}`, `Understanding ${m.name} module`],
+        responsibility: `Run /wiki-update to generate detailed analysis`,
+        boundary: "Pending LLM analysis",
+        keyAbstractions: [],
+        usagePatterns: [],
+        invariants: [],
+        configKeys: [],
+        keyTypes: m.types.map((t2) => t2.name),
+        exports: m.exports.map((e) => e.name),
+        dependencies: getDependencies(graph, m.name),
+        dependents: [],
+        relatedModules: [],
+        gotchas: []
+      }));
+      const written = await writeTeamWiki(repoRoot, overview, moduleWikis, []);
+      log.info(`wiki_init completed in ${Date.now() - start}ms`);
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            status: "initialized",
+            framework,
+            language,
+            moduleCount: modules.length,
+            filesWritten: written.length,
+            modules: modules.map((m) => ({
+              name: m.name,
+              path: m.path,
+              exports: m.exports.length,
+              types: m.types.length
+            })),
+            nextStep: "Run /wiki-update to generate detailed content for each module"
+          }, null, 2)
+        }]
+      };
+    }
+  };
+}
 
 // src/tools/wiki-overview.ts
 function createWikiOverviewTool(repoRoot) {
   return {
     name: "wiki_overview",
-    description: "Get project architecture overview \u2014 modules, entry points, tech stack. Use at session start or when needing project-level context.",
+    description: "Get project architecture overview \u2014 modules, entry points, tech stack, and cached wiki content. Use at session start or when needing project-level context. IMPORTANT: Use this MCP tool instead of `npx code-wiki status` or any Bash/CLI command.",
     schema: {
       depth: external_exports.enum(["brief", "full"]).optional().default("brief").describe("Detail level")
     },
@@ -33704,11 +34228,18 @@ function createWikiOverviewTool(repoRoot) {
       const cache = new CacheManager(repoRoot);
       await cache.init();
       await cache.cacheGraph(graph);
+      const cachedOverview = await cache.getCachedOverview();
+      const cachedTechStack = await cache.getCachedTechStack();
+      const enrichedOverview = {
+        ...overview,
+        overview: cachedOverview ?? void 0,
+        techStack: cachedTechStack ?? void 0
+      };
       log.info(`wiki_overview completed in ${Date.now() - start}ms`);
       return {
         content: [{
           type: "text",
-          text: JSON.stringify(overview, null, 2)
+          text: JSON.stringify(enrichedOverview, null, 2)
         }]
       };
     }
@@ -33722,11 +34253,11 @@ function detectArchitecture(modules) {
 }
 
 // src/tools/wiki-module.ts
-var import_node_path8 = __toESM(require("node:path"), 1);
+var import_node_path9 = __toESM(require("node:path"), 1);
 function createWikiModuleTool(repoRoot) {
   return {
     name: "wiki_module",
-    description: "Get module details \u2014 responsibilities, boundaries, exports, dependencies, gotchas. Use when about to modify or analyze a specific module.",
+    description: "Get module details \u2014 responsibilities, boundaries, exports, dependencies, gotchas. Use when about to modify or analyze a specific module. IMPORTANT: Use this MCP tool instead of reading source files directly for architecture questions. Returns cached wiki content when available.",
     schema: {
       module_path: external_exports.string().describe("Module path or name"),
       include_flows: external_exports.boolean().optional().default(false).describe("Include flow analysis")
@@ -33741,7 +34272,7 @@ function createWikiModuleTool(repoRoot) {
       if (!mod) {
         return { content: [{ type: "text", text: JSON.stringify({ error: `Module not found: ${params.module_path}`, available: modules.map((m) => m.name) }) }] };
       }
-      const moduleName = import_node_path8.default.basename(params.module_path);
+      const moduleName = import_node_path9.default.basename(params.module_path);
       const isFresh = await cache.isModuleFresh(moduleName, mod.files);
       if (isFresh) {
         const cached2 = await cache.getCachedModule(moduleName);
@@ -33827,7 +34358,7 @@ function traceCallChain(functionName, file, line, modules, visited, depth = 0) {
 function createWikiFlowTool(repoRoot) {
   return {
     name: "wiki_flow",
-    description: "Trace a business flow through code. Use when needing to understand how a feature works end-to-end.",
+    description: "Trace a business flow through code \u2014 returns ordered steps with file:line references. Use when needing to understand how a feature works end-to-end. IMPORTANT: Use this MCP tool instead of reading multiple files to trace flows manually.",
     schema: {
       description: external_exports.string().describe("Natural language description of the flow to trace"),
       entry_file: external_exports.string().optional().describe("Optional starting file hint")
@@ -33941,12 +34472,43 @@ Module Analysis:
 {{moduleData}}
 
 Respond with JSON only.`;
+var PROJECT_OVERVIEW_PROMPT = `You are analyzing a codebase to produce a high-level project overview. Based on the module analysis and dependency data below, generate a structured project description.
+
+Output JSON matching this shape:
+{
+  "summary": "1-2 sentence elevator pitch \u2014 what this project IS and what it DOES",
+  "businessContext": "2-3 sentences describing the domain, problem space, or business purpose",
+  "coreCapabilities": [
+    "Capability 1 \u2014 specific to THIS codebase",
+    "Capability 2",
+    "..."
+  ],
+  "targetUsers": "Who uses this project \u2014 developers, end users, other systems?"
+}
+
+Rules:
+- summary: concise, specific to this codebase. NOT generic. Reference actual features.
+- businessContext: explain the WHY \u2014 what problem does this solve? What domain is it in?
+- coreCapabilities: 3-6 concrete capabilities. Each should be a single sentence with specific details from the code.
+- targetUsers: brief description of who interacts with this system
+- Be specific to THIS codebase. Reference actual module names, entry points, and functionality.
+
+Module Analysis:
+{{moduleData}}
+
+Dependency Data:
+{{depData}}
+
+Entry Points:
+{{entryPoints}}
+
+Respond with JSON only.`;
 
 // src/tools/wiki-query.ts
 function createWikiQueryTool(repoRoot) {
   return {
     name: "wiki_query",
-    description: "Ask a natural language question about the codebase. Returns answer with file references.",
+    description: "Ask a natural language question about the codebase. Returns analysis data with file references for the host LLM to synthesize an answer. IMPORTANT: Use this MCP tool instead of `npx code-wiki query` or any Bash/CLI command.",
     schema: {
       question: external_exports.string().describe("Your question about the codebase"),
       scope: external_exports.array(external_exports.string()).optional().describe("Optional module filter")
@@ -33981,30 +34543,346 @@ function createWikiQueryTool(repoRoot) {
 }
 
 // src/tools/wiki-update.ts
-var import_node_path9 = __toESM(require("node:path"), 1);
+var import_node_path11 = __toESM(require("node:path"), 1);
 init_constants();
 init_file_utils();
+
+// src/engine/dep-extractor.ts
+init_file_utils();
+var import_node_path10 = __toESM(require("node:path"), 1);
+var ROLE_TABLE = {
+  // Framework
+  "next": "framework",
+  "nuxt": "framework",
+  "express": "framework",
+  "fastify": "framework",
+  "fastapi": "framework",
+  "django": "framework",
+  "flask": "framework",
+  "spring-boot": "framework",
+  "rails": "framework",
+  "actix-web": "framework",
+  "rocket": "framework",
+  "gin": "framework",
+  "hono": "framework",
+  "koa": "framework",
+  "nest": "framework",
+  // UI
+  "react": "ui",
+  "react-dom": "ui",
+  "vue": "ui",
+  "@angular/core": "ui",
+  "svelte": "ui",
+  "antd": "ui",
+  "@ant-design": "ui",
+  "tailwindcss": "ui",
+  "@mui": "ui",
+  "chakra-ui": "ui",
+  "recharts": "ui",
+  "chart.js": "ui",
+  "d3": "ui",
+  // Database
+  "prisma": "database",
+  "typeorm": "database",
+  "mongoose": "database",
+  "sequelize": "database",
+  "sqlalchemy": "database",
+  "pymongo": "database",
+  "psycopg2": "database",
+  "pymysql": "database",
+  "redis": "database",
+  "ioredis": "database",
+  "drizzle-orm": "database",
+  // Testing
+  "jest": "testing",
+  "vitest": "testing",
+  "pytest": "testing",
+  "mocha": "testing",
+  "cypress": "testing",
+  "playwright": "testing",
+  "@testing-library": "testing",
+  "junit": "testing",
+  "rspec": "testing",
+  // Build
+  "webpack": "build",
+  "vite": "build",
+  "rollup": "build",
+  "esbuild": "build",
+  "typescript": "build",
+  "tsup": "build",
+  "turbo": "build",
+  "@swc": "build",
+  // Core
+  "zod": "core",
+  "axios": "core",
+  "fetch": "core",
+  "langchain": "core",
+  "polars": "core",
+  "lightgbm": "core",
+  "tensorflow": "core",
+  "torch": "core",
+  "pandas": "core",
+  "numpy": "core",
+  "scikit-learn": "core"
+};
+function classifyRole(name) {
+  const lower = name.toLowerCase();
+  for (const [key, role] of Object.entries(ROLE_TABLE)) {
+    if (lower === key || lower.startsWith(key + "/") || lower.startsWith("@" + key)) {
+      return role;
+    }
+  }
+  return "other";
+}
+async function readManifest(filePath) {
+  try {
+    return await readFile(filePath);
+  } catch {
+    return null;
+  }
+}
+async function extractDependencies(repoRoot, language, framework) {
+  switch (language) {
+    case "typescript":
+      return extractFromPackageJson(repoRoot, language, framework);
+    case "python":
+      return extractFromPython(repoRoot, language, framework);
+    case "go":
+      return extractFromGoMod(repoRoot, language, framework);
+    case "java":
+      return extractFromPomXml(repoRoot, language, framework);
+    case "rust":
+      return extractFromCargoToml(repoRoot, language, framework);
+    case "ruby":
+      return extractFromGemfile(repoRoot, language, framework);
+    default:
+      return { language, framework: framework ?? "generic", dependencies: [] };
+  }
+}
+async function extractFromPackageJson(repoRoot, language, framework) {
+  const raw = await readManifest(import_node_path10.default.join(repoRoot, "package.json"));
+  if (!raw) return { language, framework: framework ?? "generic", dependencies: [] };
+  const pkg = JSON.parse(raw);
+  const deps = [];
+  for (const [name, version2] of Object.entries(pkg.dependencies ?? {})) {
+    deps.push({
+      name,
+      version: String(version2).replace(/^[\^~>=<]*/, ""),
+      role: classifyRole(name)
+    });
+  }
+  for (const [name, version2] of Object.entries(pkg.devDependencies ?? {})) {
+    deps.push({
+      name,
+      version: String(version2).replace(/^[\^~>=<]*/, ""),
+      role: classifyRole(name)
+    });
+  }
+  const engines = pkg.engines ?? {};
+  const nodeVersion = engines.node?.replace(/^[\^~>=<]*/, "");
+  return {
+    language,
+    languageVersion: "ES2022",
+    framework: framework ?? "generic",
+    runtime: nodeVersion ? `Node.js ${nodeVersion}` : void 0,
+    packageManager: "npm",
+    dependencies: deps
+  };
+}
+async function extractFromPython(repoRoot, language, framework) {
+  const deps = [];
+  const raw = await readManifest(import_node_path10.default.join(repoRoot, "pyproject.toml"));
+  if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
+  const requiresPython = raw.match(/requires-python\s*=\s*"([^"]+)"/)?.[1];
+  const depBlock = raw.match(/\[project\.dependencies\]([\s\S]*?)(\[|$)/)?.[1] ?? "";
+  for (const line of depBlock.split("\n")) {
+    const m = line.trim().match(/^([a-zA-Z0-9_.-]+)\s*([><=!~]+\s*[\d.]+)?/);
+    if (m) {
+      deps.push({
+        name: m[1],
+        version: m[2]?.replace(/[><=!~\s]+/, "") ?? "*",
+        role: classifyRole(m[1])
+      });
+    }
+  }
+  return {
+    language,
+    languageVersion: requiresPython ?? void 0,
+    framework: framework ?? "generic",
+    packageManager: "pip",
+    dependencies: deps
+  };
+}
+async function extractFromGoMod(repoRoot, language, framework) {
+  const deps = [];
+  const raw = await readManifest(import_node_path10.default.join(repoRoot, "go.mod"));
+  if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
+  for (const line of raw.split("\n")) {
+    const m = line.trim().match(/^([a-zA-Z0-9./-]+)\s+(v[\d.]+)/);
+    if (m && !m[1].startsWith("module ") && !m[1].startsWith("go ")) {
+      deps.push({
+        name: m[1],
+        version: m[2],
+        role: classifyRole(m[1])
+      });
+    }
+  }
+  return { language, framework: framework ?? "generic", dependencies: deps };
+}
+async function extractFromPomXml(repoRoot, language, framework) {
+  const deps = [];
+  const raw = await readManifest(import_node_path10.default.join(repoRoot, "pom.xml"));
+  if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
+  const re = /<dependency>\s*<groupId>([^<]+)<\/groupId>\s*<artifactId>([^<]+)<\/artifactId>(?:\s*<version>([^<]+)<\/version>)?/g;
+  let m;
+  while ((m = re.exec(raw)) !== null) {
+    deps.push({
+      name: `${m[1]}:${m[2]}`,
+      version: m[3] ?? "*",
+      role: classifyRole(m[2])
+    });
+  }
+  return { language, framework: framework ?? "generic", dependencies: deps };
+}
+async function extractFromCargoToml(repoRoot, language, framework) {
+  const deps = [];
+  const raw = await readManifest(import_node_path10.default.join(repoRoot, "Cargo.toml"));
+  if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
+  const inDeps = raw.match(/\[dependencies\]([\s\S]*?)(\[|$)/)?.[1] ?? "";
+  for (const line of inDeps.split("\n")) {
+    const m = line.trim().match(/^([a-zA-Z0-9_-]+)\s*[=\s]?\s*(?:version\s*=\s*)?"([^"]*)"?/);
+    if (m) {
+      deps.push({
+        name: m[1],
+        version: m[2] || "*",
+        role: classifyRole(m[1])
+      });
+    }
+  }
+  return { language, framework: framework ?? "generic", dependencies: deps };
+}
+async function extractFromGemfile(repoRoot, language, framework) {
+  const deps = [];
+  const raw = await readManifest(import_node_path10.default.join(repoRoot, "Gemfile"));
+  if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
+  for (const line of raw.split("\n")) {
+    const m = line.trim().match(/^gem\s+['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
+    if (m) {
+      deps.push({
+        name: m[1],
+        version: m[2] ?? "*",
+        role: classifyRole(m[1])
+      });
+    }
+  }
+  return { language, framework: framework ?? "generic", dependencies: deps };
+}
+
+// src/tools/wiki-update.ts
 function createWikiUpdateTool(repoRoot) {
   return {
     name: "wiki_update",
-    description: 'Update wiki content. Two modes: (1) scope="changed"|"full" returns analysis data for host LLM to generate content, (2) with module + generated_content persists LLM output to team wiki files.',
+    description: 'Update wiki content via two-phase MCP workflow. Phase 1: call with scope="changed"|"full" to get AST analysis data, then generate wiki content as the host LLM. Phase 2: call with module + generated_content to persist. IMPORTANT: Do NOT use `npx code-wiki update` or any Bash/CLI command. The two-phase pattern ensures wiki content is LLM-generated for higher quality.',
     schema: {
       scope: external_exports.enum(["full", "changed"]).optional().default("changed"),
       paths: external_exports.array(external_exports.string()).optional(),
       module: external_exports.string().optional(),
-      generated_content: external_exports.string().optional().describe("JSON string of ModuleWiki from host LLM")
+      generated_content: external_exports.string().optional().describe("JSON string of ModuleWiki from host LLM"),
+      persist_overview: external_exports.string().optional().describe("JSON string of ProjectOverview from host LLM"),
+      persist_tech_stack_descriptions: external_exports.string().optional().describe("JSON object mapping package name to description")
     },
     handler: async (params) => {
       const start = Date.now();
       const cache = new CacheManager(repoRoot);
       await cache.init();
+      if (params.persist_overview && !params.module && !params.generated_content) {
+        const overviewContent = JSON.parse(params.persist_overview);
+        await cache.cacheOverview(overviewContent);
+        const { framework: framework2, language: language2 } = await detectFramework(repoRoot);
+        const allModules = await detectModules(repoRoot, framework2, language2);
+        const graph2 = await cache.getCachedGraph() ?? buildDependencyGraph(allModules);
+        const cachedTechStack = await cache.getCachedTechStack();
+        const existingModuleWikis = [];
+        for (const m of allModules) {
+          const cached2 = await cache.getCachedModule(m.name);
+          if (cached2) existingModuleWikis.push(cached2);
+        }
+        const overviewWiki = {
+          name: repoRoot.split("/").pop() ?? "project",
+          language: language2,
+          framework: framework2,
+          architecture: allModules.length > 1 ? "multi-module" : "single-module",
+          modules: allModules.map((m) => ({
+            name: m.name,
+            path: m.path,
+            responsibility: `${m.exports.length} exports`,
+            keyFiles: m.files.length,
+            deps: getDependencies(graph2, m.name).internal
+          })),
+          entryPoints: allModules.filter((m) => m.entryFile).map((m) => m.path),
+          sharedLibs: [],
+          lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+          overview: overviewContent,
+          techStack: cachedTechStack ?? void 0
+        };
+        const { writeTeamWiki: writeTeamWiki2 } = await Promise.resolve().then(() => (init_team_writer(), team_writer_exports));
+        await writeTeamWiki2(repoRoot, overviewWiki, existingModuleWikis, []);
+        log.info("wiki_update persisted project overview");
+        return {
+          content: [{ type: "text", text: JSON.stringify({ status: "overview_persisted" }) }]
+        };
+      }
+      if (params.persist_tech_stack_descriptions && !params.module && !params.generated_content) {
+        const descriptions = JSON.parse(params.persist_tech_stack_descriptions);
+        const existingTechStack = await cache.getCachedTechStack();
+        if (existingTechStack) {
+          existingTechStack.dependencies = existingTechStack.dependencies.map((d) => ({
+            ...d,
+            description: descriptions[d.name] ?? d.description
+          }));
+          await cache.cacheTechStack(existingTechStack);
+          const { framework: framework2, language: language2 } = await detectFramework(repoRoot);
+          const allModules = await detectModules(repoRoot, framework2, language2);
+          const graph2 = await cache.getCachedGraph() ?? buildDependencyGraph(allModules);
+          const cachedOverview = await cache.getCachedOverview();
+          const existingModuleWikis = [];
+          for (const m of allModules) {
+            const cached2 = await cache.getCachedModule(m.name);
+            if (cached2) existingModuleWikis.push(cached2);
+          }
+          const overviewWiki = {
+            name: repoRoot.split("/").pop() ?? "project",
+            language: language2,
+            framework: framework2,
+            architecture: allModules.length > 1 ? "multi-module" : "single-module",
+            modules: allModules.map((m) => ({
+              name: m.name,
+              path: m.path,
+              responsibility: `${m.exports.length} exports`,
+              keyFiles: m.files.length,
+              deps: getDependencies(graph2, m.name).internal
+            })),
+            entryPoints: allModules.filter((m) => m.entryFile).map((m) => m.path),
+            sharedLibs: [],
+            lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+            overview: cachedOverview ?? void 0,
+            techStack: existingTechStack
+          };
+          const { writeTeamWiki: writeTeamWiki2 } = await Promise.resolve().then(() => (init_team_writer(), team_writer_exports));
+          await writeTeamWiki2(repoRoot, overviewWiki, existingModuleWikis, []);
+        }
+        log.info("wiki_update persisted tech stack descriptions");
+        return {
+          content: [{ type: "text", text: JSON.stringify({ status: "tech_stack_persisted" }) }]
+        };
+      }
       if (params.module && params.generated_content) {
         const wiki = JSON.parse(params.generated_content);
         await cache.cacheModule(params.module, wiki, []);
         const paths = wikiPaths(repoRoot);
-        await ensureDir(import_node_path9.default.join(paths.team, "modules"));
-        const modPath = import_node_path9.default.join(paths.team, "modules", `${params.module}.md`);
-        await writeFile(modPath, renderModuleMd(wiki));
+        await ensureDir(import_node_path11.default.join(paths.team, "modules"));
+        const modPath = import_node_path11.default.join(paths.team, "modules", `${params.module}.md`);
+        await writeFile(modPath, renderModuleMd2(wiki));
         log.info(`wiki_update persisted content for ${params.module}`);
         return {
           content: [{
@@ -34059,16 +34937,22 @@ function createWikiUpdateTool(repoRoot) {
         };
       });
       const prompt = MODULE_SUMMARY_PROMPT.replace("{{astData}}", JSON.stringify(analysisData)).replace("{{depData}}", JSON.stringify(graph));
+      const techStackData = await extractDependencies(repoRoot, language);
+      const overviewPrompt = PROJECT_OVERVIEW_PROMPT.replace("{{moduleData}}", JSON.stringify(analysisData)).replace("{{depData}}", JSON.stringify(techStackData)).replace("{{entryPoints}}", JSON.stringify(
+        modules.filter((m) => m.entryFile).map((m) => ({ name: m.name, path: m.entryFile }))
+      ));
       const result = {
         status: "analysis_ready",
         updatedModules: modules.map((m) => m.name),
-        instruction: 'For each module above, generate wiki content and call wiki_update again with { module: "<name>", generated_content: "<JSON>" }. The generated_content JSON must have: name, summary (one-liner for index), readWhen (array of "when to read" scenarios), responsibility (2-3 sentence narrative), boundary (what it does NOT cover), quickStart (optional: {description, codeExample, language} \u2014 minimal copy-paste example, omit for test/config modules), keyAbstractions (array of {name, kind, description} for 3-8 important symbols), usagePatterns (array of {title, description, codeExample?, language?} for 1-3 common patterns), invariants (array of hard constraints that must always hold), configKeys (array of {key, type, default?, description} \u2014 only if module has meaningful configuration), keyTypes (array), exports (array), dependencies ({internal:[],external:[]}), dependents (array), relatedModules (array of module names that interact), gotchas (array of {description, severity: "warning"|"caution"|"note"} \u2014 warning=causes bugs, caution=wastes debug time, note=non-obvious but harmless).',
+        instruction: 'For each module above, generate wiki content and call wiki_update again with { module: "<name>", generated_content: "<JSON>" }. The generated_content JSON must have: name, summary (one-liner for index), readWhen (array of "when to read" scenarios), responsibility (2-3 sentence narrative), boundary (what it does NOT cover), quickStart (optional: {description, codeExample, language} \u2014 minimal copy-paste example, omit for test/config modules), keyAbstractions (array of {name, kind, description} for 3-8 important symbols), usagePatterns (array of {title, description, codeExample?, language?} for 1-3 common patterns), invariants (array of hard constraints that must always hold), configKeys (array of {key, type, default?, description} \u2014 only if module has meaningful configuration), keyTypes (array), exports (array), dependencies ({internal:[],external:[]}), dependents (array), relatedModules (array of module names that interact), gotchas (array of {description, severity: "warning"|"caution"|"note"} \u2014 warning=causes bugs, caution=wastes debug time, note=non-obvious but harmless).\n\nAfter generating module content, also generate project overview using the overviewPrompt below and call wiki_update with { persist_overview: "<JSON>" } to persist it. The overview JSON must have: summary (1-2 sentence elevator pitch), businessContext (2-3 sentences), coreCapabilities (3-6 bullet points), targetUsers (who uses this).\n\nOptionally, generate tech stack descriptions using techStackData and call wiki_update with { persist_tech_stack_descriptions: "<JSON>" } where JSON is { "package-name": "brief description" }.',
         newEntries: [],
         removedEntries: [],
         cacheInvalidated: true,
         durationMs: Date.now() - start,
         analysisData: { modules: analysisData, graph },
-        prompt
+        prompt,
+        overviewPrompt,
+        techStackData
       };
       log.info(`wiki_update analyzed ${modules.length} modules in ${Date.now() - start}ms`);
       return {
@@ -34080,7 +34964,7 @@ function createWikiUpdateTool(repoRoot) {
     }
   };
 }
-function renderModuleMd(m) {
+function renderModuleMd2(m) {
   const readWhenSection = (m.readWhen ?? []).length > 0 ? (m.readWhen ?? []).map((r2) => `  - ${r2}`).join("\n") : "  - Working with this module";
   const quickStartSection = m.quickStart ? `
 ## Quick Start
@@ -34184,7 +35068,7 @@ ${relatedSection}
 function createWikiImpactTool(repoRoot) {
   return {
     name: "wiki_impact",
-    description: "Analyze impact of planned changes. Returns affected modules, suggested tests, and docs to update.",
+    description: "Analyze impact of planned changes \u2014 returns directly/potentially affected modules, suggested tests, and wiki docs to update. IMPORTANT: Use this MCP tool instead of manually tracing dependencies. Call before modifying files to understand blast radius.",
     schema: {
       change_description: external_exports.string().describe("What you plan to change"),
       target_files: external_exports.array(external_exports.string()).describe("Files that will be modified")
@@ -34918,6 +35802,7 @@ async function main() {
   });
   const repoRoot = process.cwd();
   const tools = [
+    createWikiInitTool(repoRoot),
     createWikiOverviewTool(repoRoot),
     createWikiModuleTool(repoRoot),
     createWikiFlowTool(repoRoot),
