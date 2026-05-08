@@ -59,6 +59,33 @@ export async function writeTeamWiki(
 
 function renderArchitectureMd(o: OverviewWiki): string {
   const moduleMap = o.modules.map(m => m.name);
+
+  const overviewSection = o.overview
+    ? `
+### Business Context
+
+${o.overview.businessContext}
+
+### Core Capabilities
+
+${o.overview.coreCapabilities.map(c => `- ${c}`).join('\n')}
+`
+    : '';
+
+  const techStackSection = o.techStack
+    ? `
+## Tech Stack
+
+| Category | Key Technologies |
+| -------- | ---------------- |
+| Language | ${o.techStack.language}${o.techStack.languageVersion ? ` (${o.techStack.languageVersion})` : ''} |
+| Framework | ${o.techStack.framework} |
+${o.techStack.runtime ? `| Runtime | ${o.techStack.runtime} |` : ''}
+${o.techStack.packageManager ? `| Package Manager | ${o.techStack.packageManager} |` : ''}
+| Direct Dependencies | ${o.techStack.dependencies.length} |
+`
+    : '';
+
   return `---
 summary: "${o.name} architecture overview, module layout, and dependency direction"
 read_when:
@@ -75,7 +102,7 @@ title: "Architecture"
 ## Overview
 
 ${o.name} is a **${o.language}** project using the **${o.framework}** framework. The codebase follows a **${o.architecture}** architecture.
-
+${overviewSection}
 ## Modules
 
 ${o.modules.map(m => `- **[${m.name}](modules/${m.name}.md)** — ${m.responsibility}`).join('\n')}
@@ -94,7 +121,7 @@ ${o.entryPoints.map(p => `- \`${p}\``).join('\n')}
 ## Shared Libraries
 
 ${o.sharedLibs.length > 0 ? o.sharedLibs.map(l => `- \`${l}\``).join('\n') : 'None'}
-
+${techStackSection}
 ## Related
 
 - [Module Index](#modules) — individual module documentation
@@ -340,6 +367,43 @@ ${renderGroup('Warnings (will cause bugs/data loss)', warnings)}${renderGroup('C
 }
 
 function renderIndexMd(o: OverviewWiki, modules: ModuleWiki[]): string {
+  const overviewSection = o.overview
+    ? `## Project Overview
+
+${o.overview.summary}
+
+${o.overview.businessContext}
+
+### Core Capabilities
+
+${o.overview.coreCapabilities.map(c => `- ${c}`).join('\n')}
+
+### Target Users
+
+${o.overview.targetUsers}
+`
+    : `## Project Overview
+
+_Run [/wiki-update](commands/wiki-update.md) to generate project overview._
+`;
+
+  const techStackSection = o.techStack
+    ? `## Tech Stack
+
+| Category | Key Technologies |
+| -------- | ---------------- |
+| Language | ${o.techStack.language}${o.techStack.languageVersion ? ` (${o.techStack.languageVersion})` : ''} |
+| Framework | ${o.techStack.framework} |
+${o.techStack.runtime ? `| Runtime | ${o.techStack.runtime} |` : ''}
+${o.techStack.packageManager ? `| Package Manager | ${o.techStack.packageManager} |` : ''}
+
+${renderTechStackTable(o.techStack)}
+`
+    : `## Tech Stack
+
+_Run [/wiki-update](commands/wiki-update.md) to generate tech stack details._
+`;
+
   return `---
 summary: "${o.name} auto-generated project documentation"
 read_when:
@@ -352,6 +416,8 @@ title: "Code Wiki"
 
 > Auto-generated project documentation
 
+${overviewSection}
+${techStackSection}
 ## Architecture
 
 See [architecture.md](architecture.md) for the full architecture overview with dependency diagram.
@@ -380,4 +446,38 @@ See [gotchas.md](gotchas.md) for aggregated pitfalls.
 
 function escapeYaml(str: string): string {
   return str.replace(/"/g, '\\"').replace(/\n/g, ' ');
+}
+
+const ROLE_ORDER = ['framework', 'core', 'ui', 'database', 'build', 'testing', 'utility', 'other'] as const;
+const ROLE_LABELS: Record<string, string> = {
+  framework: 'Framework & Runtime',
+  core: 'Core Libraries',
+  ui: 'UI & Frontend',
+  database: 'Database & Storage',
+  testing: 'Testing',
+  build: 'Build & Tooling',
+  utility: 'Utilities',
+  other: 'Other',
+};
+
+function renderTechStackTable(ts: import('../types.js').TechStack): string {
+  const groups: Record<string, import('../types.js').DependencyInfo[]> = {};
+  for (const dep of ts.dependencies) {
+    const group = dep.role;
+    if (!groups[group]) groups[group] = [];
+    groups[group].push(dep);
+  }
+
+  const sections = Object.entries(groups)
+    .sort(([a], [b]) => ROLE_ORDER.indexOf(a as typeof ROLE_ORDER[number]) - ROLE_ORDER.indexOf(b as typeof ROLE_ORDER[number]))
+    .map(([role, deps]) => {
+      const label = ROLE_LABELS[role] ?? role;
+      const rows = deps.map(d =>
+        `| \`${d.name}\` | \`${d.version}\` | ${d.description ?? ''} |`
+      ).join('\n');
+      return `**${label}:**\n\n| Package | Version | Purpose |\n| ------- | ------- | ------- |\n${rows}`;
+    })
+    .join('\n\n');
+
+  return sections;
 }
