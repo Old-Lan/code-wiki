@@ -2,6 +2,8 @@ Query the Code Wiki with a natural language question.
 
 Argument: $ARGUMENTS (the question to ask)
 
+IMPORTANT: You MUST use MCP tools only. Do NOT use `npx code-wiki query` or any Bash/CLI command.
+
 Steps:
 1. Parse the user's question from $ARGUMENTS
 2. Call `wiki_query({ question: "<question>" })` to get analysis data

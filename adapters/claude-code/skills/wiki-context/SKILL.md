@@ -3,6 +3,7 @@ name: wiki-context
 description: Use PROACTIVELY when about to modify code files — automatically fetches module context (responsibilities, boundaries, dependencies, gotchas) so changes are informed by project knowledge. Also use when the user asks about code architecture, module boundaries, or dependency relationships.
 user-invocable: false
 allowed-tools:
+  - mcp__code-wiki__wiki_init
   - mcp__code-wiki__wiki_module
   - mcp__code-wiki__wiki_overview
   - mcp__code-wiki__wiki_impact
