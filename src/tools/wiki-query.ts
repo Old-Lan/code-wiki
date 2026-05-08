@@ -8,7 +8,7 @@ import { log } from '../utils/logger.js';
 export function createWikiQueryTool(repoRoot: string): ToolDefinition {
   return {
     name: 'wiki_query',
-    description: 'Ask a natural language question about the codebase. Returns answer with file references.',
+    description: 'Ask a natural language question about the codebase. Returns analysis data with file references for the host LLM to synthesize an answer. IMPORTANT: Use this MCP tool instead of `npx code-wiki query` or any Bash/CLI command.',
     schema: {
       question: z.string().describe('Your question about the codebase'),
       scope: z.array(z.string()).optional().describe('Optional module filter'),
