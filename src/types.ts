@@ -127,6 +127,29 @@ export interface Gotcha {
   severity: 'warning' | 'caution' | 'note';
 }
 
+export interface ProjectOverview {
+  summary: string;
+  businessContext: string;
+  coreCapabilities: string[];
+  targetUsers: string;
+}
+
+export interface DependencyInfo {
+  name: string;
+  version: string;
+  role: 'core' | 'framework' | 'testing' | 'build' | 'database' | 'ui' | 'utility' | 'other';
+  description?: string;
+}
+
+export interface TechStack {
+  language: SupportedLanguage;
+  languageVersion?: string;
+  framework: Framework;
+  runtime?: string;
+  packageManager?: string;
+  dependencies: DependencyInfo[];
+}
+
 export interface ModuleWiki {
   name: string;
   summary: string;
@@ -162,6 +185,8 @@ export interface OverviewWiki {
   entryPoints: string[];
   sharedLibs: string[];
   lastUpdated: string;
+  overview?: ProjectOverview;
+  techStack?: TechStack;
 }
 
 export interface ImpactResult {
@@ -231,4 +256,6 @@ export interface WikiUpdateResult {
   durationMs: number;
   analysisData?: Record<string, unknown>;
   prompt?: string;
+  overviewPrompt?: string;
+  techStackData?: TechStack;
 }
