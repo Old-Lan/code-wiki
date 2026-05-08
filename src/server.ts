@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerTools } from './tools/registry.js';
+import { createWikiInitTool } from './tools/wiki-init.js';
 import { createWikiOverviewTool } from './tools/wiki-overview.js';
 import { createWikiModuleTool } from './tools/wiki-module.js';
 import { createWikiFlowTool } from './tools/wiki-flow.js';
@@ -19,6 +20,7 @@ async function main() {
   const repoRoot = process.cwd();
 
   const tools = [
+    createWikiInitTool(repoRoot),
     createWikiOverviewTool(repoRoot),
     createWikiModuleTool(repoRoot),
     createWikiFlowTool(repoRoot),
