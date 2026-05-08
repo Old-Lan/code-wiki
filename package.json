@@ -12,23 +12,19 @@
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "build:bundle": "node scripts/bundle.mjs",
+    "build:plugin": "bash scripts/build-plugin.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
-    "tree-sitter": "^0.21.0",
-    "tree-sitter-typescript": "^0.23.0",
-    "tree-sitter-python": "^0.23.0",
-    "tree-sitter-go": "^0.23.0",
-    "tree-sitter-java": "^0.23.0",
-    "tree-sitter-rust": "^0.23.0",
-    "tree-sitter-ruby": "^0.23.0",
     "simple-git": "^3.27.0",
     "chokidar": "^4.0.0",
     "zod": "^3.24.0",
     "glob": "^11.0.0"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0",
     "@types/node": "^22.0.0"

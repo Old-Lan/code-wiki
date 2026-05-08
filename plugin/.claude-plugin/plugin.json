@@ -1,0 +1,11 @@
+{
+  "name": "code-wiki",
+  "description": "AI-powered code wiki — auto-generates project documentation via static analysis + LLM. Provides module context, dependency graphs, and architecture knowledge to Claude Code.",
+  "version": "0.1.0",
+  "author": {
+    "name": "kai"
+  },
+  "homepage": "https://github.com/kai003/code-wiki-marketplace",
+  "license": "MIT",
+  "keywords": ["wiki", "documentation", "architecture", "mcp", "codebase"]
+}

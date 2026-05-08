@@ -1,0 +1,6 @@
+{
+  "code-wiki": {
+    "command": "node",
+    "args": ["./server.cjs"]
+  }
+}
