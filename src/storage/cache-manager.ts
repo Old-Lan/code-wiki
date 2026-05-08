@@ -1,4 +1,4 @@
-import type { ModuleWiki, DependencyGraph, Manifest } from '../types.js';
+import type { ModuleWiki, DependencyGraph, Manifest, ProjectOverview, TechStack } from '../types.js';
 import { wikiPaths } from '../constants.js';
 import { readJson, writeJson, ensureDir } from '../utils/file-utils.js';
 import { getModuleHash } from '../utils/git-utils.js';
@@ -73,5 +73,25 @@ export class CacheManager {
     const { [moduleName]: _, ...rest } = manifest.modules;
     await saveManifest(this.paths.manifest, { ...manifest, modules: rest });
     log.debug(`Invalidated cache for module: ${moduleName}`);
+  }
+
+  async cacheOverview(overview: ProjectOverview): Promise<void> {
+    const overviewPath = path.join(this.paths.cache, 'overview.json');
+    await writeJson(overviewPath, overview);
+  }
+
+  async getCachedOverview(): Promise<ProjectOverview | null> {
+    const overviewPath = path.join(this.paths.cache, 'overview.json');
+    return readJson<ProjectOverview>(overviewPath);
+  }
+
+  async cacheTechStack(ts: TechStack): Promise<void> {
+    const tsPath = path.join(this.paths.cache, 'tech-stack.json');
+    await writeJson(tsPath, ts);
+  }
+
+  async getCachedTechStack(): Promise<TechStack | null> {
+    const tsPath = path.join(this.paths.cache, 'tech-stack.json');
+    return readJson<TechStack>(tsPath);
   }
 }
