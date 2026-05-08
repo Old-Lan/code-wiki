@@ -34,6 +34,9 @@ async function init() {
   await cache.cacheGraph(graph);
 
   // Generate overview
+  const cachedOverview = await cache.getCachedOverview();
+  const cachedTechStack = await cache.getCachedTechStack();
+
   const overview = {
     name: repoRoot.split('/').pop() ?? 'project',
     language,
@@ -49,6 +52,8 @@ async function init() {
     entryPoints: modules.filter(m => m.entryFile).map(m => m.path),
     sharedLibs: [],
     lastUpdated: new Date().toISOString(),
+    overview: cachedOverview ?? undefined,
+    techStack: cachedTechStack ?? undefined,
   };
 
   // Write team wiki (skeleton)
