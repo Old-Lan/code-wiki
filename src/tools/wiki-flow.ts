@@ -8,7 +8,7 @@ import { log } from '../utils/logger.js';
 export function createWikiFlowTool(repoRoot: string): ToolDefinition {
   return {
     name: 'wiki_flow',
-    description: 'Trace a business flow through code. Use when needing to understand how a feature works end-to-end.',
+    description: 'Trace a business flow through code — returns ordered steps with file:line references. Use when needing to understand how a feature works end-to-end. IMPORTANT: Use this MCP tool instead of reading multiple files to trace flows manually.',
     schema: {
       description: z.string().describe('Natural language description of the flow to trace'),
       entry_file: z.string().optional().describe('Optional starting file hint'),
