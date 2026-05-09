@@ -33,6 +33,11 @@ cp -r plugin/commands "$PLUGIN_DIR/commands"
 # Copy skills
 cp -r plugin/skills "$PLUGIN_DIR/skills"
 
+# Copy hooks
+if [ -d "plugin/hooks" ]; then
+  cp -r plugin/hooks "$PLUGIN_DIR/hooks"
+fi
+
 echo "==> Plugin built at $PLUGIN_DIR/"
 echo "    Files:"
 find "$PLUGIN_DIR" -type f | sed 's/^/    /'
