@@ -3226,8 +3226,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path11) {
-      let input = path11;
+    function removeDotSegments(path12) {
+      let input = path12;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3426,8 +3426,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path11, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path11 && path11 !== "/" ? path11 : void 0;
+        const [path12, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path12 && path12 !== "/" ? path12 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -10403,12 +10403,12 @@ var init_esm5 = __esm({
       /**
        * Get the Path object referenced by the string path, resolved from this Path
        */
-      resolve(path11) {
-        if (!path11) {
+      resolve(path12) {
+        if (!path12) {
           return this;
         }
-        const rootPath = this.getRootString(path11);
-        const dir = path11.substring(rootPath.length);
+        const rootPath = this.getRootString(path12);
+        const dir = path12.substring(rootPath.length);
         const dirParts = dir.split(this.splitSep);
         const result = rootPath ? this.getRoot(rootPath).#resolveParts(dirParts) : this.#resolveParts(dirParts);
         return result;
@@ -11160,8 +11160,8 @@ var init_esm5 = __esm({
       /**
        * @internal
        */
-      getRootString(path11) {
-        return import_node_path.win32.parse(path11).root;
+      getRootString(path12) {
+        return import_node_path.win32.parse(path12).root;
       }
       /**
        * @internal
@@ -11207,8 +11207,8 @@ var init_esm5 = __esm({
       /**
        * @internal
        */
-      getRootString(path11) {
-        return path11.startsWith("/") ? "/" : "";
+      getRootString(path12) {
+        return path12.startsWith("/") ? "/" : "";
       }
       /**
        * @internal
@@ -11297,11 +11297,11 @@ var init_esm5 = __esm({
       /**
        * Get the depth of a provided path, string, or the cwd
        */
-      depth(path11 = this.cwd) {
-        if (typeof path11 === "string") {
-          path11 = this.cwd.resolve(path11);
+      depth(path12 = this.cwd) {
+        if (typeof path12 === "string") {
+          path12 = this.cwd.resolve(path12);
         }
-        return path11.depth();
+        return path12.depth();
       }
       /**
        * Return the cache of child entries.  Exposed so subclasses can create
@@ -11788,9 +11788,9 @@ var init_esm5 = __esm({
         process3();
         return results;
       }
-      chdir(path11 = this.cwd) {
+      chdir(path12 = this.cwd) {
         const oldCwd = this.cwd;
-        this.cwd = typeof path11 === "string" ? this.cwd.resolve(path11) : path11;
+        this.cwd = typeof path12 === "string" ? this.cwd.resolve(path12) : path12;
         this.cwd[setAsCwd](oldCwd);
       }
     };
@@ -12165,8 +12165,8 @@ var init_processor = __esm({
       }
       // match, absolute, ifdir
       entries() {
-        return [...this.store.entries()].map(([path11, n]) => [
-          path11,
+        return [...this.store.entries()].map(([path12, n]) => [
+          path12,
           !!(n & 2),
           !!(n & 1)
         ]);
@@ -12379,9 +12379,9 @@ var init_walker = __esm({
       signal;
       maxDepth;
       includeChildMatches;
-      constructor(patterns, path11, opts) {
+      constructor(patterns, path12, opts) {
         this.patterns = patterns;
-        this.path = path11;
+        this.path = path12;
         this.opts = opts;
         this.#sep = !opts.posix && opts.platform === "win32" ? "\\" : "/";
         this.includeChildMatches = opts.includeChildMatches !== false;
@@ -12400,11 +12400,11 @@ var init_walker = __esm({
           });
         }
       }
-      #ignored(path11) {
-        return this.seen.has(path11) || !!this.#ignore?.ignored?.(path11);
+      #ignored(path12) {
+        return this.seen.has(path12) || !!this.#ignore?.ignored?.(path12);
       }
-      #childrenIgnored(path11) {
-        return !!this.#ignore?.childrenIgnored?.(path11);
+      #childrenIgnored(path12) {
+        return !!this.#ignore?.childrenIgnored?.(path12);
       }
       // backpressure mechanism
       pause() {
@@ -12619,8 +12619,8 @@ var init_walker = __esm({
     };
     GlobWalker = class extends GlobUtil {
       matches = /* @__PURE__ */ new Set();
-      constructor(patterns, path11, opts) {
-        super(patterns, path11, opts);
+      constructor(patterns, path12, opts) {
+        super(patterns, path12, opts);
       }
       matchEmit(e) {
         this.matches.add(e);
@@ -12657,8 +12657,8 @@ var init_walker = __esm({
     };
     GlobStream = class extends GlobUtil {
       results;
-      constructor(patterns, path11, opts) {
-        super(patterns, path11, opts);
+      constructor(patterns, path12, opts) {
+        super(patterns, path12, opts);
         this.results = new Minipass({
           signal: this.signal,
           objectMode: true
@@ -13811,10 +13811,10 @@ var require_src2 = __commonJS({
     var fs_1 = require("fs");
     var debug_1 = __importDefault(require_src());
     var log2 = debug_1.default("@kwsites/file-exists");
-    function check2(path11, isFile, isDirectory) {
-      log2(`checking %s`, path11);
+    function check2(path12, isFile, isDirectory) {
+      log2(`checking %s`, path12);
       try {
-        const stat = fs_1.statSync(path11);
+        const stat = fs_1.statSync(path12);
         if (stat.isFile() && isFile) {
           log2(`[OK] path represents a file`);
           return true;
@@ -13834,8 +13834,8 @@ var require_src2 = __commonJS({
         throw e;
       }
     }
-    function exists2(path11, type = exports2.READABLE) {
-      return check2(path11, (type & exports2.FILE) > 0, (type & exports2.FOLDER) > 0);
+    function exists2(path12, type = exports2.READABLE) {
+      return check2(path12, (type & exports2.FILE) > 0, (type & exports2.FOLDER) > 0);
     }
     exports2.exists = exists2;
     exports2.FILE = 1;
@@ -13907,18 +13907,18 @@ async function writeTeamWiki(repoRoot, overview, moduleWikis, flows) {
   const paths = wikiPaths(repoRoot);
   const written = [];
   await ensureDir(paths.team);
-  await ensureDir(import_node_path8.default.join(paths.team, "modules"));
-  await ensureDir(import_node_path8.default.join(paths.team, "flows"));
-  const archPath = import_node_path8.default.join(paths.team, "architecture.md");
+  await ensureDir(import_node_path9.default.join(paths.team, "modules"));
+  await ensureDir(import_node_path9.default.join(paths.team, "flows"));
+  const archPath = import_node_path9.default.join(paths.team, "architecture.md");
   await writeFile(archPath, renderArchitectureMd(overview));
   written.push(archPath);
   for (const mod of moduleWikis) {
-    const modPath = import_node_path8.default.join(paths.team, "modules", `${mod.name}.md`);
+    const modPath = import_node_path9.default.join(paths.team, "modules", `${mod.name}.md`);
     await writeFile(modPath, renderModuleMd(mod, overview.lastUpdated, overview.modules));
     written.push(modPath);
   }
   for (const flow of flows) {
-    const flowPath = import_node_path8.default.join(paths.team, "flows", `${flow.name}.md`);
+    const flowPath = import_node_path9.default.join(paths.team, "flows", `${flow.name}.md`);
     await writeFile(flowPath, renderFlowMd(flow, overview.lastUpdated));
     written.push(flowPath);
   }
@@ -13930,11 +13930,11 @@ async function writeTeamWiki(repoRoot, overview, moduleWikis, flows) {
     }))
   );
   if (allGotchas.length > 0) {
-    const gotchasPath = import_node_path8.default.join(paths.team, "gotchas.md");
+    const gotchasPath = import_node_path9.default.join(paths.team, "gotchas.md");
     await writeFile(gotchasPath, renderGotchasMd(allGotchas, overview.lastUpdated));
     written.push(gotchasPath);
   }
-  const indexPath = import_node_path8.default.join(paths.team, "README.md");
+  const indexPath = import_node_path9.default.join(paths.team, "README.md");
   await writeFile(indexPath, renderIndexMd(overview, moduleWikis));
   written.push(indexPath);
   return written;
@@ -14300,13 +14300,13 @@ ${rows}`;
   }).join("\n\n");
   return sections;
 }
-var import_node_path8, ROLE_ORDER, ROLE_LABELS;
+var import_node_path9, ROLE_ORDER, ROLE_LABELS;
 var init_team_writer = __esm({
   "src/storage/team-writer.ts"() {
     "use strict";
     init_file_utils();
     init_constants();
-    import_node_path8 = __toESM(require("node:path"), 1);
+    import_node_path9 = __toESM(require("node:path"), 1);
     ROLE_ORDER = ["framework", "core", "ui", "database", "build", "testing", "utility", "other"];
     ROLE_LABELS = {
       framework: "Framework & Runtime",
@@ -14799,8 +14799,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path11, errorMaps, issueData } = params;
-  const fullPath = [...path11, ...issueData.path || []];
+  const { data, path: path12, errorMaps, issueData } = params;
+  const fullPath = [...path12, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -14916,11 +14916,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path11, key) {
+  constructor(parent, value, path12, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path11;
+    this._path = path12;
     this._key = key;
   }
   get path() {
@@ -18558,10 +18558,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path11) {
-  if (!path11)
+function getElementAtPath(obj, path12) {
+  if (!path12)
     return obj;
-  return path11.reduce((acc, key) => acc?.[key], obj);
+  return path12.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -18881,11 +18881,11 @@ function aborted(x2, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path11, issues) {
+function prefixIssues(path12, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path11);
+    iss.path.unshift(path12);
     return iss;
   });
 }
@@ -28571,7 +28571,32 @@ var log = {
 };
 
 // src/engine/framework-detector.ts
+function computeMonorepoLanguage(subProjects) {
+  const counts = {};
+  for (const sub of subProjects) {
+    counts[sub.language] = (counts[sub.language] ?? 0) + 1;
+  }
+  const sorted2 = Object.entries(counts).sort(([, a], [, b2]) => b2 - a);
+  return sorted2[0]?.[0] ?? "typescript";
+}
 var detectors = [
+  {
+    framework: "fastapi",
+    language: "python",
+    detect: async (root) => {
+      try {
+        const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "pyproject.toml"), "utf-8");
+        return content.includes("fastapi") || content.includes("uvicorn");
+      } catch {
+        try {
+          const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "requirements.txt"), "utf-8");
+          return content.includes("fastapi") || content.includes("uvicorn");
+        } catch {
+          return false;
+        }
+      }
+    }
+  },
   {
     framework: "nextjs",
     language: "typescript",
@@ -28674,8 +28699,9 @@ async function detectReactVite(root) {
 async function detectFramework(repoRoot) {
   const subProjects = await detectMonorepoSubProjects(repoRoot).catch(() => []);
   if (subProjects.length > 0) {
-    log.info(`Detected monorepo with ${subProjects.length} sub-projects: ${subProjects.map((s) => s.name).join(", ")}`);
-    return { framework: "generic", language: "typescript", configFiles: [], isMonorepo: true, subProjects };
+    const language2 = computeMonorepoLanguage(subProjects);
+    log.info(`Detected monorepo with ${subProjects.length} sub-projects: ${subProjects.map((s) => s.name).join(", ")}, primary language: ${language2}`);
+    return { framework: "generic", language: language2, configFiles: [], isMonorepo: true, subProjects };
   }
   for (const detector of detectors) {
     try {
@@ -28689,7 +28715,7 @@ async function detectFramework(repoRoot) {
   }
   if (await detectFastAPI(repoRoot)) {
     log.info("Detected FastAPI project");
-    return { framework: "generic", language: "python", configFiles: [], isMonorepo: false, subProjects: [] };
+    return { framework: "fastapi", language: "python", configFiles: [], isMonorepo: false, subProjects: [] };
   }
   const language = await detectPrimaryLanguage(repoRoot);
   log.info(`No framework detected, primary language: ${language}`);
@@ -28717,7 +28743,7 @@ async function detectMonorepoSubProjects(repoRoot) {
       results.push({
         name: entry.name,
         path: subPath,
-        framework: "generic",
+        framework: isFastAPI ? "fastapi" : "generic",
         language: "python"
       });
     }
@@ -28823,7 +28849,7 @@ async function groupFilesIntoModules(projectRoot, files, framework, language) {
   if (framework === "nextjs") {
     return groupNextjsModules(projectRoot, files);
   }
-  if (language === "python") {
+  if (framework === "fastapi" || language === "python") {
     const fastApiGrouping = await groupFastApiModules(projectRoot, files);
     if (fastApiGrouping) return fastApiGrouping;
   }
@@ -28834,23 +28860,65 @@ async function groupFilesIntoModules(projectRoot, files, framework, language) {
   return groupGeneric(files);
 }
 async function groupFastApiModules(projectRoot, files) {
-  const appFiles = files.filter((f) => f.startsWith("app/") || f.startsWith("src/app/"));
-  if (appFiles.length === 0) return null;
-  const prefix = files.some((f) => f.startsWith("src/app/")) ? "src/app/" : "app/";
+  const prefixes = ["app/", "src/app/", "src/"];
+  let matchedPrefix = null;
+  for (const prefix of prefixes) {
+    const matching = files.filter((f) => f.startsWith(prefix));
+    if (matching.length >= 3) {
+      matchedPrefix = prefix;
+      break;
+    }
+  }
+  if (!matchedPrefix) return null;
   const moduleMap = /* @__PURE__ */ new Map();
+  const knownDirs = /* @__PURE__ */ new Set([
+    "core",
+    "modules",
+    "module",
+    "api",
+    "routers",
+    "routes",
+    "models",
+    "schemas",
+    "services",
+    "algorithm",
+    "algorithms",
+    "agents",
+    "utils",
+    "lib",
+    "middleware",
+    "config",
+    "repositories",
+    "tests",
+    "test",
+    "migrations"
+  ]);
   for (const file of files) {
-    if (file.startsWith(prefix)) {
-      const afterPrefix = file.slice(prefix.length);
+    if (file.startsWith(matchedPrefix)) {
+      const afterPrefix = file.slice(matchedPrefix.length);
       const parts = afterPrefix.split(import_node_path5.default.sep);
-      if (parts.length > 1) {
-        const moduleName = parts[0];
-        const existing = moduleMap.get(moduleName) ?? [];
-        existing.push(file);
-        moduleMap.set(moduleName, existing);
+      if (parts.length > 1 && parts[0]) {
+        const firstDir = parts[0];
+        if (knownDirs.has(firstDir)) {
+          if ((firstDir === "modules" || firstDir === "module") && parts.length > 2 && parts[1]) {
+            const moduleName = parts[1];
+            const existing = moduleMap.get(moduleName) ?? [];
+            existing.push(file);
+            moduleMap.set(moduleName, existing);
+          } else {
+            const existing = moduleMap.get(firstDir) ?? [];
+            existing.push(file);
+            moduleMap.set(firstDir, existing);
+          }
+        } else {
+          const existing = moduleMap.get(firstDir) ?? [];
+          existing.push(file);
+          moduleMap.set(firstDir, existing);
+        }
       } else {
-        const existing = moduleMap.get("core") ?? [];
+        const existing = moduleMap.get("root") ?? [];
         existing.push(file);
-        moduleMap.set("core", existing);
+        moduleMap.set("root", existing);
       }
     } else {
       const parts = file.split(import_node_path5.default.sep);
@@ -28951,8 +29019,33 @@ async function buildModuleDefs(repoRoot, moduleMap, language) {
   return modules;
 }
 function findEntryFile(files) {
-  const entryNames = ["index.ts", "index.tsx", "index.js", "main.ts", "main.go", "__init__.py", "mod.rs", "index.rb"];
-  return files.find((f) => entryNames.includes(import_node_path5.default.basename(f)));
+  const entryNames = [
+    "main.ts",
+    "main.tsx",
+    "main.js",
+    "main.jsx",
+    "main.py",
+    "main.go",
+    "app.ts",
+    "app.tsx",
+    "app.js",
+    "app.jsx",
+    "app.py",
+    "index.ts",
+    "index.tsx",
+    "index.js",
+    "index.jsx",
+    "manage.py",
+    "server.ts",
+    "server.js",
+    "server.py",
+    "__init__.py",
+    "__main__.py",
+    "mod.rs",
+    "index.rb"
+  ];
+  const entrySet = new Set(entryNames);
+  return files.find((f) => entrySet.has(import_node_path5.default.basename(f)));
 }
 async function analyzeModuleFiles(repoRoot, files) {
   const { readFile: readFile2 } = await Promise.resolve().then(() => (init_file_utils(), file_utils_exports));
@@ -28976,29 +29069,70 @@ async function analyzeModuleFiles(repoRoot, files) {
 }
 
 // src/engine/graph-builder.ts
+var import_node_path6 = __toESM(require("node:path"), 1);
 function buildDependencyGraph(modules) {
   const moduleNames = new Set(modules.map((m) => m.name));
   const edgeMap = /* @__PURE__ */ new Map();
+  const pathToModule = /* @__PURE__ */ new Map();
+  for (const mod of modules) {
+    pathToModule.set(import_node_path6.default.normalize(mod.path), mod.name);
+    for (const file of mod.files) {
+      pathToModule.set(import_node_path6.default.normalize(import_node_path6.default.dirname(file)), mod.name);
+    }
+  }
   for (const mod of modules) {
     for (const imp of mod.imports) {
       const key = `${mod.name}->${imp.source}:${imp.isExternal}`;
       const existing = edgeMap.get(key);
       if (existing) {
         existing.weight++;
-      } else {
-        const isInternal = !imp.isExternal && moduleNames.has(imp.source);
-        edgeMap.set(key, {
-          from: mod.name,
-          to: imp.source,
-          type: isInternal ? "internal" : "external",
-          weight: 1
-        });
+        continue;
       }
+      const resolvedModule = resolveImportToModule(imp.source, mod, modules, pathToModule);
+      const isInternal = !imp.isExternal && (moduleNames.has(imp.source) || resolvedModule !== null);
+      const targetModule = resolvedModule ?? imp.source;
+      if (isInternal && targetModule === mod.name) continue;
+      edgeMap.set(key, {
+        from: mod.name,
+        to: targetModule,
+        type: isInternal ? "internal" : "external",
+        weight: 1
+      });
     }
   }
   const edges = Array.from(edgeMap.values());
   log.debug(`Built dependency graph: ${edges.length} edges`);
   return { modules: Array.from(moduleNames), edges };
+}
+function resolveImportToModule(importSource, fromModule, allModules, pathToModule) {
+  const moduleNames = new Set(allModules.map((m) => m.name));
+  if (moduleNames.has(importSource)) return importSource;
+  if (importSource.includes(".") && !importSource.startsWith(".")) {
+    const sourceSegments = importSource.split(".");
+    for (const mod of allModules) {
+      if (mod.language !== "python" && fromModule.language !== "python") continue;
+      for (const file of mod.files) {
+        const fileSegments = file.split(/[/\\]/).map((s) => s.replace(/\.\w+$/, ""));
+        let matchCount = 0;
+        for (const seg of sourceSegments) {
+          if (fileSegments.includes(seg)) matchCount++;
+        }
+        if (matchCount >= Math.ceil(sourceSegments.length * 0.6) && matchCount >= 2) {
+          return mod.name;
+        }
+      }
+    }
+  }
+  if (importSource.startsWith(".")) {
+    const fromDir = import_node_path6.default.dirname(fromModule.files[0] ?? fromModule.path);
+    const resolved = import_node_path6.default.normalize(import_node_path6.default.resolve(fromDir, importSource));
+    for (const [modPath, modName] of pathToModule.entries()) {
+      if (resolved.startsWith(modPath) || modPath.startsWith(resolved)) {
+        return modName;
+      }
+    }
+  }
+  return null;
 }
 function getDependents(graph, moduleName) {
   return graph.edges.filter((e) => e.to === moduleName && e.type === "internal").map((e) => e.from);
@@ -29033,7 +29167,7 @@ function o(n) {
 var import_debug = __toESM(require_src(), 1);
 var import_child_process = require("child_process");
 var import_promise_deferred = __toESM(require_dist3(), 1);
-var import_node_path6 = require("node:path");
+var import_node_path7 = require("node:path");
 
 // node_modules/@simple-git/argv-parser/dist/index.mjs
 function* U2(e, t2) {
@@ -29602,8 +29736,8 @@ function toLinesWithContent(input = "", trimmed2 = true, separator = "\n") {
 function forEachLineWithContent(input, callback) {
   return toLinesWithContent(input, true).map((line) => callback(line));
 }
-function folderExists(path11) {
-  return (0, import_file_exists.exists)(path11, import_file_exists.FOLDER);
+function folderExists(path12) {
+  return (0, import_file_exists.exists)(path12, import_file_exists.FOLDER);
 }
 function append(target, item) {
   if (Array.isArray(target)) {
@@ -30005,8 +30139,8 @@ function checkIsRepoRootTask() {
     commands,
     format: "utf-8",
     onError,
-    parser(path11) {
-      return /^\.(git)?$/.test(path11.trim());
+    parser(path12) {
+      return /^\.(git)?$/.test(path12.trim());
     }
   };
 }
@@ -30440,11 +30574,11 @@ function parseGrep(grep) {
   const paths = /* @__PURE__ */ new Set();
   const results = {};
   forEachLineWithContent(grep, (input) => {
-    const [path11, line, preview] = input.split(NULL);
-    paths.add(path11);
-    (results[path11] = results[path11] || []).push({
+    const [path12, line, preview] = input.split(NULL);
+    paths.add(path12);
+    (results[path12] = results[path12] || []).push({
       line: asNumber(line),
-      path: path11,
+      path: path12,
       preview
     });
   });
@@ -31208,14 +31342,14 @@ var init_hash_object = __esm2({
     init_task();
   }
 });
-function parseInit(bare, path11, text) {
+function parseInit(bare, path12, text) {
   const response = String(text).trim();
   let result;
   if (result = initResponseRegex.exec(response)) {
-    return new InitSummary(bare, path11, false, result[1]);
+    return new InitSummary(bare, path12, false, result[1]);
   }
   if (result = reInitResponseRegex.exec(response)) {
-    return new InitSummary(bare, path11, true, result[1]);
+    return new InitSummary(bare, path12, true, result[1]);
   }
   let gitDir = "";
   const tokens = response.split(" ");
@@ -31226,7 +31360,7 @@ function parseInit(bare, path11, text) {
       break;
     }
   }
-  return new InitSummary(bare, path11, /^re/i.test(response), gitDir);
+  return new InitSummary(bare, path12, /^re/i.test(response), gitDir);
 }
 var InitSummary;
 var initResponseRegex;
@@ -31235,9 +31369,9 @@ var init_InitSummary = __esm2({
   "src/lib/responses/InitSummary.ts"() {
     "use strict";
     InitSummary = class {
-      constructor(bare, path11, existing, gitDir) {
+      constructor(bare, path12, existing, gitDir) {
         this.bare = bare;
-        this.path = path11;
+        this.path = path12;
         this.existing = existing;
         this.gitDir = gitDir;
       }
@@ -31249,7 +31383,7 @@ var init_InitSummary = __esm2({
 function hasBareCommand(command) {
   return command.includes(bareCommand);
 }
-function initTask(bare = false, path11, customArgs) {
+function initTask(bare = false, path12, customArgs) {
   const commands = ["init", ...customArgs];
   if (bare && !hasBareCommand(commands)) {
     commands.splice(1, 0, bareCommand);
@@ -31258,7 +31392,7 @@ function initTask(bare = false, path11, customArgs) {
     commands,
     format: "utf-8",
     parser(text) {
-      return parseInit(commands.includes("--bare"), path11, text);
+      return parseInit(commands.includes("--bare"), path12, text);
     }
   };
 }
@@ -32073,12 +32207,12 @@ var init_FileStatusSummary = __esm2({
     "use strict";
     fromPathRegex = /^(.+)\0(.+)$/;
     FileStatusSummary = class {
-      constructor(path11, index, working_dir) {
-        this.path = path11;
+      constructor(path12, index, working_dir) {
+        this.path = path12;
         this.index = index;
         this.working_dir = working_dir;
         if (index === "R" || working_dir === "R") {
-          const detail = fromPathRegex.exec(path11) || [null, path11, path11];
+          const detail = fromPathRegex.exec(path12) || [null, path12, path12];
           this.from = detail[2] || "";
           this.path = detail[1] || "";
         }
@@ -32109,14 +32243,14 @@ function splitLine(result, lineStr) {
     default:
       return;
   }
-  function data(index, workingDir, path11) {
+  function data(index, workingDir, path12) {
     const raw = `${index}${workingDir}`;
     const handler = parsers6.get(raw);
     if (handler) {
-      handler(result, path11);
+      handler(result, path12);
     }
     if (raw !== "##" && raw !== "!!") {
-      result.files.push(new FileStatusSummary(path11, index, workingDir));
+      result.files.push(new FileStatusSummary(path12, index, workingDir));
     }
   }
 }
@@ -32467,9 +32601,9 @@ var init_simple_git_api = __esm2({
           next
         );
       }
-      hashObject(path11, write) {
+      hashObject(path12, write) {
         return this._runTask(
-          hashObjectTask(path11, write === true),
+          hashObjectTask(path12, write === true),
           trailingFunctionArgument(arguments)
         );
       }
@@ -32823,8 +32957,8 @@ var init_branch = __esm2({
   }
 });
 function toPath(input) {
-  const path11 = input.trim().replace(/^["']|["']$/g, "");
-  return path11 && (0, import_node_path6.normalize)(path11);
+  const path12 = input.trim().replace(/^["']|["']$/g, "");
+  return path12 && (0, import_node_path7.normalize)(path12);
 }
 var parseCheckIgnore;
 var init_CheckIgnore = __esm2({
@@ -33109,8 +33243,8 @@ __export2(sub_module_exports, {
   subModuleTask: () => subModuleTask,
   updateSubModuleTask: () => updateSubModuleTask
 });
-function addSubModuleTask(repo, path11) {
-  return subModuleTask(["add", repo, path11]);
+function addSubModuleTask(repo, path12) {
+  return subModuleTask(["add", repo, path12]);
 }
 function initSubModuleTask(customArgs) {
   return subModuleTask(["init", ...customArgs]);
@@ -33424,8 +33558,8 @@ var require_git = __commonJS2({
       }
       return this._runTask(straightThroughStringTask2(command, this._trimmed), next);
     };
-    Git2.prototype.submoduleAdd = function(repo, path11, then) {
-      return this._runTask(addSubModuleTask2(repo, path11), trailingFunctionArgument2(arguments));
+    Git2.prototype.submoduleAdd = function(repo, path12, then) {
+      return this._runTask(addSubModuleTask2(repo, path12), trailingFunctionArgument2(arguments));
     };
     Git2.prototype.submoduleUpdate = function(args, then) {
       return this._runTask(
@@ -34040,7 +34174,7 @@ function getModuleEntry(manifest, moduleName) {
 }
 
 // src/storage/cache-manager.ts
-var import_node_path7 = __toESM(require("node:path"), 1);
+var import_node_path8 = __toESM(require("node:path"), 1);
 var CacheManager = class {
   constructor(repoRoot) {
     this.repoRoot = repoRoot;
@@ -34067,11 +34201,11 @@ var CacheManager = class {
     const manifest = await this.getManifest();
     const entry = getModuleEntry(manifest, moduleName);
     if (!entry) return null;
-    const cachePath = import_node_path7.default.join(this.paths.modules("cache"), `${moduleName}.json`);
+    const cachePath = import_node_path8.default.join(this.paths.modules("cache"), `${moduleName}.json`);
     return readJson(cachePath);
   }
   async cacheModule(moduleName, wiki, moduleFiles) {
-    const cachePath = import_node_path7.default.join(this.paths.modules("cache"), `${moduleName}.json`);
+    const cachePath = import_node_path8.default.join(this.paths.modules("cache"), `${moduleName}.json`);
     await writeJson(cachePath, wiki);
     const gitHash = await getModuleHash(this.repoRoot, moduleFiles);
     const manifest = await this.getManifest();
@@ -34085,11 +34219,11 @@ var CacheManager = class {
     log.info(`Cached module: ${moduleName}`);
   }
   async cacheGraph(graph) {
-    const graphPath = import_node_path7.default.join(this.paths.graphs, "dependency.json");
+    const graphPath = import_node_path8.default.join(this.paths.graphs, "dependency.json");
     await writeJson(graphPath, graph);
   }
   async getCachedGraph() {
-    const graphPath = import_node_path7.default.join(this.paths.graphs, "dependency.json");
+    const graphPath = import_node_path8.default.join(this.paths.graphs, "dependency.json");
     return readJson(graphPath);
   }
   async invalidateModule(moduleName) {
@@ -34099,19 +34233,19 @@ var CacheManager = class {
     log.debug(`Invalidated cache for module: ${moduleName}`);
   }
   async cacheOverview(overview) {
-    const overviewPath = import_node_path7.default.join(this.paths.cache, "overview.json");
+    const overviewPath = import_node_path8.default.join(this.paths.cache, "overview.json");
     await writeJson(overviewPath, overview);
   }
   async getCachedOverview() {
-    const overviewPath = import_node_path7.default.join(this.paths.cache, "overview.json");
+    const overviewPath = import_node_path8.default.join(this.paths.cache, "overview.json");
     return readJson(overviewPath);
   }
   async cacheTechStack(ts) {
-    const tsPath = import_node_path7.default.join(this.paths.cache, "tech-stack.json");
+    const tsPath = import_node_path8.default.join(this.paths.cache, "tech-stack.json");
     await writeJson(tsPath, ts);
   }
   async getCachedTechStack() {
-    const tsPath = import_node_path7.default.join(this.paths.cache, "tech-stack.json");
+    const tsPath = import_node_path8.default.join(this.paths.cache, "tech-stack.json");
     return readJson(tsPath);
   }
 };
@@ -34148,7 +34282,7 @@ function createWikiInitTool(repoRoot) {
           keyFiles: m.files.length,
           deps: getDependencies(graph, m.name).internal
         })),
-        entryPoints: modules.filter((m) => m.entryFile).map((m) => m.path),
+        entryPoints: modules.filter((m) => m.entryFile).map((m) => m.entryFile),
         sharedLibs: [],
         lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
         overview: cachedOverview ?? void 0,
@@ -34254,7 +34388,7 @@ function detectArchitecture(modules) {
 }
 
 // src/tools/wiki-module.ts
-var import_node_path9 = __toESM(require("node:path"), 1);
+var import_node_path10 = __toESM(require("node:path"), 1);
 function createWikiModuleTool(repoRoot) {
   return {
     name: "wiki_module",
@@ -34273,7 +34407,7 @@ function createWikiModuleTool(repoRoot) {
       if (!mod) {
         return { content: [{ type: "text", text: JSON.stringify({ error: `Module not found: ${params.module_path}`, available: modules.map((m) => m.name) }) }] };
       }
-      const moduleName = import_node_path9.default.basename(params.module_path);
+      const moduleName = import_node_path10.default.basename(params.module_path);
       const isFresh = await cache.isModuleFresh(moduleName, mod.files);
       if (isFresh) {
         const cached2 = await cache.getCachedModule(moduleName);
@@ -34398,6 +34532,14 @@ function createWikiFlowTool(repoRoot) {
 
 // src/prompts/templates.ts
 var MODULE_SUMMARY_PROMPT = `You are analyzing a code module to produce rich, developer-facing documentation. Based on the AST analysis below, generate a structured module summary.
+
+CRITICAL ACCURACY RULES:
+- Base EVERY claim on evidence from the provided AST analysis, imports, and exports
+- Do NOT guess or fabricate information not present in the data
+- If data is insufficient for a field, omit it rather than invent content
+- For gotchas: only flag issues you can verify from the actual code structure
+- For invariants: only state constraints that are clearly enforced by the code
+- Double-check any claims about code behavior against the actual exports and imports listed
 
 Output JSON matching this shape:
 {
@@ -34544,13 +34686,13 @@ function createWikiQueryTool(repoRoot) {
 }
 
 // src/tools/wiki-update.ts
-var import_node_path11 = __toESM(require("node:path"), 1);
+var import_node_path12 = __toESM(require("node:path"), 1);
 init_constants();
 init_file_utils();
 
 // src/engine/dep-extractor.ts
 init_file_utils();
-var import_node_path10 = __toESM(require("node:path"), 1);
+var import_node_path11 = __toESM(require("node:path"), 1);
 var ROLE_TABLE = {
   // Framework
   "next": "framework",
@@ -34661,7 +34803,7 @@ async function extractDependencies(repoRoot, language, framework) {
   }
 }
 async function extractFromPackageJson(repoRoot, language, framework) {
-  const raw = await readManifest(import_node_path10.default.join(repoRoot, "package.json"));
+  const raw = await readManifest(import_node_path11.default.join(repoRoot, "package.json"));
   if (!raw) return { language, framework: framework ?? "generic", dependencies: [] };
   const pkg = JSON.parse(raw);
   const deps = [];
@@ -34692,7 +34834,7 @@ async function extractFromPackageJson(repoRoot, language, framework) {
 }
 async function extractFromPython(repoRoot, language, framework) {
   const deps = [];
-  const raw = await readManifest(import_node_path10.default.join(repoRoot, "pyproject.toml"));
+  const raw = await readManifest(import_node_path11.default.join(repoRoot, "pyproject.toml"));
   if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
   const requiresPython = raw.match(/requires-python\s*=\s*"([^"]+)"/)?.[1];
   const depBlock = raw.match(/\[project\.dependencies\]([\s\S]*?)(\[|$)/)?.[1] ?? "";
@@ -34716,7 +34858,7 @@ async function extractFromPython(repoRoot, language, framework) {
 }
 async function extractFromGoMod(repoRoot, language, framework) {
   const deps = [];
-  const raw = await readManifest(import_node_path10.default.join(repoRoot, "go.mod"));
+  const raw = await readManifest(import_node_path11.default.join(repoRoot, "go.mod"));
   if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
   for (const line of raw.split("\n")) {
     const m = line.trim().match(/^([a-zA-Z0-9./-]+)\s+(v[\d.]+)/);
@@ -34732,7 +34874,7 @@ async function extractFromGoMod(repoRoot, language, framework) {
 }
 async function extractFromPomXml(repoRoot, language, framework) {
   const deps = [];
-  const raw = await readManifest(import_node_path10.default.join(repoRoot, "pom.xml"));
+  const raw = await readManifest(import_node_path11.default.join(repoRoot, "pom.xml"));
   if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
   const re = /<dependency>\s*<groupId>([^<]+)<\/groupId>\s*<artifactId>([^<]+)<\/artifactId>(?:\s*<version>([^<]+)<\/version>)?/g;
   let m;
@@ -34747,7 +34889,7 @@ async function extractFromPomXml(repoRoot, language, framework) {
 }
 async function extractFromCargoToml(repoRoot, language, framework) {
   const deps = [];
-  const raw = await readManifest(import_node_path10.default.join(repoRoot, "Cargo.toml"));
+  const raw = await readManifest(import_node_path11.default.join(repoRoot, "Cargo.toml"));
   if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
   const inDeps = raw.match(/\[dependencies\]([\s\S]*?)(\[|$)/)?.[1] ?? "";
   for (const line of inDeps.split("\n")) {
@@ -34764,7 +34906,7 @@ async function extractFromCargoToml(repoRoot, language, framework) {
 }
 async function extractFromGemfile(repoRoot, language, framework) {
   const deps = [];
-  const raw = await readManifest(import_node_path10.default.join(repoRoot, "Gemfile"));
+  const raw = await readManifest(import_node_path11.default.join(repoRoot, "Gemfile"));
   if (!raw) return { language, framework: framework ?? "generic", dependencies: deps };
   for (const line of raw.split("\n")) {
     const m = line.trim().match(/^gem\s+['"]([^'"]+)['"](?:\s*,\s*['"]([^'"]+)['"])?/);
@@ -34881,8 +35023,8 @@ function createWikiUpdateTool(repoRoot) {
         const wiki = JSON.parse(params.generated_content);
         await cache.cacheModule(params.module, wiki, []);
         const paths = wikiPaths(repoRoot);
-        await ensureDir(import_node_path11.default.join(paths.team, "modules"));
-        const modPath = import_node_path11.default.join(paths.team, "modules", `${params.module}.md`);
+        await ensureDir(import_node_path12.default.join(paths.team, "modules"));
+        const modPath = import_node_path12.default.join(paths.team, "modules", `${params.module}.md`);
         await writeFile(modPath, renderModuleMd2(wiki));
         log.info(`wiki_update persisted content for ${params.module}`);
         return {
@@ -35160,6 +35302,34 @@ var TypeScriptAnalyzer = class extends BaseAnalyzer {
       types2.push({ name: m[1], kind: "class", file, line: lineNum });
       return;
     }
+    m = line.match(/^export\s+default\s+function\s+([A-Z]\w*)/);
+    if (m) {
+      exports2.push({ name: m[1], kind: "function", file, line: lineNum, isDefault: true });
+      functions.push({ name: m[1], file, line: lineNum, params: [], isExported: true });
+      return;
+    }
+    m = line.match(/^export\s+default\s+([A-Z]\w+)\s*;?\s*$/);
+    if (m) {
+      exports2.push({ name: m[1], kind: "variable", file, line: lineNum, isDefault: true });
+      return;
+    }
+    m = line.match(/^export\s+default\s+(?:\w+\.\s*)?(\w+)\s*\(\s*([A-Z]\w*)\s*\)/);
+    if (m) {
+      exports2.push({ name: m[2], kind: "variable", file, line: lineNum, isDefault: true });
+      return;
+    }
+    m = line.match(/^export\s+function\s+([A-Z]\w*)/);
+    if (m) {
+      exports2.push({ name: m[1], kind: "function", file, line: lineNum, isDefault: false });
+      functions.push({ name: m[1], file, line: lineNum, params: [], isExported: true });
+      return;
+    }
+    m = line.match(/^export\s+const\s+([A-Z]\w*)\s*=\s*(?:\([^)]*\)|\w+)\s*=>/);
+    if (m) {
+      exports2.push({ name: m[1], kind: "function", file, line: lineNum, isDefault: false });
+      functions.push({ name: m[1], file, line: lineNum, params: [], isExported: true });
+      return;
+    }
     m = line.match(/^export\s+(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)(?:\s*:\s*(.+?))?$/);
     if (m) {
       const params = this.parseParams(m[2]);
@@ -35264,46 +35434,6 @@ var TypeScriptAnalyzer = class extends BaseAnalyzer {
 registry2.register(new TypeScriptAnalyzer());
 
 // src/engine/analyzers/python.ts
-var STDLIB_PREFIXES = [
-  "os",
-  "sys",
-  "pathlib",
-  "json",
-  "typing",
-  "collections",
-  "io",
-  "abc",
-  "dataclasses",
-  "enum",
-  "functools",
-  "itertools",
-  "logging",
-  "re",
-  "datetime",
-  "time",
-  "math",
-  "random",
-  "string",
-  "copy",
-  "hashlib",
-  "http",
-  "urllib",
-  "email",
-  "html",
-  "xml",
-  "csv",
-  "sqlite3",
-  "unittest",
-  "argparse",
-  "configparser",
-  "tempfile",
-  "shutil",
-  "subprocess",
-  "threading",
-  "multiprocessing",
-  "asyncio",
-  "contextlib"
-];
 var PythonAnalyzer = class extends BaseAnalyzer {
   language = "python";
   getExtensions() {
@@ -35380,7 +35510,9 @@ var PythonAnalyzer = class extends BaseAnalyzer {
   isExternal(source) {
     if (source.startsWith(".")) return false;
     const root = source.split(".")[0];
-    return !STDLIB_PREFIXES.includes(root) || true;
+    const internalRoots = ["src", "app", "lib", "core", "modules", "api", "utils", "models", "schemas", "services", "algorithm", "agents", "routers", "config", "repositories", "middleware", "regulations", "test", "common"];
+    if (internalRoots.includes(root)) return false;
+    return true;
   }
 };
 registry2.register(new PythonAnalyzer());
