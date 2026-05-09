@@ -254,7 +254,7 @@ async function groupNextjsModules(
   return moduleMap;
 }
 
-async function buildModuleDefs(
+export async function buildModuleDefs(
   repoRoot: string,
   moduleMap: Map<string, string[]>,
   language: SupportedLanguage,
