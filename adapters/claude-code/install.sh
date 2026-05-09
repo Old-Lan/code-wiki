@@ -14,7 +14,13 @@ mkdir -p "$TARGET_DIR/skills/wiki-context"
 mkdir -p "$TARGET_DIR/commands"
 
 # Copy skills
+mkdir -p "$TARGET_DIR/skills/wiki-context"
 cp "$SCRIPT_DIR/skills/wiki-context/SKILL.md" "$TARGET_DIR/skills/wiki-context/SKILL.md"
+
+for skill in wiki-context-brainstorm wiki-context-planning wiki-constraints-review wiki-update-completion; do
+  mkdir -p "$TARGET_DIR/skills/$skill"
+  cp "$SCRIPT_DIR/skills/$skill/SKILL.md" "$TARGET_DIR/skills/$skill/SKILL.md"
+done
 
 # Copy commands
 for cmd in wiki-init wiki-update wiki-query wiki-verify; do
