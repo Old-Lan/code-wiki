@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Only inject context if MCP server is available (wiki has been initialized)
+if [ ! -d ".code-wiki" ]; then
+  exit 0
+fi
+
+# Escape for JSON embedding
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+WIKI_CONTEXT="Code-Wiki Integration:
+
+This session has code-wiki wiki knowledge available. When using superpowers skills:
+- Before brainstorming (during \"Explore project context\"): invoke skill code-wiki:wiki-context-brainstorm to load project wiki context
+- Before writing plans (during \"File Structure\" analysis): invoke skill code-wiki:wiki-context-planning to load dependency graphs and module boundaries
+- Before code review (when dispatching code-reviewer agent): invoke skill code-wiki:wiki-constraints-review to load architecture constraints as review baseline
+- After finishing a branch (after tests pass, before presenting options): invoke skill code-wiki:wiki-update-completion to sync wiki with code changes
+
+If wiki MCP tools are unavailable, skip wiki integration silently — never block the superpowers workflow."
+
+ESCAPED=$(escape_for_json "$WIKI_CONTEXT")
+
+# Claude Code format
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$ESCAPED"
+
+exit 0
