@@ -33,6 +33,4104 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// node_modules/zod/v3/helpers/util.js
+var util, objectUtil, ZodParsedType, getParsedType;
+var init_util = __esm({
+  "node_modules/zod/v3/helpers/util.js"() {
+    (function(util2) {
+      util2.assertEqual = (_2) => {
+      };
+      function assertIs2(_arg) {
+      }
+      util2.assertIs = assertIs2;
+      function assertNever2(_x) {
+        throw new Error();
+      }
+      util2.assertNever = assertNever2;
+      util2.arrayToEnum = (items) => {
+        const obj = {};
+        for (const item of items) {
+          obj[item] = item;
+        }
+        return obj;
+      };
+      util2.getValidEnumValues = (obj) => {
+        const validKeys = util2.objectKeys(obj).filter((k2) => typeof obj[obj[k2]] !== "number");
+        const filtered = {};
+        for (const k2 of validKeys) {
+          filtered[k2] = obj[k2];
+        }
+        return util2.objectValues(filtered);
+      };
+      util2.objectValues = (obj) => {
+        return util2.objectKeys(obj).map(function(e) {
+          return obj[e];
+        });
+      };
+      util2.objectKeys = typeof Object.keys === "function" ? (obj) => Object.keys(obj) : (object3) => {
+        const keys = [];
+        for (const key in object3) {
+          if (Object.prototype.hasOwnProperty.call(object3, key)) {
+            keys.push(key);
+          }
+        }
+        return keys;
+      };
+      util2.find = (arr, checker) => {
+        for (const item of arr) {
+          if (checker(item))
+            return item;
+        }
+        return void 0;
+      };
+      util2.isInteger = typeof Number.isInteger === "function" ? (val) => Number.isInteger(val) : (val) => typeof val === "number" && Number.isFinite(val) && Math.floor(val) === val;
+      function joinValues2(array2, separator = " | ") {
+        return array2.map((val) => typeof val === "string" ? `'${val}'` : val).join(separator);
+      }
+      util2.joinValues = joinValues2;
+      util2.jsonStringifyReplacer = (_2, value) => {
+        if (typeof value === "bigint") {
+          return value.toString();
+        }
+        return value;
+      };
+    })(util || (util = {}));
+    (function(objectUtil2) {
+      objectUtil2.mergeShapes = (first2, second) => {
+        return {
+          ...first2,
+          ...second
+          // second overwrites first
+        };
+      };
+    })(objectUtil || (objectUtil = {}));
+    ZodParsedType = util.arrayToEnum([
+      "string",
+      "nan",
+      "number",
+      "integer",
+      "float",
+      "boolean",
+      "date",
+      "bigint",
+      "symbol",
+      "function",
+      "undefined",
+      "null",
+      "array",
+      "object",
+      "unknown",
+      "promise",
+      "void",
+      "never",
+      "map",
+      "set"
+    ]);
+    getParsedType = (data) => {
+      const t2 = typeof data;
+      switch (t2) {
+        case "undefined":
+          return ZodParsedType.undefined;
+        case "string":
+          return ZodParsedType.string;
+        case "number":
+          return Number.isNaN(data) ? ZodParsedType.nan : ZodParsedType.number;
+        case "boolean":
+          return ZodParsedType.boolean;
+        case "function":
+          return ZodParsedType.function;
+        case "bigint":
+          return ZodParsedType.bigint;
+        case "symbol":
+          return ZodParsedType.symbol;
+        case "object":
+          if (Array.isArray(data)) {
+            return ZodParsedType.array;
+          }
+          if (data === null) {
+            return ZodParsedType.null;
+          }
+          if (data.then && typeof data.then === "function" && data.catch && typeof data.catch === "function") {
+            return ZodParsedType.promise;
+          }
+          if (typeof Map !== "undefined" && data instanceof Map) {
+            return ZodParsedType.map;
+          }
+          if (typeof Set !== "undefined" && data instanceof Set) {
+            return ZodParsedType.set;
+          }
+          if (typeof Date !== "undefined" && data instanceof Date) {
+            return ZodParsedType.date;
+          }
+          return ZodParsedType.object;
+        default:
+          return ZodParsedType.unknown;
+      }
+    };
+  }
+});
+
+// node_modules/zod/v3/ZodError.js
+var ZodIssueCode, quotelessJson, ZodError;
+var init_ZodError = __esm({
+  "node_modules/zod/v3/ZodError.js"() {
+    init_util();
+    ZodIssueCode = util.arrayToEnum([
+      "invalid_type",
+      "invalid_literal",
+      "custom",
+      "invalid_union",
+      "invalid_union_discriminator",
+      "invalid_enum_value",
+      "unrecognized_keys",
+      "invalid_arguments",
+      "invalid_return_type",
+      "invalid_date",
+      "invalid_string",
+      "too_small",
+      "too_big",
+      "invalid_intersection_types",
+      "not_multiple_of",
+      "not_finite"
+    ]);
+    quotelessJson = (obj) => {
+      const json = JSON.stringify(obj, null, 2);
+      return json.replace(/"([^"]+)":/g, "$1:");
+    };
+    ZodError = class _ZodError extends Error {
+      get errors() {
+        return this.issues;
+      }
+      constructor(issues) {
+        super();
+        this.issues = [];
+        this.addIssue = (sub) => {
+          this.issues = [...this.issues, sub];
+        };
+        this.addIssues = (subs = []) => {
+          this.issues = [...this.issues, ...subs];
+        };
+        const actualProto = new.target.prototype;
+        if (Object.setPrototypeOf) {
+          Object.setPrototypeOf(this, actualProto);
+        } else {
+          this.__proto__ = actualProto;
+        }
+        this.name = "ZodError";
+        this.issues = issues;
+      }
+      format(_mapper) {
+        const mapper = _mapper || function(issue2) {
+          return issue2.message;
+        };
+        const fieldErrors = { _errors: [] };
+        const processError = (error2) => {
+          for (const issue2 of error2.issues) {
+            if (issue2.code === "invalid_union") {
+              issue2.unionErrors.map(processError);
+            } else if (issue2.code === "invalid_return_type") {
+              processError(issue2.returnTypeError);
+            } else if (issue2.code === "invalid_arguments") {
+              processError(issue2.argumentsError);
+            } else if (issue2.path.length === 0) {
+              fieldErrors._errors.push(mapper(issue2));
+            } else {
+              let curr = fieldErrors;
+              let i2 = 0;
+              while (i2 < issue2.path.length) {
+                const el = issue2.path[i2];
+                const terminal = i2 === issue2.path.length - 1;
+                if (!terminal) {
+                  curr[el] = curr[el] || { _errors: [] };
+                } else {
+                  curr[el] = curr[el] || { _errors: [] };
+                  curr[el]._errors.push(mapper(issue2));
+                }
+                curr = curr[el];
+                i2++;
+              }
+            }
+          }
+        };
+        processError(this);
+        return fieldErrors;
+      }
+      static assert(value) {
+        if (!(value instanceof _ZodError)) {
+          throw new Error(`Not a ZodError: ${value}`);
+        }
+      }
+      toString() {
+        return this.message;
+      }
+      get message() {
+        return JSON.stringify(this.issues, util.jsonStringifyReplacer, 2);
+      }
+      get isEmpty() {
+        return this.issues.length === 0;
+      }
+      flatten(mapper = (issue2) => issue2.message) {
+        const fieldErrors = {};
+        const formErrors = [];
+        for (const sub of this.issues) {
+          if (sub.path.length > 0) {
+            const firstEl = sub.path[0];
+            fieldErrors[firstEl] = fieldErrors[firstEl] || [];
+            fieldErrors[firstEl].push(mapper(sub));
+          } else {
+            formErrors.push(mapper(sub));
+          }
+        }
+        return { formErrors, fieldErrors };
+      }
+      get formErrors() {
+        return this.flatten();
+      }
+    };
+    ZodError.create = (issues) => {
+      const error2 = new ZodError(issues);
+      return error2;
+    };
+  }
+});
+
+// node_modules/zod/v3/locales/en.js
+var errorMap, en_default;
+var init_en = __esm({
+  "node_modules/zod/v3/locales/en.js"() {
+    init_ZodError();
+    init_util();
+    errorMap = (issue2, _ctx) => {
+      let message;
+      switch (issue2.code) {
+        case ZodIssueCode.invalid_type:
+          if (issue2.received === ZodParsedType.undefined) {
+            message = "Required";
+          } else {
+            message = `Expected ${issue2.expected}, received ${issue2.received}`;
+          }
+          break;
+        case ZodIssueCode.invalid_literal:
+          message = `Invalid literal value, expected ${JSON.stringify(issue2.expected, util.jsonStringifyReplacer)}`;
+          break;
+        case ZodIssueCode.unrecognized_keys:
+          message = `Unrecognized key(s) in object: ${util.joinValues(issue2.keys, ", ")}`;
+          break;
+        case ZodIssueCode.invalid_union:
+          message = `Invalid input`;
+          break;
+        case ZodIssueCode.invalid_union_discriminator:
+          message = `Invalid discriminator value. Expected ${util.joinValues(issue2.options)}`;
+          break;
+        case ZodIssueCode.invalid_enum_value:
+          message = `Invalid enum value. Expected ${util.joinValues(issue2.options)}, received '${issue2.received}'`;
+          break;
+        case ZodIssueCode.invalid_arguments:
+          message = `Invalid function arguments`;
+          break;
+        case ZodIssueCode.invalid_return_type:
+          message = `Invalid function return type`;
+          break;
+        case ZodIssueCode.invalid_date:
+          message = `Invalid date`;
+          break;
+        case ZodIssueCode.invalid_string:
+          if (typeof issue2.validation === "object") {
+            if ("includes" in issue2.validation) {
+              message = `Invalid input: must include "${issue2.validation.includes}"`;
+              if (typeof issue2.validation.position === "number") {
+                message = `${message} at one or more positions greater than or equal to ${issue2.validation.position}`;
+              }
+            } else if ("startsWith" in issue2.validation) {
+              message = `Invalid input: must start with "${issue2.validation.startsWith}"`;
+            } else if ("endsWith" in issue2.validation) {
+              message = `Invalid input: must end with "${issue2.validation.endsWith}"`;
+            } else {
+              util.assertNever(issue2.validation);
+            }
+          } else if (issue2.validation !== "regex") {
+            message = `Invalid ${issue2.validation}`;
+          } else {
+            message = "Invalid";
+          }
+          break;
+        case ZodIssueCode.too_small:
+          if (issue2.type === "array")
+            message = `Array must contain ${issue2.exact ? "exactly" : issue2.inclusive ? `at least` : `more than`} ${issue2.minimum} element(s)`;
+          else if (issue2.type === "string")
+            message = `String must contain ${issue2.exact ? "exactly" : issue2.inclusive ? `at least` : `over`} ${issue2.minimum} character(s)`;
+          else if (issue2.type === "number")
+            message = `Number must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${issue2.minimum}`;
+          else if (issue2.type === "bigint")
+            message = `Number must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${issue2.minimum}`;
+          else if (issue2.type === "date")
+            message = `Date must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${new Date(Number(issue2.minimum))}`;
+          else
+            message = "Invalid input";
+          break;
+        case ZodIssueCode.too_big:
+          if (issue2.type === "array")
+            message = `Array must contain ${issue2.exact ? `exactly` : issue2.inclusive ? `at most` : `less than`} ${issue2.maximum} element(s)`;
+          else if (issue2.type === "string")
+            message = `String must contain ${issue2.exact ? `exactly` : issue2.inclusive ? `at most` : `under`} ${issue2.maximum} character(s)`;
+          else if (issue2.type === "number")
+            message = `Number must be ${issue2.exact ? `exactly` : issue2.inclusive ? `less than or equal to` : `less than`} ${issue2.maximum}`;
+          else if (issue2.type === "bigint")
+            message = `BigInt must be ${issue2.exact ? `exactly` : issue2.inclusive ? `less than or equal to` : `less than`} ${issue2.maximum}`;
+          else if (issue2.type === "date")
+            message = `Date must be ${issue2.exact ? `exactly` : issue2.inclusive ? `smaller than or equal to` : `smaller than`} ${new Date(Number(issue2.maximum))}`;
+          else
+            message = "Invalid input";
+          break;
+        case ZodIssueCode.custom:
+          message = `Invalid input`;
+          break;
+        case ZodIssueCode.invalid_intersection_types:
+          message = `Intersection results could not be merged`;
+          break;
+        case ZodIssueCode.not_multiple_of:
+          message = `Number must be a multiple of ${issue2.multipleOf}`;
+          break;
+        case ZodIssueCode.not_finite:
+          message = "Number must be finite";
+          break;
+        default:
+          message = _ctx.defaultError;
+          util.assertNever(issue2);
+      }
+      return { message };
+    };
+    en_default = errorMap;
+  }
+});
+
+// node_modules/zod/v3/errors.js
+function setErrorMap(map) {
+  overrideErrorMap = map;
+}
+function getErrorMap() {
+  return overrideErrorMap;
+}
+var overrideErrorMap;
+var init_errors = __esm({
+  "node_modules/zod/v3/errors.js"() {
+    init_en();
+    overrideErrorMap = en_default;
+  }
+});
+
+// node_modules/zod/v3/helpers/parseUtil.js
+function addIssueToContext(ctx, issueData) {
+  const overrideMap = getErrorMap();
+  const issue2 = makeIssue({
+    issueData,
+    data: ctx.data,
+    path: ctx.path,
+    errorMaps: [
+      ctx.common.contextualErrorMap,
+      // contextual error map is first priority
+      ctx.schemaErrorMap,
+      // then schema-bound map if available
+      overrideMap,
+      // then global override map
+      overrideMap === en_default ? void 0 : en_default
+      // then global default map
+    ].filter((x2) => !!x2)
+  });
+  ctx.common.issues.push(issue2);
+}
+var makeIssue, EMPTY_PATH, ParseStatus, INVALID, DIRTY, OK, isAborted, isDirty, isValid, isAsync;
+var init_parseUtil = __esm({
+  "node_modules/zod/v3/helpers/parseUtil.js"() {
+    init_errors();
+    init_en();
+    makeIssue = (params) => {
+      const { data, path: path12, errorMaps, issueData } = params;
+      const fullPath = [...path12, ...issueData.path || []];
+      const fullIssue = {
+        ...issueData,
+        path: fullPath
+      };
+      if (issueData.message !== void 0) {
+        return {
+          ...issueData,
+          path: fullPath,
+          message: issueData.message
+        };
+      }
+      let errorMessage = "";
+      const maps = errorMaps.filter((m) => !!m).slice().reverse();
+      for (const map of maps) {
+        errorMessage = map(fullIssue, { data, defaultError: errorMessage }).message;
+      }
+      return {
+        ...issueData,
+        path: fullPath,
+        message: errorMessage
+      };
+    };
+    EMPTY_PATH = [];
+    ParseStatus = class _ParseStatus {
+      constructor() {
+        this.value = "valid";
+      }
+      dirty() {
+        if (this.value === "valid")
+          this.value = "dirty";
+      }
+      abort() {
+        if (this.value !== "aborted")
+          this.value = "aborted";
+      }
+      static mergeArray(status, results) {
+        const arrayValue = [];
+        for (const s of results) {
+          if (s.status === "aborted")
+            return INVALID;
+          if (s.status === "dirty")
+            status.dirty();
+          arrayValue.push(s.value);
+        }
+        return { status: status.value, value: arrayValue };
+      }
+      static async mergeObjectAsync(status, pairs) {
+        const syncPairs = [];
+        for (const pair of pairs) {
+          const key = await pair.key;
+          const value = await pair.value;
+          syncPairs.push({
+            key,
+            value
+          });
+        }
+        return _ParseStatus.mergeObjectSync(status, syncPairs);
+      }
+      static mergeObjectSync(status, pairs) {
+        const finalObject = {};
+        for (const pair of pairs) {
+          const { key, value } = pair;
+          if (key.status === "aborted")
+            return INVALID;
+          if (value.status === "aborted")
+            return INVALID;
+          if (key.status === "dirty")
+            status.dirty();
+          if (value.status === "dirty")
+            status.dirty();
+          if (key.value !== "__proto__" && (typeof value.value !== "undefined" || pair.alwaysSet)) {
+            finalObject[key.value] = value.value;
+          }
+        }
+        return { status: status.value, value: finalObject };
+      }
+    };
+    INVALID = Object.freeze({
+      status: "aborted"
+    });
+    DIRTY = (value) => ({ status: "dirty", value });
+    OK = (value) => ({ status: "valid", value });
+    isAborted = (x2) => x2.status === "aborted";
+    isDirty = (x2) => x2.status === "dirty";
+    isValid = (x2) => x2.status === "valid";
+    isAsync = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
+  }
+});
+
+// node_modules/zod/v3/helpers/typeAliases.js
+var init_typeAliases = __esm({
+  "node_modules/zod/v3/helpers/typeAliases.js"() {
+  }
+});
+
+// node_modules/zod/v3/helpers/errorUtil.js
+var errorUtil;
+var init_errorUtil = __esm({
+  "node_modules/zod/v3/helpers/errorUtil.js"() {
+    (function(errorUtil2) {
+      errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
+      errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
+    })(errorUtil || (errorUtil = {}));
+  }
+});
+
+// node_modules/zod/v3/types.js
+function processCreateParams(params) {
+  if (!params)
+    return {};
+  const { errorMap: errorMap2, invalid_type_error, required_error, description } = params;
+  if (errorMap2 && (invalid_type_error || required_error)) {
+    throw new Error(`Can't use "invalid_type_error" or "required_error" in conjunction with custom error map.`);
+  }
+  if (errorMap2)
+    return { errorMap: errorMap2, description };
+  const customMap = (iss, ctx) => {
+    const { message } = params;
+    if (iss.code === "invalid_enum_value") {
+      return { message: message ?? ctx.defaultError };
+    }
+    if (typeof ctx.data === "undefined") {
+      return { message: message ?? required_error ?? ctx.defaultError };
+    }
+    if (iss.code !== "invalid_type")
+      return { message: ctx.defaultError };
+    return { message: message ?? invalid_type_error ?? ctx.defaultError };
+  };
+  return { errorMap: customMap, description };
+}
+function timeRegexSource(args) {
+  let secondsRegexSource = `[0-5]\\d`;
+  if (args.precision) {
+    secondsRegexSource = `${secondsRegexSource}\\.\\d{${args.precision}}`;
+  } else if (args.precision == null) {
+    secondsRegexSource = `${secondsRegexSource}(\\.\\d+)?`;
+  }
+  const secondsQuantifier = args.precision ? "+" : "?";
+  return `([01]\\d|2[0-3]):[0-5]\\d(:${secondsRegexSource})${secondsQuantifier}`;
+}
+function timeRegex(args) {
+  return new RegExp(`^${timeRegexSource(args)}$`);
+}
+function datetimeRegex(args) {
+  let regex = `${dateRegexSource}T${timeRegexSource(args)}`;
+  const opts = [];
+  opts.push(args.local ? `Z?` : `Z`);
+  if (args.offset)
+    opts.push(`([+-]\\d{2}:?\\d{2})`);
+  regex = `${regex}(${opts.join("|")})`;
+  return new RegExp(`^${regex}$`);
+}
+function isValidIP(ip, version2) {
+  if ((version2 === "v4" || !version2) && ipv4Regex.test(ip)) {
+    return true;
+  }
+  if ((version2 === "v6" || !version2) && ipv6Regex.test(ip)) {
+    return true;
+  }
+  return false;
+}
+function isValidJWT(jwt, alg) {
+  if (!jwtRegex.test(jwt))
+    return false;
+  try {
+    const [header] = jwt.split(".");
+    if (!header)
+      return false;
+    const base642 = header.replace(/-/g, "+").replace(/_/g, "/").padEnd(header.length + (4 - header.length % 4) % 4, "=");
+    const decoded = JSON.parse(atob(base642));
+    if (typeof decoded !== "object" || decoded === null)
+      return false;
+    if ("typ" in decoded && decoded?.typ !== "JWT")
+      return false;
+    if (!decoded.alg)
+      return false;
+    if (alg && decoded.alg !== alg)
+      return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+function isValidCidr(ip, version2) {
+  if ((version2 === "v4" || !version2) && ipv4CidrRegex.test(ip)) {
+    return true;
+  }
+  if ((version2 === "v6" || !version2) && ipv6CidrRegex.test(ip)) {
+    return true;
+  }
+  return false;
+}
+function floatSafeRemainder(val, step) {
+  const valDecCount = (val.toString().split(".")[1] || "").length;
+  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
+  const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
+  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
+  return valInt % stepInt / 10 ** decCount;
+}
+function deepPartialify(schema) {
+  if (schema instanceof ZodObject) {
+    const newShape = {};
+    for (const key in schema.shape) {
+      const fieldSchema = schema.shape[key];
+      newShape[key] = ZodOptional.create(deepPartialify(fieldSchema));
+    }
+    return new ZodObject({
+      ...schema._def,
+      shape: () => newShape
+    });
+  } else if (schema instanceof ZodArray) {
+    return new ZodArray({
+      ...schema._def,
+      type: deepPartialify(schema.element)
+    });
+  } else if (schema instanceof ZodOptional) {
+    return ZodOptional.create(deepPartialify(schema.unwrap()));
+  } else if (schema instanceof ZodNullable) {
+    return ZodNullable.create(deepPartialify(schema.unwrap()));
+  } else if (schema instanceof ZodTuple) {
+    return ZodTuple.create(schema.items.map((item) => deepPartialify(item)));
+  } else {
+    return schema;
+  }
+}
+function mergeValues(a, b2) {
+  const aType = getParsedType(a);
+  const bType = getParsedType(b2);
+  if (a === b2) {
+    return { valid: true, data: a };
+  } else if (aType === ZodParsedType.object && bType === ZodParsedType.object) {
+    const bKeys = util.objectKeys(b2);
+    const sharedKeys = util.objectKeys(a).filter((key) => bKeys.indexOf(key) !== -1);
+    const newObj = { ...a, ...b2 };
+    for (const key of sharedKeys) {
+      const sharedValue = mergeValues(a[key], b2[key]);
+      if (!sharedValue.valid) {
+        return { valid: false };
+      }
+      newObj[key] = sharedValue.data;
+    }
+    return { valid: true, data: newObj };
+  } else if (aType === ZodParsedType.array && bType === ZodParsedType.array) {
+    if (a.length !== b2.length) {
+      return { valid: false };
+    }
+    const newArray = [];
+    for (let index = 0; index < a.length; index++) {
+      const itemA = a[index];
+      const itemB = b2[index];
+      const sharedValue = mergeValues(itemA, itemB);
+      if (!sharedValue.valid) {
+        return { valid: false };
+      }
+      newArray.push(sharedValue.data);
+    }
+    return { valid: true, data: newArray };
+  } else if (aType === ZodParsedType.date && bType === ZodParsedType.date && +a === +b2) {
+    return { valid: true, data: a };
+  } else {
+    return { valid: false };
+  }
+}
+function createZodEnum(values, params) {
+  return new ZodEnum({
+    values,
+    typeName: ZodFirstPartyTypeKind.ZodEnum,
+    ...processCreateParams(params)
+  });
+}
+function cleanParams(params, data) {
+  const p2 = typeof params === "function" ? params(data) : typeof params === "string" ? { message: params } : params;
+  const p22 = typeof p2 === "string" ? { message: p2 } : p2;
+  return p22;
+}
+function custom(check2, _params = {}, fatal) {
+  if (check2)
+    return ZodAny.create().superRefine((data, ctx) => {
+      const r2 = check2(data);
+      if (r2 instanceof Promise) {
+        return r2.then((r3) => {
+          if (!r3) {
+            const params = cleanParams(_params, data);
+            const _fatal = params.fatal ?? fatal ?? true;
+            ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
+          }
+        });
+      }
+      if (!r2) {
+        const params = cleanParams(_params, data);
+        const _fatal = params.fatal ?? fatal ?? true;
+        ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
+      }
+      return;
+    });
+  return ZodAny.create();
+}
+var ParseInputLazyPath, handleResult, ZodType, cuidRegex, cuid2Regex, ulidRegex, uuidRegex, nanoidRegex, jwtRegex, durationRegex, emailRegex, _emojiRegex, emojiRegex, ipv4Regex, ipv4CidrRegex, ipv6Regex, ipv6CidrRegex, base64Regex, base64urlRegex, dateRegexSource, dateRegex, ZodString, ZodNumber, ZodBigInt, ZodBoolean, ZodDate, ZodSymbol, ZodUndefined, ZodNull, ZodAny, ZodUnknown, ZodNever, ZodVoid, ZodArray, ZodObject, ZodUnion, getDiscriminator, ZodDiscriminatedUnion, ZodIntersection, ZodTuple, ZodRecord, ZodMap, ZodSet, ZodFunction, ZodLazy, ZodLiteral, ZodEnum, ZodNativeEnum, ZodPromise, ZodEffects, ZodOptional, ZodNullable, ZodDefault, ZodCatch, ZodNaN, BRAND, ZodBranded, ZodPipeline, ZodReadonly, late, ZodFirstPartyTypeKind, instanceOfType, stringType, numberType, nanType, bigIntType, booleanType, dateType, symbolType, undefinedType, nullType, anyType, unknownType, neverType, voidType, arrayType, objectType, strictObjectType, unionType, discriminatedUnionType, intersectionType, tupleType, recordType, mapType, setType, functionType, lazyType, literalType, enumType, nativeEnumType, promiseType, effectsType, optionalType, nullableType, preprocessType, pipelineType, ostring, onumber, oboolean, coerce, NEVER;
+var init_types = __esm({
+  "node_modules/zod/v3/types.js"() {
+    init_ZodError();
+    init_errors();
+    init_errorUtil();
+    init_parseUtil();
+    init_util();
+    ParseInputLazyPath = class {
+      constructor(parent, value, path12, key) {
+        this._cachedPath = [];
+        this.parent = parent;
+        this.data = value;
+        this._path = path12;
+        this._key = key;
+      }
+      get path() {
+        if (!this._cachedPath.length) {
+          if (Array.isArray(this._key)) {
+            this._cachedPath.push(...this._path, ...this._key);
+          } else {
+            this._cachedPath.push(...this._path, this._key);
+          }
+        }
+        return this._cachedPath;
+      }
+    };
+    handleResult = (ctx, result) => {
+      if (isValid(result)) {
+        return { success: true, data: result.value };
+      } else {
+        if (!ctx.common.issues.length) {
+          throw new Error("Validation failed but no issues detected.");
+        }
+        return {
+          success: false,
+          get error() {
+            if (this._error)
+              return this._error;
+            const error2 = new ZodError(ctx.common.issues);
+            this._error = error2;
+            return this._error;
+          }
+        };
+      }
+    };
+    ZodType = class {
+      get description() {
+        return this._def.description;
+      }
+      _getType(input) {
+        return getParsedType(input.data);
+      }
+      _getOrReturnCtx(input, ctx) {
+        return ctx || {
+          common: input.parent.common,
+          data: input.data,
+          parsedType: getParsedType(input.data),
+          schemaErrorMap: this._def.errorMap,
+          path: input.path,
+          parent: input.parent
+        };
+      }
+      _processInputParams(input) {
+        return {
+          status: new ParseStatus(),
+          ctx: {
+            common: input.parent.common,
+            data: input.data,
+            parsedType: getParsedType(input.data),
+            schemaErrorMap: this._def.errorMap,
+            path: input.path,
+            parent: input.parent
+          }
+        };
+      }
+      _parseSync(input) {
+        const result = this._parse(input);
+        if (isAsync(result)) {
+          throw new Error("Synchronous parse encountered promise.");
+        }
+        return result;
+      }
+      _parseAsync(input) {
+        const result = this._parse(input);
+        return Promise.resolve(result);
+      }
+      parse(data, params) {
+        const result = this.safeParse(data, params);
+        if (result.success)
+          return result.data;
+        throw result.error;
+      }
+      safeParse(data, params) {
+        const ctx = {
+          common: {
+            issues: [],
+            async: params?.async ?? false,
+            contextualErrorMap: params?.errorMap
+          },
+          path: params?.path || [],
+          schemaErrorMap: this._def.errorMap,
+          parent: null,
+          data,
+          parsedType: getParsedType(data)
+        };
+        const result = this._parseSync({ data, path: ctx.path, parent: ctx });
+        return handleResult(ctx, result);
+      }
+      "~validate"(data) {
+        const ctx = {
+          common: {
+            issues: [],
+            async: !!this["~standard"].async
+          },
+          path: [],
+          schemaErrorMap: this._def.errorMap,
+          parent: null,
+          data,
+          parsedType: getParsedType(data)
+        };
+        if (!this["~standard"].async) {
+          try {
+            const result = this._parseSync({ data, path: [], parent: ctx });
+            return isValid(result) ? {
+              value: result.value
+            } : {
+              issues: ctx.common.issues
+            };
+          } catch (err) {
+            if (err?.message?.toLowerCase()?.includes("encountered")) {
+              this["~standard"].async = true;
+            }
+            ctx.common = {
+              issues: [],
+              async: true
+            };
+          }
+        }
+        return this._parseAsync({ data, path: [], parent: ctx }).then((result) => isValid(result) ? {
+          value: result.value
+        } : {
+          issues: ctx.common.issues
+        });
+      }
+      async parseAsync(data, params) {
+        const result = await this.safeParseAsync(data, params);
+        if (result.success)
+          return result.data;
+        throw result.error;
+      }
+      async safeParseAsync(data, params) {
+        const ctx = {
+          common: {
+            issues: [],
+            contextualErrorMap: params?.errorMap,
+            async: true
+          },
+          path: params?.path || [],
+          schemaErrorMap: this._def.errorMap,
+          parent: null,
+          data,
+          parsedType: getParsedType(data)
+        };
+        const maybeAsyncResult = this._parse({ data, path: ctx.path, parent: ctx });
+        const result = await (isAsync(maybeAsyncResult) ? maybeAsyncResult : Promise.resolve(maybeAsyncResult));
+        return handleResult(ctx, result);
+      }
+      refine(check2, message) {
+        const getIssueProperties = (val) => {
+          if (typeof message === "string" || typeof message === "undefined") {
+            return { message };
+          } else if (typeof message === "function") {
+            return message(val);
+          } else {
+            return message;
+          }
+        };
+        return this._refinement((val, ctx) => {
+          const result = check2(val);
+          const setError = () => ctx.addIssue({
+            code: ZodIssueCode.custom,
+            ...getIssueProperties(val)
+          });
+          if (typeof Promise !== "undefined" && result instanceof Promise) {
+            return result.then((data) => {
+              if (!data) {
+                setError();
+                return false;
+              } else {
+                return true;
+              }
+            });
+          }
+          if (!result) {
+            setError();
+            return false;
+          } else {
+            return true;
+          }
+        });
+      }
+      refinement(check2, refinementData) {
+        return this._refinement((val, ctx) => {
+          if (!check2(val)) {
+            ctx.addIssue(typeof refinementData === "function" ? refinementData(val, ctx) : refinementData);
+            return false;
+          } else {
+            return true;
+          }
+        });
+      }
+      _refinement(refinement) {
+        return new ZodEffects({
+          schema: this,
+          typeName: ZodFirstPartyTypeKind.ZodEffects,
+          effect: { type: "refinement", refinement }
+        });
+      }
+      superRefine(refinement) {
+        return this._refinement(refinement);
+      }
+      constructor(def) {
+        this.spa = this.safeParseAsync;
+        this._def = def;
+        this.parse = this.parse.bind(this);
+        this.safeParse = this.safeParse.bind(this);
+        this.parseAsync = this.parseAsync.bind(this);
+        this.safeParseAsync = this.safeParseAsync.bind(this);
+        this.spa = this.spa.bind(this);
+        this.refine = this.refine.bind(this);
+        this.refinement = this.refinement.bind(this);
+        this.superRefine = this.superRefine.bind(this);
+        this.optional = this.optional.bind(this);
+        this.nullable = this.nullable.bind(this);
+        this.nullish = this.nullish.bind(this);
+        this.array = this.array.bind(this);
+        this.promise = this.promise.bind(this);
+        this.or = this.or.bind(this);
+        this.and = this.and.bind(this);
+        this.transform = this.transform.bind(this);
+        this.brand = this.brand.bind(this);
+        this.default = this.default.bind(this);
+        this.catch = this.catch.bind(this);
+        this.describe = this.describe.bind(this);
+        this.pipe = this.pipe.bind(this);
+        this.readonly = this.readonly.bind(this);
+        this.isNullable = this.isNullable.bind(this);
+        this.isOptional = this.isOptional.bind(this);
+        this["~standard"] = {
+          version: 1,
+          vendor: "zod",
+          validate: (data) => this["~validate"](data)
+        };
+      }
+      optional() {
+        return ZodOptional.create(this, this._def);
+      }
+      nullable() {
+        return ZodNullable.create(this, this._def);
+      }
+      nullish() {
+        return this.nullable().optional();
+      }
+      array() {
+        return ZodArray.create(this);
+      }
+      promise() {
+        return ZodPromise.create(this, this._def);
+      }
+      or(option) {
+        return ZodUnion.create([this, option], this._def);
+      }
+      and(incoming) {
+        return ZodIntersection.create(this, incoming, this._def);
+      }
+      transform(transform2) {
+        return new ZodEffects({
+          ...processCreateParams(this._def),
+          schema: this,
+          typeName: ZodFirstPartyTypeKind.ZodEffects,
+          effect: { type: "transform", transform: transform2 }
+        });
+      }
+      default(def) {
+        const defaultValueFunc = typeof def === "function" ? def : () => def;
+        return new ZodDefault({
+          ...processCreateParams(this._def),
+          innerType: this,
+          defaultValue: defaultValueFunc,
+          typeName: ZodFirstPartyTypeKind.ZodDefault
+        });
+      }
+      brand() {
+        return new ZodBranded({
+          typeName: ZodFirstPartyTypeKind.ZodBranded,
+          type: this,
+          ...processCreateParams(this._def)
+        });
+      }
+      catch(def) {
+        const catchValueFunc = typeof def === "function" ? def : () => def;
+        return new ZodCatch({
+          ...processCreateParams(this._def),
+          innerType: this,
+          catchValue: catchValueFunc,
+          typeName: ZodFirstPartyTypeKind.ZodCatch
+        });
+      }
+      describe(description) {
+        const This = this.constructor;
+        return new This({
+          ...this._def,
+          description
+        });
+      }
+      pipe(target) {
+        return ZodPipeline.create(this, target);
+      }
+      readonly() {
+        return ZodReadonly.create(this);
+      }
+      isOptional() {
+        return this.safeParse(void 0).success;
+      }
+      isNullable() {
+        return this.safeParse(null).success;
+      }
+    };
+    cuidRegex = /^c[^\s-]{8,}$/i;
+    cuid2Regex = /^[0-9a-z]+$/;
+    ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
+    uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
+    nanoidRegex = /^[a-z0-9_-]{21}$/i;
+    jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/;
+    durationRegex = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
+    emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
+    _emojiRegex = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`;
+    ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
+    ipv4CidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
+    ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+    ipv6CidrRegex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
+    base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+    base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/;
+    dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
+    dateRegex = new RegExp(`^${dateRegexSource}$`);
+    ZodString = class _ZodString2 extends ZodType {
+      _parse(input) {
+        if (this._def.coerce) {
+          input.data = String(input.data);
+        }
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.string) {
+          const ctx2 = this._getOrReturnCtx(input);
+          addIssueToContext(ctx2, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.string,
+            received: ctx2.parsedType
+          });
+          return INVALID;
+        }
+        const status = new ParseStatus();
+        let ctx = void 0;
+        for (const check2 of this._def.checks) {
+          if (check2.kind === "min") {
+            if (input.data.length < check2.value) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_small,
+                minimum: check2.value,
+                type: "string",
+                inclusive: true,
+                exact: false,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "max") {
+            if (input.data.length > check2.value) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_big,
+                maximum: check2.value,
+                type: "string",
+                inclusive: true,
+                exact: false,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "length") {
+            const tooBig = input.data.length > check2.value;
+            const tooSmall = input.data.length < check2.value;
+            if (tooBig || tooSmall) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              if (tooBig) {
+                addIssueToContext(ctx, {
+                  code: ZodIssueCode.too_big,
+                  maximum: check2.value,
+                  type: "string",
+                  inclusive: true,
+                  exact: true,
+                  message: check2.message
+                });
+              } else if (tooSmall) {
+                addIssueToContext(ctx, {
+                  code: ZodIssueCode.too_small,
+                  minimum: check2.value,
+                  type: "string",
+                  inclusive: true,
+                  exact: true,
+                  message: check2.message
+                });
+              }
+              status.dirty();
+            }
+          } else if (check2.kind === "email") {
+            if (!emailRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "email",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "emoji") {
+            if (!emojiRegex) {
+              emojiRegex = new RegExp(_emojiRegex, "u");
+            }
+            if (!emojiRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "emoji",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "uuid") {
+            if (!uuidRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "uuid",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "nanoid") {
+            if (!nanoidRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "nanoid",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "cuid") {
+            if (!cuidRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "cuid",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "cuid2") {
+            if (!cuid2Regex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "cuid2",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "ulid") {
+            if (!ulidRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "ulid",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "url") {
+            try {
+              new URL(input.data);
+            } catch {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "url",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "regex") {
+            check2.regex.lastIndex = 0;
+            const testResult = check2.regex.test(input.data);
+            if (!testResult) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "regex",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "trim") {
+            input.data = input.data.trim();
+          } else if (check2.kind === "includes") {
+            if (!input.data.includes(check2.value, check2.position)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_string,
+                validation: { includes: check2.value, position: check2.position },
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "toLowerCase") {
+            input.data = input.data.toLowerCase();
+          } else if (check2.kind === "toUpperCase") {
+            input.data = input.data.toUpperCase();
+          } else if (check2.kind === "startsWith") {
+            if (!input.data.startsWith(check2.value)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_string,
+                validation: { startsWith: check2.value },
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "endsWith") {
+            if (!input.data.endsWith(check2.value)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_string,
+                validation: { endsWith: check2.value },
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "datetime") {
+            const regex = datetimeRegex(check2);
+            if (!regex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_string,
+                validation: "datetime",
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "date") {
+            const regex = dateRegex;
+            if (!regex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_string,
+                validation: "date",
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "time") {
+            const regex = timeRegex(check2);
+            if (!regex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_string,
+                validation: "time",
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "duration") {
+            if (!durationRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "duration",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "ip") {
+            if (!isValidIP(input.data, check2.version)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "ip",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "jwt") {
+            if (!isValidJWT(input.data, check2.alg)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "jwt",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "cidr") {
+            if (!isValidCidr(input.data, check2.version)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "cidr",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "base64") {
+            if (!base64Regex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "base64",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "base64url") {
+            if (!base64urlRegex.test(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                validation: "base64url",
+                code: ZodIssueCode.invalid_string,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else {
+            util.assertNever(check2);
+          }
+        }
+        return { status: status.value, value: input.data };
+      }
+      _regex(regex, validation, message) {
+        return this.refinement((data) => regex.test(data), {
+          validation,
+          code: ZodIssueCode.invalid_string,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      _addCheck(check2) {
+        return new _ZodString2({
+          ...this._def,
+          checks: [...this._def.checks, check2]
+        });
+      }
+      email(message) {
+        return this._addCheck({ kind: "email", ...errorUtil.errToObj(message) });
+      }
+      url(message) {
+        return this._addCheck({ kind: "url", ...errorUtil.errToObj(message) });
+      }
+      emoji(message) {
+        return this._addCheck({ kind: "emoji", ...errorUtil.errToObj(message) });
+      }
+      uuid(message) {
+        return this._addCheck({ kind: "uuid", ...errorUtil.errToObj(message) });
+      }
+      nanoid(message) {
+        return this._addCheck({ kind: "nanoid", ...errorUtil.errToObj(message) });
+      }
+      cuid(message) {
+        return this._addCheck({ kind: "cuid", ...errorUtil.errToObj(message) });
+      }
+      cuid2(message) {
+        return this._addCheck({ kind: "cuid2", ...errorUtil.errToObj(message) });
+      }
+      ulid(message) {
+        return this._addCheck({ kind: "ulid", ...errorUtil.errToObj(message) });
+      }
+      base64(message) {
+        return this._addCheck({ kind: "base64", ...errorUtil.errToObj(message) });
+      }
+      base64url(message) {
+        return this._addCheck({
+          kind: "base64url",
+          ...errorUtil.errToObj(message)
+        });
+      }
+      jwt(options) {
+        return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options) });
+      }
+      ip(options) {
+        return this._addCheck({ kind: "ip", ...errorUtil.errToObj(options) });
+      }
+      cidr(options) {
+        return this._addCheck({ kind: "cidr", ...errorUtil.errToObj(options) });
+      }
+      datetime(options) {
+        if (typeof options === "string") {
+          return this._addCheck({
+            kind: "datetime",
+            precision: null,
+            offset: false,
+            local: false,
+            message: options
+          });
+        }
+        return this._addCheck({
+          kind: "datetime",
+          precision: typeof options?.precision === "undefined" ? null : options?.precision,
+          offset: options?.offset ?? false,
+          local: options?.local ?? false,
+          ...errorUtil.errToObj(options?.message)
+        });
+      }
+      date(message) {
+        return this._addCheck({ kind: "date", message });
+      }
+      time(options) {
+        if (typeof options === "string") {
+          return this._addCheck({
+            kind: "time",
+            precision: null,
+            message: options
+          });
+        }
+        return this._addCheck({
+          kind: "time",
+          precision: typeof options?.precision === "undefined" ? null : options?.precision,
+          ...errorUtil.errToObj(options?.message)
+        });
+      }
+      duration(message) {
+        return this._addCheck({ kind: "duration", ...errorUtil.errToObj(message) });
+      }
+      regex(regex, message) {
+        return this._addCheck({
+          kind: "regex",
+          regex,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      includes(value, options) {
+        return this._addCheck({
+          kind: "includes",
+          value,
+          position: options?.position,
+          ...errorUtil.errToObj(options?.message)
+        });
+      }
+      startsWith(value, message) {
+        return this._addCheck({
+          kind: "startsWith",
+          value,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      endsWith(value, message) {
+        return this._addCheck({
+          kind: "endsWith",
+          value,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      min(minLength, message) {
+        return this._addCheck({
+          kind: "min",
+          value: minLength,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      max(maxLength, message) {
+        return this._addCheck({
+          kind: "max",
+          value: maxLength,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      length(len, message) {
+        return this._addCheck({
+          kind: "length",
+          value: len,
+          ...errorUtil.errToObj(message)
+        });
+      }
+      /**
+       * Equivalent to `.min(1)`
+       */
+      nonempty(message) {
+        return this.min(1, errorUtil.errToObj(message));
+      }
+      trim() {
+        return new _ZodString2({
+          ...this._def,
+          checks: [...this._def.checks, { kind: "trim" }]
+        });
+      }
+      toLowerCase() {
+        return new _ZodString2({
+          ...this._def,
+          checks: [...this._def.checks, { kind: "toLowerCase" }]
+        });
+      }
+      toUpperCase() {
+        return new _ZodString2({
+          ...this._def,
+          checks: [...this._def.checks, { kind: "toUpperCase" }]
+        });
+      }
+      get isDatetime() {
+        return !!this._def.checks.find((ch) => ch.kind === "datetime");
+      }
+      get isDate() {
+        return !!this._def.checks.find((ch) => ch.kind === "date");
+      }
+      get isTime() {
+        return !!this._def.checks.find((ch) => ch.kind === "time");
+      }
+      get isDuration() {
+        return !!this._def.checks.find((ch) => ch.kind === "duration");
+      }
+      get isEmail() {
+        return !!this._def.checks.find((ch) => ch.kind === "email");
+      }
+      get isURL() {
+        return !!this._def.checks.find((ch) => ch.kind === "url");
+      }
+      get isEmoji() {
+        return !!this._def.checks.find((ch) => ch.kind === "emoji");
+      }
+      get isUUID() {
+        return !!this._def.checks.find((ch) => ch.kind === "uuid");
+      }
+      get isNANOID() {
+        return !!this._def.checks.find((ch) => ch.kind === "nanoid");
+      }
+      get isCUID() {
+        return !!this._def.checks.find((ch) => ch.kind === "cuid");
+      }
+      get isCUID2() {
+        return !!this._def.checks.find((ch) => ch.kind === "cuid2");
+      }
+      get isULID() {
+        return !!this._def.checks.find((ch) => ch.kind === "ulid");
+      }
+      get isIP() {
+        return !!this._def.checks.find((ch) => ch.kind === "ip");
+      }
+      get isCIDR() {
+        return !!this._def.checks.find((ch) => ch.kind === "cidr");
+      }
+      get isBase64() {
+        return !!this._def.checks.find((ch) => ch.kind === "base64");
+      }
+      get isBase64url() {
+        return !!this._def.checks.find((ch) => ch.kind === "base64url");
+      }
+      get minLength() {
+        let min = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "min") {
+            if (min === null || ch.value > min)
+              min = ch.value;
+          }
+        }
+        return min;
+      }
+      get maxLength() {
+        let max = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "max") {
+            if (max === null || ch.value < max)
+              max = ch.value;
+          }
+        }
+        return max;
+      }
+    };
+    ZodString.create = (params) => {
+      return new ZodString({
+        checks: [],
+        typeName: ZodFirstPartyTypeKind.ZodString,
+        coerce: params?.coerce ?? false,
+        ...processCreateParams(params)
+      });
+    };
+    ZodNumber = class _ZodNumber extends ZodType {
+      constructor() {
+        super(...arguments);
+        this.min = this.gte;
+        this.max = this.lte;
+        this.step = this.multipleOf;
+      }
+      _parse(input) {
+        if (this._def.coerce) {
+          input.data = Number(input.data);
+        }
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.number) {
+          const ctx2 = this._getOrReturnCtx(input);
+          addIssueToContext(ctx2, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.number,
+            received: ctx2.parsedType
+          });
+          return INVALID;
+        }
+        let ctx = void 0;
+        const status = new ParseStatus();
+        for (const check2 of this._def.checks) {
+          if (check2.kind === "int") {
+            if (!util.isInteger(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.invalid_type,
+                expected: "integer",
+                received: "float",
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "min") {
+            const tooSmall = check2.inclusive ? input.data < check2.value : input.data <= check2.value;
+            if (tooSmall) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_small,
+                minimum: check2.value,
+                type: "number",
+                inclusive: check2.inclusive,
+                exact: false,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "max") {
+            const tooBig = check2.inclusive ? input.data > check2.value : input.data >= check2.value;
+            if (tooBig) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_big,
+                maximum: check2.value,
+                type: "number",
+                inclusive: check2.inclusive,
+                exact: false,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "multipleOf") {
+            if (floatSafeRemainder(input.data, check2.value) !== 0) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.not_multiple_of,
+                multipleOf: check2.value,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "finite") {
+            if (!Number.isFinite(input.data)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.not_finite,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else {
+            util.assertNever(check2);
+          }
+        }
+        return { status: status.value, value: input.data };
+      }
+      gte(value, message) {
+        return this.setLimit("min", value, true, errorUtil.toString(message));
+      }
+      gt(value, message) {
+        return this.setLimit("min", value, false, errorUtil.toString(message));
+      }
+      lte(value, message) {
+        return this.setLimit("max", value, true, errorUtil.toString(message));
+      }
+      lt(value, message) {
+        return this.setLimit("max", value, false, errorUtil.toString(message));
+      }
+      setLimit(kind, value, inclusive, message) {
+        return new _ZodNumber({
+          ...this._def,
+          checks: [
+            ...this._def.checks,
+            {
+              kind,
+              value,
+              inclusive,
+              message: errorUtil.toString(message)
+            }
+          ]
+        });
+      }
+      _addCheck(check2) {
+        return new _ZodNumber({
+          ...this._def,
+          checks: [...this._def.checks, check2]
+        });
+      }
+      int(message) {
+        return this._addCheck({
+          kind: "int",
+          message: errorUtil.toString(message)
+        });
+      }
+      positive(message) {
+        return this._addCheck({
+          kind: "min",
+          value: 0,
+          inclusive: false,
+          message: errorUtil.toString(message)
+        });
+      }
+      negative(message) {
+        return this._addCheck({
+          kind: "max",
+          value: 0,
+          inclusive: false,
+          message: errorUtil.toString(message)
+        });
+      }
+      nonpositive(message) {
+        return this._addCheck({
+          kind: "max",
+          value: 0,
+          inclusive: true,
+          message: errorUtil.toString(message)
+        });
+      }
+      nonnegative(message) {
+        return this._addCheck({
+          kind: "min",
+          value: 0,
+          inclusive: true,
+          message: errorUtil.toString(message)
+        });
+      }
+      multipleOf(value, message) {
+        return this._addCheck({
+          kind: "multipleOf",
+          value,
+          message: errorUtil.toString(message)
+        });
+      }
+      finite(message) {
+        return this._addCheck({
+          kind: "finite",
+          message: errorUtil.toString(message)
+        });
+      }
+      safe(message) {
+        return this._addCheck({
+          kind: "min",
+          inclusive: true,
+          value: Number.MIN_SAFE_INTEGER,
+          message: errorUtil.toString(message)
+        })._addCheck({
+          kind: "max",
+          inclusive: true,
+          value: Number.MAX_SAFE_INTEGER,
+          message: errorUtil.toString(message)
+        });
+      }
+      get minValue() {
+        let min = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "min") {
+            if (min === null || ch.value > min)
+              min = ch.value;
+          }
+        }
+        return min;
+      }
+      get maxValue() {
+        let max = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "max") {
+            if (max === null || ch.value < max)
+              max = ch.value;
+          }
+        }
+        return max;
+      }
+      get isInt() {
+        return !!this._def.checks.find((ch) => ch.kind === "int" || ch.kind === "multipleOf" && util.isInteger(ch.value));
+      }
+      get isFinite() {
+        let max = null;
+        let min = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "finite" || ch.kind === "int" || ch.kind === "multipleOf") {
+            return true;
+          } else if (ch.kind === "min") {
+            if (min === null || ch.value > min)
+              min = ch.value;
+          } else if (ch.kind === "max") {
+            if (max === null || ch.value < max)
+              max = ch.value;
+          }
+        }
+        return Number.isFinite(min) && Number.isFinite(max);
+      }
+    };
+    ZodNumber.create = (params) => {
+      return new ZodNumber({
+        checks: [],
+        typeName: ZodFirstPartyTypeKind.ZodNumber,
+        coerce: params?.coerce || false,
+        ...processCreateParams(params)
+      });
+    };
+    ZodBigInt = class _ZodBigInt extends ZodType {
+      constructor() {
+        super(...arguments);
+        this.min = this.gte;
+        this.max = this.lte;
+      }
+      _parse(input) {
+        if (this._def.coerce) {
+          try {
+            input.data = BigInt(input.data);
+          } catch {
+            return this._getInvalidInput(input);
+          }
+        }
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.bigint) {
+          return this._getInvalidInput(input);
+        }
+        let ctx = void 0;
+        const status = new ParseStatus();
+        for (const check2 of this._def.checks) {
+          if (check2.kind === "min") {
+            const tooSmall = check2.inclusive ? input.data < check2.value : input.data <= check2.value;
+            if (tooSmall) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_small,
+                type: "bigint",
+                minimum: check2.value,
+                inclusive: check2.inclusive,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "max") {
+            const tooBig = check2.inclusive ? input.data > check2.value : input.data >= check2.value;
+            if (tooBig) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_big,
+                type: "bigint",
+                maximum: check2.value,
+                inclusive: check2.inclusive,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "multipleOf") {
+            if (input.data % check2.value !== BigInt(0)) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.not_multiple_of,
+                multipleOf: check2.value,
+                message: check2.message
+              });
+              status.dirty();
+            }
+          } else {
+            util.assertNever(check2);
+          }
+        }
+        return { status: status.value, value: input.data };
+      }
+      _getInvalidInput(input) {
+        const ctx = this._getOrReturnCtx(input);
+        addIssueToContext(ctx, {
+          code: ZodIssueCode.invalid_type,
+          expected: ZodParsedType.bigint,
+          received: ctx.parsedType
+        });
+        return INVALID;
+      }
+      gte(value, message) {
+        return this.setLimit("min", value, true, errorUtil.toString(message));
+      }
+      gt(value, message) {
+        return this.setLimit("min", value, false, errorUtil.toString(message));
+      }
+      lte(value, message) {
+        return this.setLimit("max", value, true, errorUtil.toString(message));
+      }
+      lt(value, message) {
+        return this.setLimit("max", value, false, errorUtil.toString(message));
+      }
+      setLimit(kind, value, inclusive, message) {
+        return new _ZodBigInt({
+          ...this._def,
+          checks: [
+            ...this._def.checks,
+            {
+              kind,
+              value,
+              inclusive,
+              message: errorUtil.toString(message)
+            }
+          ]
+        });
+      }
+      _addCheck(check2) {
+        return new _ZodBigInt({
+          ...this._def,
+          checks: [...this._def.checks, check2]
+        });
+      }
+      positive(message) {
+        return this._addCheck({
+          kind: "min",
+          value: BigInt(0),
+          inclusive: false,
+          message: errorUtil.toString(message)
+        });
+      }
+      negative(message) {
+        return this._addCheck({
+          kind: "max",
+          value: BigInt(0),
+          inclusive: false,
+          message: errorUtil.toString(message)
+        });
+      }
+      nonpositive(message) {
+        return this._addCheck({
+          kind: "max",
+          value: BigInt(0),
+          inclusive: true,
+          message: errorUtil.toString(message)
+        });
+      }
+      nonnegative(message) {
+        return this._addCheck({
+          kind: "min",
+          value: BigInt(0),
+          inclusive: true,
+          message: errorUtil.toString(message)
+        });
+      }
+      multipleOf(value, message) {
+        return this._addCheck({
+          kind: "multipleOf",
+          value,
+          message: errorUtil.toString(message)
+        });
+      }
+      get minValue() {
+        let min = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "min") {
+            if (min === null || ch.value > min)
+              min = ch.value;
+          }
+        }
+        return min;
+      }
+      get maxValue() {
+        let max = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "max") {
+            if (max === null || ch.value < max)
+              max = ch.value;
+          }
+        }
+        return max;
+      }
+    };
+    ZodBigInt.create = (params) => {
+      return new ZodBigInt({
+        checks: [],
+        typeName: ZodFirstPartyTypeKind.ZodBigInt,
+        coerce: params?.coerce ?? false,
+        ...processCreateParams(params)
+      });
+    };
+    ZodBoolean = class extends ZodType {
+      _parse(input) {
+        if (this._def.coerce) {
+          input.data = Boolean(input.data);
+        }
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.boolean) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.boolean,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+    };
+    ZodBoolean.create = (params) => {
+      return new ZodBoolean({
+        typeName: ZodFirstPartyTypeKind.ZodBoolean,
+        coerce: params?.coerce || false,
+        ...processCreateParams(params)
+      });
+    };
+    ZodDate = class _ZodDate extends ZodType {
+      _parse(input) {
+        if (this._def.coerce) {
+          input.data = new Date(input.data);
+        }
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.date) {
+          const ctx2 = this._getOrReturnCtx(input);
+          addIssueToContext(ctx2, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.date,
+            received: ctx2.parsedType
+          });
+          return INVALID;
+        }
+        if (Number.isNaN(input.data.getTime())) {
+          const ctx2 = this._getOrReturnCtx(input);
+          addIssueToContext(ctx2, {
+            code: ZodIssueCode.invalid_date
+          });
+          return INVALID;
+        }
+        const status = new ParseStatus();
+        let ctx = void 0;
+        for (const check2 of this._def.checks) {
+          if (check2.kind === "min") {
+            if (input.data.getTime() < check2.value) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_small,
+                message: check2.message,
+                inclusive: true,
+                exact: false,
+                minimum: check2.value,
+                type: "date"
+              });
+              status.dirty();
+            }
+          } else if (check2.kind === "max") {
+            if (input.data.getTime() > check2.value) {
+              ctx = this._getOrReturnCtx(input, ctx);
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.too_big,
+                message: check2.message,
+                inclusive: true,
+                exact: false,
+                maximum: check2.value,
+                type: "date"
+              });
+              status.dirty();
+            }
+          } else {
+            util.assertNever(check2);
+          }
+        }
+        return {
+          status: status.value,
+          value: new Date(input.data.getTime())
+        };
+      }
+      _addCheck(check2) {
+        return new _ZodDate({
+          ...this._def,
+          checks: [...this._def.checks, check2]
+        });
+      }
+      min(minDate, message) {
+        return this._addCheck({
+          kind: "min",
+          value: minDate.getTime(),
+          message: errorUtil.toString(message)
+        });
+      }
+      max(maxDate, message) {
+        return this._addCheck({
+          kind: "max",
+          value: maxDate.getTime(),
+          message: errorUtil.toString(message)
+        });
+      }
+      get minDate() {
+        let min = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "min") {
+            if (min === null || ch.value > min)
+              min = ch.value;
+          }
+        }
+        return min != null ? new Date(min) : null;
+      }
+      get maxDate() {
+        let max = null;
+        for (const ch of this._def.checks) {
+          if (ch.kind === "max") {
+            if (max === null || ch.value < max)
+              max = ch.value;
+          }
+        }
+        return max != null ? new Date(max) : null;
+      }
+    };
+    ZodDate.create = (params) => {
+      return new ZodDate({
+        checks: [],
+        coerce: params?.coerce || false,
+        typeName: ZodFirstPartyTypeKind.ZodDate,
+        ...processCreateParams(params)
+      });
+    };
+    ZodSymbol = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.symbol) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.symbol,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+    };
+    ZodSymbol.create = (params) => {
+      return new ZodSymbol({
+        typeName: ZodFirstPartyTypeKind.ZodSymbol,
+        ...processCreateParams(params)
+      });
+    };
+    ZodUndefined = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.undefined) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.undefined,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+    };
+    ZodUndefined.create = (params) => {
+      return new ZodUndefined({
+        typeName: ZodFirstPartyTypeKind.ZodUndefined,
+        ...processCreateParams(params)
+      });
+    };
+    ZodNull = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.null) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.null,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+    };
+    ZodNull.create = (params) => {
+      return new ZodNull({
+        typeName: ZodFirstPartyTypeKind.ZodNull,
+        ...processCreateParams(params)
+      });
+    };
+    ZodAny = class extends ZodType {
+      constructor() {
+        super(...arguments);
+        this._any = true;
+      }
+      _parse(input) {
+        return OK(input.data);
+      }
+    };
+    ZodAny.create = (params) => {
+      return new ZodAny({
+        typeName: ZodFirstPartyTypeKind.ZodAny,
+        ...processCreateParams(params)
+      });
+    };
+    ZodUnknown = class extends ZodType {
+      constructor() {
+        super(...arguments);
+        this._unknown = true;
+      }
+      _parse(input) {
+        return OK(input.data);
+      }
+    };
+    ZodUnknown.create = (params) => {
+      return new ZodUnknown({
+        typeName: ZodFirstPartyTypeKind.ZodUnknown,
+        ...processCreateParams(params)
+      });
+    };
+    ZodNever = class extends ZodType {
+      _parse(input) {
+        const ctx = this._getOrReturnCtx(input);
+        addIssueToContext(ctx, {
+          code: ZodIssueCode.invalid_type,
+          expected: ZodParsedType.never,
+          received: ctx.parsedType
+        });
+        return INVALID;
+      }
+    };
+    ZodNever.create = (params) => {
+      return new ZodNever({
+        typeName: ZodFirstPartyTypeKind.ZodNever,
+        ...processCreateParams(params)
+      });
+    };
+    ZodVoid = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.undefined) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.void,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+    };
+    ZodVoid.create = (params) => {
+      return new ZodVoid({
+        typeName: ZodFirstPartyTypeKind.ZodVoid,
+        ...processCreateParams(params)
+      });
+    };
+    ZodArray = class _ZodArray extends ZodType {
+      _parse(input) {
+        const { ctx, status } = this._processInputParams(input);
+        const def = this._def;
+        if (ctx.parsedType !== ZodParsedType.array) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.array,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        if (def.exactLength !== null) {
+          const tooBig = ctx.data.length > def.exactLength.value;
+          const tooSmall = ctx.data.length < def.exactLength.value;
+          if (tooBig || tooSmall) {
+            addIssueToContext(ctx, {
+              code: tooBig ? ZodIssueCode.too_big : ZodIssueCode.too_small,
+              minimum: tooSmall ? def.exactLength.value : void 0,
+              maximum: tooBig ? def.exactLength.value : void 0,
+              type: "array",
+              inclusive: true,
+              exact: true,
+              message: def.exactLength.message
+            });
+            status.dirty();
+          }
+        }
+        if (def.minLength !== null) {
+          if (ctx.data.length < def.minLength.value) {
+            addIssueToContext(ctx, {
+              code: ZodIssueCode.too_small,
+              minimum: def.minLength.value,
+              type: "array",
+              inclusive: true,
+              exact: false,
+              message: def.minLength.message
+            });
+            status.dirty();
+          }
+        }
+        if (def.maxLength !== null) {
+          if (ctx.data.length > def.maxLength.value) {
+            addIssueToContext(ctx, {
+              code: ZodIssueCode.too_big,
+              maximum: def.maxLength.value,
+              type: "array",
+              inclusive: true,
+              exact: false,
+              message: def.maxLength.message
+            });
+            status.dirty();
+          }
+        }
+        if (ctx.common.async) {
+          return Promise.all([...ctx.data].map((item, i2) => {
+            return def.type._parseAsync(new ParseInputLazyPath(ctx, item, ctx.path, i2));
+          })).then((result2) => {
+            return ParseStatus.mergeArray(status, result2);
+          });
+        }
+        const result = [...ctx.data].map((item, i2) => {
+          return def.type._parseSync(new ParseInputLazyPath(ctx, item, ctx.path, i2));
+        });
+        return ParseStatus.mergeArray(status, result);
+      }
+      get element() {
+        return this._def.type;
+      }
+      min(minLength, message) {
+        return new _ZodArray({
+          ...this._def,
+          minLength: { value: minLength, message: errorUtil.toString(message) }
+        });
+      }
+      max(maxLength, message) {
+        return new _ZodArray({
+          ...this._def,
+          maxLength: { value: maxLength, message: errorUtil.toString(message) }
+        });
+      }
+      length(len, message) {
+        return new _ZodArray({
+          ...this._def,
+          exactLength: { value: len, message: errorUtil.toString(message) }
+        });
+      }
+      nonempty(message) {
+        return this.min(1, message);
+      }
+    };
+    ZodArray.create = (schema, params) => {
+      return new ZodArray({
+        type: schema,
+        minLength: null,
+        maxLength: null,
+        exactLength: null,
+        typeName: ZodFirstPartyTypeKind.ZodArray,
+        ...processCreateParams(params)
+      });
+    };
+    ZodObject = class _ZodObject extends ZodType {
+      constructor() {
+        super(...arguments);
+        this._cached = null;
+        this.nonstrict = this.passthrough;
+        this.augment = this.extend;
+      }
+      _getCached() {
+        if (this._cached !== null)
+          return this._cached;
+        const shape = this._def.shape();
+        const keys = util.objectKeys(shape);
+        this._cached = { shape, keys };
+        return this._cached;
+      }
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.object) {
+          const ctx2 = this._getOrReturnCtx(input);
+          addIssueToContext(ctx2, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.object,
+            received: ctx2.parsedType
+          });
+          return INVALID;
+        }
+        const { status, ctx } = this._processInputParams(input);
+        const { shape, keys: shapeKeys } = this._getCached();
+        const extraKeys = [];
+        if (!(this._def.catchall instanceof ZodNever && this._def.unknownKeys === "strip")) {
+          for (const key in ctx.data) {
+            if (!shapeKeys.includes(key)) {
+              extraKeys.push(key);
+            }
+          }
+        }
+        const pairs = [];
+        for (const key of shapeKeys) {
+          const keyValidator = shape[key];
+          const value = ctx.data[key];
+          pairs.push({
+            key: { status: "valid", value: key },
+            value: keyValidator._parse(new ParseInputLazyPath(ctx, value, ctx.path, key)),
+            alwaysSet: key in ctx.data
+          });
+        }
+        if (this._def.catchall instanceof ZodNever) {
+          const unknownKeys = this._def.unknownKeys;
+          if (unknownKeys === "passthrough") {
+            for (const key of extraKeys) {
+              pairs.push({
+                key: { status: "valid", value: key },
+                value: { status: "valid", value: ctx.data[key] }
+              });
+            }
+          } else if (unknownKeys === "strict") {
+            if (extraKeys.length > 0) {
+              addIssueToContext(ctx, {
+                code: ZodIssueCode.unrecognized_keys,
+                keys: extraKeys
+              });
+              status.dirty();
+            }
+          } else if (unknownKeys === "strip") {
+          } else {
+            throw new Error(`Internal ZodObject error: invalid unknownKeys value.`);
+          }
+        } else {
+          const catchall = this._def.catchall;
+          for (const key of extraKeys) {
+            const value = ctx.data[key];
+            pairs.push({
+              key: { status: "valid", value: key },
+              value: catchall._parse(
+                new ParseInputLazyPath(ctx, value, ctx.path, key)
+                //, ctx.child(key), value, getParsedType(value)
+              ),
+              alwaysSet: key in ctx.data
+            });
+          }
+        }
+        if (ctx.common.async) {
+          return Promise.resolve().then(async () => {
+            const syncPairs = [];
+            for (const pair of pairs) {
+              const key = await pair.key;
+              const value = await pair.value;
+              syncPairs.push({
+                key,
+                value,
+                alwaysSet: pair.alwaysSet
+              });
+            }
+            return syncPairs;
+          }).then((syncPairs) => {
+            return ParseStatus.mergeObjectSync(status, syncPairs);
+          });
+        } else {
+          return ParseStatus.mergeObjectSync(status, pairs);
+        }
+      }
+      get shape() {
+        return this._def.shape();
+      }
+      strict(message) {
+        errorUtil.errToObj;
+        return new _ZodObject({
+          ...this._def,
+          unknownKeys: "strict",
+          ...message !== void 0 ? {
+            errorMap: (issue2, ctx) => {
+              const defaultError = this._def.errorMap?.(issue2, ctx).message ?? ctx.defaultError;
+              if (issue2.code === "unrecognized_keys")
+                return {
+                  message: errorUtil.errToObj(message).message ?? defaultError
+                };
+              return {
+                message: defaultError
+              };
+            }
+          } : {}
+        });
+      }
+      strip() {
+        return new _ZodObject({
+          ...this._def,
+          unknownKeys: "strip"
+        });
+      }
+      passthrough() {
+        return new _ZodObject({
+          ...this._def,
+          unknownKeys: "passthrough"
+        });
+      }
+      // const AugmentFactory =
+      //   <Def extends ZodObjectDef>(def: Def) =>
+      //   <Augmentation extends ZodRawShape>(
+      //     augmentation: Augmentation
+      //   ): ZodObject<
+      //     extendShape<ReturnType<Def["shape"]>, Augmentation>,
+      //     Def["unknownKeys"],
+      //     Def["catchall"]
+      //   > => {
+      //     return new ZodObject({
+      //       ...def,
+      //       shape: () => ({
+      //         ...def.shape(),
+      //         ...augmentation,
+      //       }),
+      //     }) as any;
+      //   };
+      extend(augmentation) {
+        return new _ZodObject({
+          ...this._def,
+          shape: () => ({
+            ...this._def.shape(),
+            ...augmentation
+          })
+        });
+      }
+      /**
+       * Prior to zod@1.0.12 there was a bug in the
+       * inferred type of merged objects. Please
+       * upgrade if you are experiencing issues.
+       */
+      merge(merging) {
+        const merged = new _ZodObject({
+          unknownKeys: merging._def.unknownKeys,
+          catchall: merging._def.catchall,
+          shape: () => ({
+            ...this._def.shape(),
+            ...merging._def.shape()
+          }),
+          typeName: ZodFirstPartyTypeKind.ZodObject
+        });
+        return merged;
+      }
+      // merge<
+      //   Incoming extends AnyZodObject,
+      //   Augmentation extends Incoming["shape"],
+      //   NewOutput extends {
+      //     [k in keyof Augmentation | keyof Output]: k extends keyof Augmentation
+      //       ? Augmentation[k]["_output"]
+      //       : k extends keyof Output
+      //       ? Output[k]
+      //       : never;
+      //   },
+      //   NewInput extends {
+      //     [k in keyof Augmentation | keyof Input]: k extends keyof Augmentation
+      //       ? Augmentation[k]["_input"]
+      //       : k extends keyof Input
+      //       ? Input[k]
+      //       : never;
+      //   }
+      // >(
+      //   merging: Incoming
+      // ): ZodObject<
+      //   extendShape<T, ReturnType<Incoming["_def"]["shape"]>>,
+      //   Incoming["_def"]["unknownKeys"],
+      //   Incoming["_def"]["catchall"],
+      //   NewOutput,
+      //   NewInput
+      // > {
+      //   const merged: any = new ZodObject({
+      //     unknownKeys: merging._def.unknownKeys,
+      //     catchall: merging._def.catchall,
+      //     shape: () =>
+      //       objectUtil.mergeShapes(this._def.shape(), merging._def.shape()),
+      //     typeName: ZodFirstPartyTypeKind.ZodObject,
+      //   }) as any;
+      //   return merged;
+      // }
+      setKey(key, schema) {
+        return this.augment({ [key]: schema });
+      }
+      // merge<Incoming extends AnyZodObject>(
+      //   merging: Incoming
+      // ): //ZodObject<T & Incoming["_shape"], UnknownKeys, Catchall> = (merging) => {
+      // ZodObject<
+      //   extendShape<T, ReturnType<Incoming["_def"]["shape"]>>,
+      //   Incoming["_def"]["unknownKeys"],
+      //   Incoming["_def"]["catchall"]
+      // > {
+      //   // const mergedShape = objectUtil.mergeShapes(
+      //   //   this._def.shape(),
+      //   //   merging._def.shape()
+      //   // );
+      //   const merged: any = new ZodObject({
+      //     unknownKeys: merging._def.unknownKeys,
+      //     catchall: merging._def.catchall,
+      //     shape: () =>
+      //       objectUtil.mergeShapes(this._def.shape(), merging._def.shape()),
+      //     typeName: ZodFirstPartyTypeKind.ZodObject,
+      //   }) as any;
+      //   return merged;
+      // }
+      catchall(index) {
+        return new _ZodObject({
+          ...this._def,
+          catchall: index
+        });
+      }
+      pick(mask) {
+        const shape = {};
+        for (const key of util.objectKeys(mask)) {
+          if (mask[key] && this.shape[key]) {
+            shape[key] = this.shape[key];
+          }
+        }
+        return new _ZodObject({
+          ...this._def,
+          shape: () => shape
+        });
+      }
+      omit(mask) {
+        const shape = {};
+        for (const key of util.objectKeys(this.shape)) {
+          if (!mask[key]) {
+            shape[key] = this.shape[key];
+          }
+        }
+        return new _ZodObject({
+          ...this._def,
+          shape: () => shape
+        });
+      }
+      /**
+       * @deprecated
+       */
+      deepPartial() {
+        return deepPartialify(this);
+      }
+      partial(mask) {
+        const newShape = {};
+        for (const key of util.objectKeys(this.shape)) {
+          const fieldSchema = this.shape[key];
+          if (mask && !mask[key]) {
+            newShape[key] = fieldSchema;
+          } else {
+            newShape[key] = fieldSchema.optional();
+          }
+        }
+        return new _ZodObject({
+          ...this._def,
+          shape: () => newShape
+        });
+      }
+      required(mask) {
+        const newShape = {};
+        for (const key of util.objectKeys(this.shape)) {
+          if (mask && !mask[key]) {
+            newShape[key] = this.shape[key];
+          } else {
+            const fieldSchema = this.shape[key];
+            let newField = fieldSchema;
+            while (newField instanceof ZodOptional) {
+              newField = newField._def.innerType;
+            }
+            newShape[key] = newField;
+          }
+        }
+        return new _ZodObject({
+          ...this._def,
+          shape: () => newShape
+        });
+      }
+      keyof() {
+        return createZodEnum(util.objectKeys(this.shape));
+      }
+    };
+    ZodObject.create = (shape, params) => {
+      return new ZodObject({
+        shape: () => shape,
+        unknownKeys: "strip",
+        catchall: ZodNever.create(),
+        typeName: ZodFirstPartyTypeKind.ZodObject,
+        ...processCreateParams(params)
+      });
+    };
+    ZodObject.strictCreate = (shape, params) => {
+      return new ZodObject({
+        shape: () => shape,
+        unknownKeys: "strict",
+        catchall: ZodNever.create(),
+        typeName: ZodFirstPartyTypeKind.ZodObject,
+        ...processCreateParams(params)
+      });
+    };
+    ZodObject.lazycreate = (shape, params) => {
+      return new ZodObject({
+        shape,
+        unknownKeys: "strip",
+        catchall: ZodNever.create(),
+        typeName: ZodFirstPartyTypeKind.ZodObject,
+        ...processCreateParams(params)
+      });
+    };
+    ZodUnion = class extends ZodType {
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        const options = this._def.options;
+        function handleResults(results) {
+          for (const result of results) {
+            if (result.result.status === "valid") {
+              return result.result;
+            }
+          }
+          for (const result of results) {
+            if (result.result.status === "dirty") {
+              ctx.common.issues.push(...result.ctx.common.issues);
+              return result.result;
+            }
+          }
+          const unionErrors = results.map((result) => new ZodError(result.ctx.common.issues));
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_union,
+            unionErrors
+          });
+          return INVALID;
+        }
+        if (ctx.common.async) {
+          return Promise.all(options.map(async (option) => {
+            const childCtx = {
+              ...ctx,
+              common: {
+                ...ctx.common,
+                issues: []
+              },
+              parent: null
+            };
+            return {
+              result: await option._parseAsync({
+                data: ctx.data,
+                path: ctx.path,
+                parent: childCtx
+              }),
+              ctx: childCtx
+            };
+          })).then(handleResults);
+        } else {
+          let dirty = void 0;
+          const issues = [];
+          for (const option of options) {
+            const childCtx = {
+              ...ctx,
+              common: {
+                ...ctx.common,
+                issues: []
+              },
+              parent: null
+            };
+            const result = option._parseSync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: childCtx
+            });
+            if (result.status === "valid") {
+              return result;
+            } else if (result.status === "dirty" && !dirty) {
+              dirty = { result, ctx: childCtx };
+            }
+            if (childCtx.common.issues.length) {
+              issues.push(childCtx.common.issues);
+            }
+          }
+          if (dirty) {
+            ctx.common.issues.push(...dirty.ctx.common.issues);
+            return dirty.result;
+          }
+          const unionErrors = issues.map((issues2) => new ZodError(issues2));
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_union,
+            unionErrors
+          });
+          return INVALID;
+        }
+      }
+      get options() {
+        return this._def.options;
+      }
+    };
+    ZodUnion.create = (types2, params) => {
+      return new ZodUnion({
+        options: types2,
+        typeName: ZodFirstPartyTypeKind.ZodUnion,
+        ...processCreateParams(params)
+      });
+    };
+    getDiscriminator = (type) => {
+      if (type instanceof ZodLazy) {
+        return getDiscriminator(type.schema);
+      } else if (type instanceof ZodEffects) {
+        return getDiscriminator(type.innerType());
+      } else if (type instanceof ZodLiteral) {
+        return [type.value];
+      } else if (type instanceof ZodEnum) {
+        return type.options;
+      } else if (type instanceof ZodNativeEnum) {
+        return util.objectValues(type.enum);
+      } else if (type instanceof ZodDefault) {
+        return getDiscriminator(type._def.innerType);
+      } else if (type instanceof ZodUndefined) {
+        return [void 0];
+      } else if (type instanceof ZodNull) {
+        return [null];
+      } else if (type instanceof ZodOptional) {
+        return [void 0, ...getDiscriminator(type.unwrap())];
+      } else if (type instanceof ZodNullable) {
+        return [null, ...getDiscriminator(type.unwrap())];
+      } else if (type instanceof ZodBranded) {
+        return getDiscriminator(type.unwrap());
+      } else if (type instanceof ZodReadonly) {
+        return getDiscriminator(type.unwrap());
+      } else if (type instanceof ZodCatch) {
+        return getDiscriminator(type._def.innerType);
+      } else {
+        return [];
+      }
+    };
+    ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.object) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.object,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        const discriminator = this.discriminator;
+        const discriminatorValue = ctx.data[discriminator];
+        const option = this.optionsMap.get(discriminatorValue);
+        if (!option) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_union_discriminator,
+            options: Array.from(this.optionsMap.keys()),
+            path: [discriminator]
+          });
+          return INVALID;
+        }
+        if (ctx.common.async) {
+          return option._parseAsync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx
+          });
+        } else {
+          return option._parseSync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx
+          });
+        }
+      }
+      get discriminator() {
+        return this._def.discriminator;
+      }
+      get options() {
+        return this._def.options;
+      }
+      get optionsMap() {
+        return this._def.optionsMap;
+      }
+      /**
+       * The constructor of the discriminated union schema. Its behaviour is very similar to that of the normal z.union() constructor.
+       * However, it only allows a union of objects, all of which need to share a discriminator property. This property must
+       * have a different value for each object in the union.
+       * @param discriminator the name of the discriminator property
+       * @param types an array of object schemas
+       * @param params
+       */
+      static create(discriminator, options, params) {
+        const optionsMap = /* @__PURE__ */ new Map();
+        for (const type of options) {
+          const discriminatorValues = getDiscriminator(type.shape[discriminator]);
+          if (!discriminatorValues.length) {
+            throw new Error(`A discriminator value for key \`${discriminator}\` could not be extracted from all schema options`);
+          }
+          for (const value of discriminatorValues) {
+            if (optionsMap.has(value)) {
+              throw new Error(`Discriminator property ${String(discriminator)} has duplicate value ${String(value)}`);
+            }
+            optionsMap.set(value, type);
+          }
+        }
+        return new _ZodDiscriminatedUnion({
+          typeName: ZodFirstPartyTypeKind.ZodDiscriminatedUnion,
+          discriminator,
+          options,
+          optionsMap,
+          ...processCreateParams(params)
+        });
+      }
+    };
+    ZodIntersection = class extends ZodType {
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        const handleParsed = (parsedLeft, parsedRight) => {
+          if (isAborted(parsedLeft) || isAborted(parsedRight)) {
+            return INVALID;
+          }
+          const merged = mergeValues(parsedLeft.value, parsedRight.value);
+          if (!merged.valid) {
+            addIssueToContext(ctx, {
+              code: ZodIssueCode.invalid_intersection_types
+            });
+            return INVALID;
+          }
+          if (isDirty(parsedLeft) || isDirty(parsedRight)) {
+            status.dirty();
+          }
+          return { status: status.value, value: merged.data };
+        };
+        if (ctx.common.async) {
+          return Promise.all([
+            this._def.left._parseAsync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: ctx
+            }),
+            this._def.right._parseAsync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: ctx
+            })
+          ]).then(([left, right]) => handleParsed(left, right));
+        } else {
+          return handleParsed(this._def.left._parseSync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx
+          }), this._def.right._parseSync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx
+          }));
+        }
+      }
+    };
+    ZodIntersection.create = (left, right, params) => {
+      return new ZodIntersection({
+        left,
+        right,
+        typeName: ZodFirstPartyTypeKind.ZodIntersection,
+        ...processCreateParams(params)
+      });
+    };
+    ZodTuple = class _ZodTuple extends ZodType {
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.array) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.array,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        if (ctx.data.length < this._def.items.length) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.too_small,
+            minimum: this._def.items.length,
+            inclusive: true,
+            exact: false,
+            type: "array"
+          });
+          return INVALID;
+        }
+        const rest = this._def.rest;
+        if (!rest && ctx.data.length > this._def.items.length) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.too_big,
+            maximum: this._def.items.length,
+            inclusive: true,
+            exact: false,
+            type: "array"
+          });
+          status.dirty();
+        }
+        const items = [...ctx.data].map((item, itemIndex) => {
+          const schema = this._def.items[itemIndex] || this._def.rest;
+          if (!schema)
+            return null;
+          return schema._parse(new ParseInputLazyPath(ctx, item, ctx.path, itemIndex));
+        }).filter((x2) => !!x2);
+        if (ctx.common.async) {
+          return Promise.all(items).then((results) => {
+            return ParseStatus.mergeArray(status, results);
+          });
+        } else {
+          return ParseStatus.mergeArray(status, items);
+        }
+      }
+      get items() {
+        return this._def.items;
+      }
+      rest(rest) {
+        return new _ZodTuple({
+          ...this._def,
+          rest
+        });
+      }
+    };
+    ZodTuple.create = (schemas, params) => {
+      if (!Array.isArray(schemas)) {
+        throw new Error("You must pass an array of schemas to z.tuple([ ... ])");
+      }
+      return new ZodTuple({
+        items: schemas,
+        typeName: ZodFirstPartyTypeKind.ZodTuple,
+        rest: null,
+        ...processCreateParams(params)
+      });
+    };
+    ZodRecord = class _ZodRecord extends ZodType {
+      get keySchema() {
+        return this._def.keyType;
+      }
+      get valueSchema() {
+        return this._def.valueType;
+      }
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.object) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.object,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        const pairs = [];
+        const keyType = this._def.keyType;
+        const valueType = this._def.valueType;
+        for (const key in ctx.data) {
+          pairs.push({
+            key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, key)),
+            value: valueType._parse(new ParseInputLazyPath(ctx, ctx.data[key], ctx.path, key)),
+            alwaysSet: key in ctx.data
+          });
+        }
+        if (ctx.common.async) {
+          return ParseStatus.mergeObjectAsync(status, pairs);
+        } else {
+          return ParseStatus.mergeObjectSync(status, pairs);
+        }
+      }
+      get element() {
+        return this._def.valueType;
+      }
+      static create(first2, second, third) {
+        if (second instanceof ZodType) {
+          return new _ZodRecord({
+            keyType: first2,
+            valueType: second,
+            typeName: ZodFirstPartyTypeKind.ZodRecord,
+            ...processCreateParams(third)
+          });
+        }
+        return new _ZodRecord({
+          keyType: ZodString.create(),
+          valueType: first2,
+          typeName: ZodFirstPartyTypeKind.ZodRecord,
+          ...processCreateParams(second)
+        });
+      }
+    };
+    ZodMap = class extends ZodType {
+      get keySchema() {
+        return this._def.keyType;
+      }
+      get valueSchema() {
+        return this._def.valueType;
+      }
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.map) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.map,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        const keyType = this._def.keyType;
+        const valueType = this._def.valueType;
+        const pairs = [...ctx.data.entries()].map(([key, value], index) => {
+          return {
+            key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, [index, "key"])),
+            value: valueType._parse(new ParseInputLazyPath(ctx, value, ctx.path, [index, "value"]))
+          };
+        });
+        if (ctx.common.async) {
+          const finalMap = /* @__PURE__ */ new Map();
+          return Promise.resolve().then(async () => {
+            for (const pair of pairs) {
+              const key = await pair.key;
+              const value = await pair.value;
+              if (key.status === "aborted" || value.status === "aborted") {
+                return INVALID;
+              }
+              if (key.status === "dirty" || value.status === "dirty") {
+                status.dirty();
+              }
+              finalMap.set(key.value, value.value);
+            }
+            return { status: status.value, value: finalMap };
+          });
+        } else {
+          const finalMap = /* @__PURE__ */ new Map();
+          for (const pair of pairs) {
+            const key = pair.key;
+            const value = pair.value;
+            if (key.status === "aborted" || value.status === "aborted") {
+              return INVALID;
+            }
+            if (key.status === "dirty" || value.status === "dirty") {
+              status.dirty();
+            }
+            finalMap.set(key.value, value.value);
+          }
+          return { status: status.value, value: finalMap };
+        }
+      }
+    };
+    ZodMap.create = (keyType, valueType, params) => {
+      return new ZodMap({
+        valueType,
+        keyType,
+        typeName: ZodFirstPartyTypeKind.ZodMap,
+        ...processCreateParams(params)
+      });
+    };
+    ZodSet = class _ZodSet extends ZodType {
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.set) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.set,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        const def = this._def;
+        if (def.minSize !== null) {
+          if (ctx.data.size < def.minSize.value) {
+            addIssueToContext(ctx, {
+              code: ZodIssueCode.too_small,
+              minimum: def.minSize.value,
+              type: "set",
+              inclusive: true,
+              exact: false,
+              message: def.minSize.message
+            });
+            status.dirty();
+          }
+        }
+        if (def.maxSize !== null) {
+          if (ctx.data.size > def.maxSize.value) {
+            addIssueToContext(ctx, {
+              code: ZodIssueCode.too_big,
+              maximum: def.maxSize.value,
+              type: "set",
+              inclusive: true,
+              exact: false,
+              message: def.maxSize.message
+            });
+            status.dirty();
+          }
+        }
+        const valueType = this._def.valueType;
+        function finalizeSet(elements2) {
+          const parsedSet = /* @__PURE__ */ new Set();
+          for (const element of elements2) {
+            if (element.status === "aborted")
+              return INVALID;
+            if (element.status === "dirty")
+              status.dirty();
+            parsedSet.add(element.value);
+          }
+          return { status: status.value, value: parsedSet };
+        }
+        const elements = [...ctx.data.values()].map((item, i2) => valueType._parse(new ParseInputLazyPath(ctx, item, ctx.path, i2)));
+        if (ctx.common.async) {
+          return Promise.all(elements).then((elements2) => finalizeSet(elements2));
+        } else {
+          return finalizeSet(elements);
+        }
+      }
+      min(minSize, message) {
+        return new _ZodSet({
+          ...this._def,
+          minSize: { value: minSize, message: errorUtil.toString(message) }
+        });
+      }
+      max(maxSize, message) {
+        return new _ZodSet({
+          ...this._def,
+          maxSize: { value: maxSize, message: errorUtil.toString(message) }
+        });
+      }
+      size(size, message) {
+        return this.min(size, message).max(size, message);
+      }
+      nonempty(message) {
+        return this.min(1, message);
+      }
+    };
+    ZodSet.create = (valueType, params) => {
+      return new ZodSet({
+        valueType,
+        minSize: null,
+        maxSize: null,
+        typeName: ZodFirstPartyTypeKind.ZodSet,
+        ...processCreateParams(params)
+      });
+    };
+    ZodFunction = class _ZodFunction extends ZodType {
+      constructor() {
+        super(...arguments);
+        this.validate = this.implement;
+      }
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.function) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.function,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        function makeArgsIssue(args, error2) {
+          return makeIssue({
+            data: args,
+            path: ctx.path,
+            errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x2) => !!x2),
+            issueData: {
+              code: ZodIssueCode.invalid_arguments,
+              argumentsError: error2
+            }
+          });
+        }
+        function makeReturnsIssue(returns, error2) {
+          return makeIssue({
+            data: returns,
+            path: ctx.path,
+            errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x2) => !!x2),
+            issueData: {
+              code: ZodIssueCode.invalid_return_type,
+              returnTypeError: error2
+            }
+          });
+        }
+        const params = { errorMap: ctx.common.contextualErrorMap };
+        const fn = ctx.data;
+        if (this._def.returns instanceof ZodPromise) {
+          const me = this;
+          return OK(async function(...args) {
+            const error2 = new ZodError([]);
+            const parsedArgs = await me._def.args.parseAsync(args, params).catch((e) => {
+              error2.addIssue(makeArgsIssue(args, e));
+              throw error2;
+            });
+            const result = await Reflect.apply(fn, this, parsedArgs);
+            const parsedReturns = await me._def.returns._def.type.parseAsync(result, params).catch((e) => {
+              error2.addIssue(makeReturnsIssue(result, e));
+              throw error2;
+            });
+            return parsedReturns;
+          });
+        } else {
+          const me = this;
+          return OK(function(...args) {
+            const parsedArgs = me._def.args.safeParse(args, params);
+            if (!parsedArgs.success) {
+              throw new ZodError([makeArgsIssue(args, parsedArgs.error)]);
+            }
+            const result = Reflect.apply(fn, this, parsedArgs.data);
+            const parsedReturns = me._def.returns.safeParse(result, params);
+            if (!parsedReturns.success) {
+              throw new ZodError([makeReturnsIssue(result, parsedReturns.error)]);
+            }
+            return parsedReturns.data;
+          });
+        }
+      }
+      parameters() {
+        return this._def.args;
+      }
+      returnType() {
+        return this._def.returns;
+      }
+      args(...items) {
+        return new _ZodFunction({
+          ...this._def,
+          args: ZodTuple.create(items).rest(ZodUnknown.create())
+        });
+      }
+      returns(returnType) {
+        return new _ZodFunction({
+          ...this._def,
+          returns: returnType
+        });
+      }
+      implement(func) {
+        const validatedFunc = this.parse(func);
+        return validatedFunc;
+      }
+      strictImplement(func) {
+        const validatedFunc = this.parse(func);
+        return validatedFunc;
+      }
+      static create(args, returns, params) {
+        return new _ZodFunction({
+          args: args ? args : ZodTuple.create([]).rest(ZodUnknown.create()),
+          returns: returns || ZodUnknown.create(),
+          typeName: ZodFirstPartyTypeKind.ZodFunction,
+          ...processCreateParams(params)
+        });
+      }
+    };
+    ZodLazy = class extends ZodType {
+      get schema() {
+        return this._def.getter();
+      }
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        const lazySchema = this._def.getter();
+        return lazySchema._parse({ data: ctx.data, path: ctx.path, parent: ctx });
+      }
+    };
+    ZodLazy.create = (getter, params) => {
+      return new ZodLazy({
+        getter,
+        typeName: ZodFirstPartyTypeKind.ZodLazy,
+        ...processCreateParams(params)
+      });
+    };
+    ZodLiteral = class extends ZodType {
+      _parse(input) {
+        if (input.data !== this._def.value) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            received: ctx.data,
+            code: ZodIssueCode.invalid_literal,
+            expected: this._def.value
+          });
+          return INVALID;
+        }
+        return { status: "valid", value: input.data };
+      }
+      get value() {
+        return this._def.value;
+      }
+    };
+    ZodLiteral.create = (value, params) => {
+      return new ZodLiteral({
+        value,
+        typeName: ZodFirstPartyTypeKind.ZodLiteral,
+        ...processCreateParams(params)
+      });
+    };
+    ZodEnum = class _ZodEnum extends ZodType {
+      _parse(input) {
+        if (typeof input.data !== "string") {
+          const ctx = this._getOrReturnCtx(input);
+          const expectedValues = this._def.values;
+          addIssueToContext(ctx, {
+            expected: util.joinValues(expectedValues),
+            received: ctx.parsedType,
+            code: ZodIssueCode.invalid_type
+          });
+          return INVALID;
+        }
+        if (!this._cache) {
+          this._cache = new Set(this._def.values);
+        }
+        if (!this._cache.has(input.data)) {
+          const ctx = this._getOrReturnCtx(input);
+          const expectedValues = this._def.values;
+          addIssueToContext(ctx, {
+            received: ctx.data,
+            code: ZodIssueCode.invalid_enum_value,
+            options: expectedValues
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+      get options() {
+        return this._def.values;
+      }
+      get enum() {
+        const enumValues = {};
+        for (const val of this._def.values) {
+          enumValues[val] = val;
+        }
+        return enumValues;
+      }
+      get Values() {
+        const enumValues = {};
+        for (const val of this._def.values) {
+          enumValues[val] = val;
+        }
+        return enumValues;
+      }
+      get Enum() {
+        const enumValues = {};
+        for (const val of this._def.values) {
+          enumValues[val] = val;
+        }
+        return enumValues;
+      }
+      extract(values, newDef = this._def) {
+        return _ZodEnum.create(values, {
+          ...this._def,
+          ...newDef
+        });
+      }
+      exclude(values, newDef = this._def) {
+        return _ZodEnum.create(this.options.filter((opt) => !values.includes(opt)), {
+          ...this._def,
+          ...newDef
+        });
+      }
+    };
+    ZodEnum.create = createZodEnum;
+    ZodNativeEnum = class extends ZodType {
+      _parse(input) {
+        const nativeEnumValues = util.getValidEnumValues(this._def.values);
+        const ctx = this._getOrReturnCtx(input);
+        if (ctx.parsedType !== ZodParsedType.string && ctx.parsedType !== ZodParsedType.number) {
+          const expectedValues = util.objectValues(nativeEnumValues);
+          addIssueToContext(ctx, {
+            expected: util.joinValues(expectedValues),
+            received: ctx.parsedType,
+            code: ZodIssueCode.invalid_type
+          });
+          return INVALID;
+        }
+        if (!this._cache) {
+          this._cache = new Set(util.getValidEnumValues(this._def.values));
+        }
+        if (!this._cache.has(input.data)) {
+          const expectedValues = util.objectValues(nativeEnumValues);
+          addIssueToContext(ctx, {
+            received: ctx.data,
+            code: ZodIssueCode.invalid_enum_value,
+            options: expectedValues
+          });
+          return INVALID;
+        }
+        return OK(input.data);
+      }
+      get enum() {
+        return this._def.values;
+      }
+    };
+    ZodNativeEnum.create = (values, params) => {
+      return new ZodNativeEnum({
+        values,
+        typeName: ZodFirstPartyTypeKind.ZodNativeEnum,
+        ...processCreateParams(params)
+      });
+    };
+    ZodPromise = class extends ZodType {
+      unwrap() {
+        return this._def.type;
+      }
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        if (ctx.parsedType !== ZodParsedType.promise && ctx.common.async === false) {
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.promise,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        const promisified = ctx.parsedType === ZodParsedType.promise ? ctx.data : Promise.resolve(ctx.data);
+        return OK(promisified.then((data) => {
+          return this._def.type.parseAsync(data, {
+            path: ctx.path,
+            errorMap: ctx.common.contextualErrorMap
+          });
+        }));
+      }
+    };
+    ZodPromise.create = (schema, params) => {
+      return new ZodPromise({
+        type: schema,
+        typeName: ZodFirstPartyTypeKind.ZodPromise,
+        ...processCreateParams(params)
+      });
+    };
+    ZodEffects = class extends ZodType {
+      innerType() {
+        return this._def.schema;
+      }
+      sourceType() {
+        return this._def.schema._def.typeName === ZodFirstPartyTypeKind.ZodEffects ? this._def.schema.sourceType() : this._def.schema;
+      }
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        const effect = this._def.effect || null;
+        const checkCtx = {
+          addIssue: (arg) => {
+            addIssueToContext(ctx, arg);
+            if (arg.fatal) {
+              status.abort();
+            } else {
+              status.dirty();
+            }
+          },
+          get path() {
+            return ctx.path;
+          }
+        };
+        checkCtx.addIssue = checkCtx.addIssue.bind(checkCtx);
+        if (effect.type === "preprocess") {
+          const processed = effect.transform(ctx.data, checkCtx);
+          if (ctx.common.async) {
+            return Promise.resolve(processed).then(async (processed2) => {
+              if (status.value === "aborted")
+                return INVALID;
+              const result = await this._def.schema._parseAsync({
+                data: processed2,
+                path: ctx.path,
+                parent: ctx
+              });
+              if (result.status === "aborted")
+                return INVALID;
+              if (result.status === "dirty")
+                return DIRTY(result.value);
+              if (status.value === "dirty")
+                return DIRTY(result.value);
+              return result;
+            });
+          } else {
+            if (status.value === "aborted")
+              return INVALID;
+            const result = this._def.schema._parseSync({
+              data: processed,
+              path: ctx.path,
+              parent: ctx
+            });
+            if (result.status === "aborted")
+              return INVALID;
+            if (result.status === "dirty")
+              return DIRTY(result.value);
+            if (status.value === "dirty")
+              return DIRTY(result.value);
+            return result;
+          }
+        }
+        if (effect.type === "refinement") {
+          const executeRefinement = (acc) => {
+            const result = effect.refinement(acc, checkCtx);
+            if (ctx.common.async) {
+              return Promise.resolve(result);
+            }
+            if (result instanceof Promise) {
+              throw new Error("Async refinement encountered during synchronous parse operation. Use .parseAsync instead.");
+            }
+            return acc;
+          };
+          if (ctx.common.async === false) {
+            const inner = this._def.schema._parseSync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: ctx
+            });
+            if (inner.status === "aborted")
+              return INVALID;
+            if (inner.status === "dirty")
+              status.dirty();
+            executeRefinement(inner.value);
+            return { status: status.value, value: inner.value };
+          } else {
+            return this._def.schema._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx }).then((inner) => {
+              if (inner.status === "aborted")
+                return INVALID;
+              if (inner.status === "dirty")
+                status.dirty();
+              return executeRefinement(inner.value).then(() => {
+                return { status: status.value, value: inner.value };
+              });
+            });
+          }
+        }
+        if (effect.type === "transform") {
+          if (ctx.common.async === false) {
+            const base = this._def.schema._parseSync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: ctx
+            });
+            if (!isValid(base))
+              return INVALID;
+            const result = effect.transform(base.value, checkCtx);
+            if (result instanceof Promise) {
+              throw new Error(`Asynchronous transform encountered during synchronous parse operation. Use .parseAsync instead.`);
+            }
+            return { status: status.value, value: result };
+          } else {
+            return this._def.schema._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx }).then((base) => {
+              if (!isValid(base))
+                return INVALID;
+              return Promise.resolve(effect.transform(base.value, checkCtx)).then((result) => ({
+                status: status.value,
+                value: result
+              }));
+            });
+          }
+        }
+        util.assertNever(effect);
+      }
+    };
+    ZodEffects.create = (schema, effect, params) => {
+      return new ZodEffects({
+        schema,
+        typeName: ZodFirstPartyTypeKind.ZodEffects,
+        effect,
+        ...processCreateParams(params)
+      });
+    };
+    ZodEffects.createWithPreprocess = (preprocess2, schema, params) => {
+      return new ZodEffects({
+        schema,
+        effect: { type: "preprocess", transform: preprocess2 },
+        typeName: ZodFirstPartyTypeKind.ZodEffects,
+        ...processCreateParams(params)
+      });
+    };
+    ZodOptional = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 === ZodParsedType.undefined) {
+          return OK(void 0);
+        }
+        return this._def.innerType._parse(input);
+      }
+      unwrap() {
+        return this._def.innerType;
+      }
+    };
+    ZodOptional.create = (type, params) => {
+      return new ZodOptional({
+        innerType: type,
+        typeName: ZodFirstPartyTypeKind.ZodOptional,
+        ...processCreateParams(params)
+      });
+    };
+    ZodNullable = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 === ZodParsedType.null) {
+          return OK(null);
+        }
+        return this._def.innerType._parse(input);
+      }
+      unwrap() {
+        return this._def.innerType;
+      }
+    };
+    ZodNullable.create = (type, params) => {
+      return new ZodNullable({
+        innerType: type,
+        typeName: ZodFirstPartyTypeKind.ZodNullable,
+        ...processCreateParams(params)
+      });
+    };
+    ZodDefault = class extends ZodType {
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        let data = ctx.data;
+        if (ctx.parsedType === ZodParsedType.undefined) {
+          data = this._def.defaultValue();
+        }
+        return this._def.innerType._parse({
+          data,
+          path: ctx.path,
+          parent: ctx
+        });
+      }
+      removeDefault() {
+        return this._def.innerType;
+      }
+    };
+    ZodDefault.create = (type, params) => {
+      return new ZodDefault({
+        innerType: type,
+        typeName: ZodFirstPartyTypeKind.ZodDefault,
+        defaultValue: typeof params.default === "function" ? params.default : () => params.default,
+        ...processCreateParams(params)
+      });
+    };
+    ZodCatch = class extends ZodType {
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        const newCtx = {
+          ...ctx,
+          common: {
+            ...ctx.common,
+            issues: []
+          }
+        };
+        const result = this._def.innerType._parse({
+          data: newCtx.data,
+          path: newCtx.path,
+          parent: {
+            ...newCtx
+          }
+        });
+        if (isAsync(result)) {
+          return result.then((result2) => {
+            return {
+              status: "valid",
+              value: result2.status === "valid" ? result2.value : this._def.catchValue({
+                get error() {
+                  return new ZodError(newCtx.common.issues);
+                },
+                input: newCtx.data
+              })
+            };
+          });
+        } else {
+          return {
+            status: "valid",
+            value: result.status === "valid" ? result.value : this._def.catchValue({
+              get error() {
+                return new ZodError(newCtx.common.issues);
+              },
+              input: newCtx.data
+            })
+          };
+        }
+      }
+      removeCatch() {
+        return this._def.innerType;
+      }
+    };
+    ZodCatch.create = (type, params) => {
+      return new ZodCatch({
+        innerType: type,
+        typeName: ZodFirstPartyTypeKind.ZodCatch,
+        catchValue: typeof params.catch === "function" ? params.catch : () => params.catch,
+        ...processCreateParams(params)
+      });
+    };
+    ZodNaN = class extends ZodType {
+      _parse(input) {
+        const parsedType2 = this._getType(input);
+        if (parsedType2 !== ZodParsedType.nan) {
+          const ctx = this._getOrReturnCtx(input);
+          addIssueToContext(ctx, {
+            code: ZodIssueCode.invalid_type,
+            expected: ZodParsedType.nan,
+            received: ctx.parsedType
+          });
+          return INVALID;
+        }
+        return { status: "valid", value: input.data };
+      }
+    };
+    ZodNaN.create = (params) => {
+      return new ZodNaN({
+        typeName: ZodFirstPartyTypeKind.ZodNaN,
+        ...processCreateParams(params)
+      });
+    };
+    BRAND = Symbol("zod_brand");
+    ZodBranded = class extends ZodType {
+      _parse(input) {
+        const { ctx } = this._processInputParams(input);
+        const data = ctx.data;
+        return this._def.type._parse({
+          data,
+          path: ctx.path,
+          parent: ctx
+        });
+      }
+      unwrap() {
+        return this._def.type;
+      }
+    };
+    ZodPipeline = class _ZodPipeline extends ZodType {
+      _parse(input) {
+        const { status, ctx } = this._processInputParams(input);
+        if (ctx.common.async) {
+          const handleAsync = async () => {
+            const inResult = await this._def.in._parseAsync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: ctx
+            });
+            if (inResult.status === "aborted")
+              return INVALID;
+            if (inResult.status === "dirty") {
+              status.dirty();
+              return DIRTY(inResult.value);
+            } else {
+              return this._def.out._parseAsync({
+                data: inResult.value,
+                path: ctx.path,
+                parent: ctx
+              });
+            }
+          };
+          return handleAsync();
+        } else {
+          const inResult = this._def.in._parseSync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx
+          });
+          if (inResult.status === "aborted")
+            return INVALID;
+          if (inResult.status === "dirty") {
+            status.dirty();
+            return {
+              status: "dirty",
+              value: inResult.value
+            };
+          } else {
+            return this._def.out._parseSync({
+              data: inResult.value,
+              path: ctx.path,
+              parent: ctx
+            });
+          }
+        }
+      }
+      static create(a, b2) {
+        return new _ZodPipeline({
+          in: a,
+          out: b2,
+          typeName: ZodFirstPartyTypeKind.ZodPipeline
+        });
+      }
+    };
+    ZodReadonly = class extends ZodType {
+      _parse(input) {
+        const result = this._def.innerType._parse(input);
+        const freeze = (data) => {
+          if (isValid(data)) {
+            data.value = Object.freeze(data.value);
+          }
+          return data;
+        };
+        return isAsync(result) ? result.then((data) => freeze(data)) : freeze(result);
+      }
+      unwrap() {
+        return this._def.innerType;
+      }
+    };
+    ZodReadonly.create = (type, params) => {
+      return new ZodReadonly({
+        innerType: type,
+        typeName: ZodFirstPartyTypeKind.ZodReadonly,
+        ...processCreateParams(params)
+      });
+    };
+    late = {
+      object: ZodObject.lazycreate
+    };
+    (function(ZodFirstPartyTypeKind2) {
+      ZodFirstPartyTypeKind2["ZodString"] = "ZodString";
+      ZodFirstPartyTypeKind2["ZodNumber"] = "ZodNumber";
+      ZodFirstPartyTypeKind2["ZodNaN"] = "ZodNaN";
+      ZodFirstPartyTypeKind2["ZodBigInt"] = "ZodBigInt";
+      ZodFirstPartyTypeKind2["ZodBoolean"] = "ZodBoolean";
+      ZodFirstPartyTypeKind2["ZodDate"] = "ZodDate";
+      ZodFirstPartyTypeKind2["ZodSymbol"] = "ZodSymbol";
+      ZodFirstPartyTypeKind2["ZodUndefined"] = "ZodUndefined";
+      ZodFirstPartyTypeKind2["ZodNull"] = "ZodNull";
+      ZodFirstPartyTypeKind2["ZodAny"] = "ZodAny";
+      ZodFirstPartyTypeKind2["ZodUnknown"] = "ZodUnknown";
+      ZodFirstPartyTypeKind2["ZodNever"] = "ZodNever";
+      ZodFirstPartyTypeKind2["ZodVoid"] = "ZodVoid";
+      ZodFirstPartyTypeKind2["ZodArray"] = "ZodArray";
+      ZodFirstPartyTypeKind2["ZodObject"] = "ZodObject";
+      ZodFirstPartyTypeKind2["ZodUnion"] = "ZodUnion";
+      ZodFirstPartyTypeKind2["ZodDiscriminatedUnion"] = "ZodDiscriminatedUnion";
+      ZodFirstPartyTypeKind2["ZodIntersection"] = "ZodIntersection";
+      ZodFirstPartyTypeKind2["ZodTuple"] = "ZodTuple";
+      ZodFirstPartyTypeKind2["ZodRecord"] = "ZodRecord";
+      ZodFirstPartyTypeKind2["ZodMap"] = "ZodMap";
+      ZodFirstPartyTypeKind2["ZodSet"] = "ZodSet";
+      ZodFirstPartyTypeKind2["ZodFunction"] = "ZodFunction";
+      ZodFirstPartyTypeKind2["ZodLazy"] = "ZodLazy";
+      ZodFirstPartyTypeKind2["ZodLiteral"] = "ZodLiteral";
+      ZodFirstPartyTypeKind2["ZodEnum"] = "ZodEnum";
+      ZodFirstPartyTypeKind2["ZodEffects"] = "ZodEffects";
+      ZodFirstPartyTypeKind2["ZodNativeEnum"] = "ZodNativeEnum";
+      ZodFirstPartyTypeKind2["ZodOptional"] = "ZodOptional";
+      ZodFirstPartyTypeKind2["ZodNullable"] = "ZodNullable";
+      ZodFirstPartyTypeKind2["ZodDefault"] = "ZodDefault";
+      ZodFirstPartyTypeKind2["ZodCatch"] = "ZodCatch";
+      ZodFirstPartyTypeKind2["ZodPromise"] = "ZodPromise";
+      ZodFirstPartyTypeKind2["ZodBranded"] = "ZodBranded";
+      ZodFirstPartyTypeKind2["ZodPipeline"] = "ZodPipeline";
+      ZodFirstPartyTypeKind2["ZodReadonly"] = "ZodReadonly";
+    })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
+    instanceOfType = (cls, params = {
+      message: `Input not instance of ${cls.name}`
+    }) => custom((data) => data instanceof cls, params);
+    stringType = ZodString.create;
+    numberType = ZodNumber.create;
+    nanType = ZodNaN.create;
+    bigIntType = ZodBigInt.create;
+    booleanType = ZodBoolean.create;
+    dateType = ZodDate.create;
+    symbolType = ZodSymbol.create;
+    undefinedType = ZodUndefined.create;
+    nullType = ZodNull.create;
+    anyType = ZodAny.create;
+    unknownType = ZodUnknown.create;
+    neverType = ZodNever.create;
+    voidType = ZodVoid.create;
+    arrayType = ZodArray.create;
+    objectType = ZodObject.create;
+    strictObjectType = ZodObject.strictCreate;
+    unionType = ZodUnion.create;
+    discriminatedUnionType = ZodDiscriminatedUnion.create;
+    intersectionType = ZodIntersection.create;
+    tupleType = ZodTuple.create;
+    recordType = ZodRecord.create;
+    mapType = ZodMap.create;
+    setType = ZodSet.create;
+    functionType = ZodFunction.create;
+    lazyType = ZodLazy.create;
+    literalType = ZodLiteral.create;
+    enumType = ZodEnum.create;
+    nativeEnumType = ZodNativeEnum.create;
+    promiseType = ZodPromise.create;
+    effectsType = ZodEffects.create;
+    optionalType = ZodOptional.create;
+    nullableType = ZodNullable.create;
+    preprocessType = ZodEffects.createWithPreprocess;
+    pipelineType = ZodPipeline.create;
+    ostring = () => stringType().optional();
+    onumber = () => numberType().optional();
+    oboolean = () => booleanType().optional();
+    coerce = {
+      string: ((arg) => ZodString.create({ ...arg, coerce: true })),
+      number: ((arg) => ZodNumber.create({ ...arg, coerce: true })),
+      boolean: ((arg) => ZodBoolean.create({
+        ...arg,
+        coerce: true
+      })),
+      bigint: ((arg) => ZodBigInt.create({ ...arg, coerce: true })),
+      date: ((arg) => ZodDate.create({ ...arg, coerce: true }))
+    };
+    NEVER = INVALID;
+  }
+});
+
+// node_modules/zod/v3/external.js
+var external_exports = {};
+__export(external_exports, {
+  BRAND: () => BRAND,
+  DIRTY: () => DIRTY,
+  EMPTY_PATH: () => EMPTY_PATH,
+  INVALID: () => INVALID,
+  NEVER: () => NEVER,
+  OK: () => OK,
+  ParseStatus: () => ParseStatus,
+  Schema: () => ZodType,
+  ZodAny: () => ZodAny,
+  ZodArray: () => ZodArray,
+  ZodBigInt: () => ZodBigInt,
+  ZodBoolean: () => ZodBoolean,
+  ZodBranded: () => ZodBranded,
+  ZodCatch: () => ZodCatch,
+  ZodDate: () => ZodDate,
+  ZodDefault: () => ZodDefault,
+  ZodDiscriminatedUnion: () => ZodDiscriminatedUnion,
+  ZodEffects: () => ZodEffects,
+  ZodEnum: () => ZodEnum,
+  ZodError: () => ZodError,
+  ZodFirstPartyTypeKind: () => ZodFirstPartyTypeKind,
+  ZodFunction: () => ZodFunction,
+  ZodIntersection: () => ZodIntersection,
+  ZodIssueCode: () => ZodIssueCode,
+  ZodLazy: () => ZodLazy,
+  ZodLiteral: () => ZodLiteral,
+  ZodMap: () => ZodMap,
+  ZodNaN: () => ZodNaN,
+  ZodNativeEnum: () => ZodNativeEnum,
+  ZodNever: () => ZodNever,
+  ZodNull: () => ZodNull,
+  ZodNullable: () => ZodNullable,
+  ZodNumber: () => ZodNumber,
+  ZodObject: () => ZodObject,
+  ZodOptional: () => ZodOptional,
+  ZodParsedType: () => ZodParsedType,
+  ZodPipeline: () => ZodPipeline,
+  ZodPromise: () => ZodPromise,
+  ZodReadonly: () => ZodReadonly,
+  ZodRecord: () => ZodRecord,
+  ZodSchema: () => ZodType,
+  ZodSet: () => ZodSet,
+  ZodString: () => ZodString,
+  ZodSymbol: () => ZodSymbol,
+  ZodTransformer: () => ZodEffects,
+  ZodTuple: () => ZodTuple,
+  ZodType: () => ZodType,
+  ZodUndefined: () => ZodUndefined,
+  ZodUnion: () => ZodUnion,
+  ZodUnknown: () => ZodUnknown,
+  ZodVoid: () => ZodVoid,
+  addIssueToContext: () => addIssueToContext,
+  any: () => anyType,
+  array: () => arrayType,
+  bigint: () => bigIntType,
+  boolean: () => booleanType,
+  coerce: () => coerce,
+  custom: () => custom,
+  date: () => dateType,
+  datetimeRegex: () => datetimeRegex,
+  defaultErrorMap: () => en_default,
+  discriminatedUnion: () => discriminatedUnionType,
+  effect: () => effectsType,
+  enum: () => enumType,
+  function: () => functionType,
+  getErrorMap: () => getErrorMap,
+  getParsedType: () => getParsedType,
+  instanceof: () => instanceOfType,
+  intersection: () => intersectionType,
+  isAborted: () => isAborted,
+  isAsync: () => isAsync,
+  isDirty: () => isDirty,
+  isValid: () => isValid,
+  late: () => late,
+  lazy: () => lazyType,
+  literal: () => literalType,
+  makeIssue: () => makeIssue,
+  map: () => mapType,
+  nan: () => nanType,
+  nativeEnum: () => nativeEnumType,
+  never: () => neverType,
+  null: () => nullType,
+  nullable: () => nullableType,
+  number: () => numberType,
+  object: () => objectType,
+  objectUtil: () => objectUtil,
+  oboolean: () => oboolean,
+  onumber: () => onumber,
+  optional: () => optionalType,
+  ostring: () => ostring,
+  pipeline: () => pipelineType,
+  preprocess: () => preprocessType,
+  promise: () => promiseType,
+  quotelessJson: () => quotelessJson,
+  record: () => recordType,
+  set: () => setType,
+  setErrorMap: () => setErrorMap,
+  strictObject: () => strictObjectType,
+  string: () => stringType,
+  symbol: () => symbolType,
+  transformer: () => effectsType,
+  tuple: () => tupleType,
+  undefined: () => undefinedType,
+  union: () => unionType,
+  unknown: () => unknownType,
+  util: () => util,
+  void: () => voidType
+});
+var init_external = __esm({
+  "node_modules/zod/v3/external.js"() {
+    init_errors();
+    init_parseUtil();
+    init_typeAliases();
+    init_util();
+    init_types();
+    init_ZodError();
+  }
+});
+
 // node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
   "node_modules/ajv/dist/compile/codegen/code.js"(exports2) {
@@ -6802,6 +10900,43 @@ var require_dist = __commonJS({
   }
 });
 
+// node_modules/zod/index.js
+var init_zod = __esm({
+  "node_modules/zod/index.js"() {
+    init_external();
+    init_external();
+  }
+});
+
+// src/utils/logger.ts
+function shouldLog(level) {
+  return LEVEL_ORDER[level] >= LEVEL_ORDER[currentLevel];
+}
+function formatMsg(level, msg, data) {
+  const ts = (/* @__PURE__ */ new Date()).toISOString();
+  const base = `[code-wiki] ${ts} ${level.toUpperCase()}: ${msg}`;
+  return data !== void 0 ? `${base} ${JSON.stringify(data)}` : base;
+}
+var LEVEL_ORDER, currentLevel, log;
+var init_logger = __esm({
+  "src/utils/logger.ts"() {
+    "use strict";
+    LEVEL_ORDER = {
+      debug: 0,
+      info: 1,
+      warn: 2,
+      error: 3
+    };
+    currentLevel = process.env.CODE_WIKI_LOG || "info";
+    log = {
+      debug: (msg, data) => shouldLog("debug") && console.error(formatMsg("debug", msg, data)),
+      info: (msg, data) => shouldLog("info") && console.error(formatMsg("info", msg, data)),
+      warn: (msg, data) => shouldLog("warn") && console.error(formatMsg("warn", msg, data)),
+      error: (msg, data) => shouldLog("error") && console.error(formatMsg("error", msg, data))
+    };
+  }
+});
+
 // node_modules/balanced-match/dist/esm/index.js
 var balanced, maybeMatch, range;
 var init_esm = __esm({
@@ -13000,25 +17135,327 @@ var init_esm6 = __esm({
   }
 });
 
+// src/engine/framework-detector.ts
+function computeMonorepoLanguage(subProjects) {
+  const counts = {};
+  for (const sub of subProjects) {
+    counts[sub.language] = (counts[sub.language] ?? 0) + 1;
+  }
+  const sorted2 = Object.entries(counts).sort(([, a], [, b2]) => b2 - a);
+  return sorted2[0]?.[0] ?? "typescript";
+}
+async function detectFastAPI(root) {
+  try {
+    const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "requirements.txt"), "utf-8");
+    return content.includes("fastapi") || content.includes("uvicorn");
+  } catch {
+    try {
+      const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "pyproject.toml"), "utf-8");
+      return content.includes("fastapi");
+    } catch {
+      return false;
+    }
+  }
+}
+async function detectReactVite(root) {
+  try {
+    const pkg = JSON.parse(await import_promises2.default.readFile(import_node_path2.default.join(root, "package.json"), "utf-8"));
+    return !!(pkg.dependencies?.react || pkg.devDependencies?.react);
+  } catch {
+    return false;
+  }
+}
+async function detectFramework(repoRoot) {
+  const subProjects = await detectMonorepoSubProjects(repoRoot).catch(() => []);
+  if (subProjects.length > 0) {
+    const language2 = computeMonorepoLanguage(subProjects);
+    log.info(`Detected monorepo with ${subProjects.length} sub-projects: ${subProjects.map((s) => s.name).join(", ")}, primary language: ${language2}`);
+    return { framework: "generic", language: language2, configFiles: [], isMonorepo: true, subProjects };
+  }
+  for (const detector of detectors) {
+    try {
+      if (await detector.detect(repoRoot)) {
+        log.info(`Detected framework: ${detector.framework}`);
+        return { framework: detector.framework, language: detector.language, configFiles: [], isMonorepo: false, subProjects: [] };
+      }
+    } catch (e) {
+      log.debug(`Detector ${detector.framework} failed`, e);
+    }
+  }
+  if (await detectFastAPI(repoRoot)) {
+    log.info("Detected FastAPI project");
+    return { framework: "fastapi", language: "python", configFiles: [], isMonorepo: false, subProjects: [] };
+  }
+  const language = await detectPrimaryLanguage(repoRoot);
+  log.info(`No framework detected, primary language: ${language}`);
+  return { framework: "generic", language, configFiles: [], isMonorepo: false, subProjects: [] };
+}
+async function detectMonorepoSubProjects(repoRoot) {
+  const results = [];
+  const entries = await import_promises2.default.readdir(repoRoot, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const subPath = import_node_path2.default.join(repoRoot, entry.name);
+    const hasPackageJson = await fileExists(import_node_path2.default.join(subPath, "package.json"));
+    const hasRequirements = await fileExists(import_node_path2.default.join(subPath, "requirements.txt"));
+    const hasPyproject = await fileExists(import_node_path2.default.join(subPath, "pyproject.toml"));
+    if (hasPackageJson) {
+      const isFastifyOrExpress = await detectReactVite(subPath);
+      results.push({
+        name: entry.name,
+        path: subPath,
+        framework: isFastifyOrExpress ? "generic" : "generic",
+        language: "typescript"
+      });
+    } else if (hasRequirements || hasPyproject) {
+      const isFastAPI = await detectFastAPI(subPath);
+      results.push({
+        name: entry.name,
+        path: subPath,
+        framework: isFastAPI ? "fastapi" : "generic",
+        language: "python"
+      });
+    }
+  }
+  return results;
+}
+async function fileExists(filePath) {
+  try {
+    await import_promises2.default.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+async function detectPrimaryLanguage(repoRoot) {
+  const { glob: glob2 } = await Promise.resolve().then(() => (init_esm6(), esm_exports));
+  const counts = { typescript: 0, python: 0, go: 0, java: 0, rust: 0, ruby: 0 };
+  const extMap = {
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".js": "typescript",
+    ".py": "python",
+    ".go": "go",
+    ".java": "java",
+    ".rs": "rust",
+    ".rb": "ruby"
+  };
+  const files = await glob2("**/*", { cwd: repoRoot, nodir: true, ignore: "**/node_modules/**" });
+  for (const f of files) {
+    const ext2 = import_node_path2.default.extname(f);
+    const lang = extMap[ext2];
+    if (lang) counts[lang]++;
+  }
+  const sorted2 = Object.entries(counts).sort(([, a], [, b2]) => b2 - a);
+  return (sorted2[0]?.[1] ?? 0) > 0 ? sorted2[0][0] : "typescript";
+}
+var import_promises2, import_node_path2, detectors;
+var init_framework_detector = __esm({
+  "src/engine/framework-detector.ts"() {
+    "use strict";
+    import_promises2 = __toESM(require("node:fs/promises"), 1);
+    import_node_path2 = __toESM(require("node:path"), 1);
+    init_logger();
+    detectors = [
+      {
+        framework: "fastapi",
+        language: "python",
+        detect: async (root) => {
+          try {
+            const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "pyproject.toml"), "utf-8");
+            return content.includes("fastapi") || content.includes("uvicorn");
+          } catch {
+            try {
+              const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "requirements.txt"), "utf-8");
+              return content.includes("fastapi") || content.includes("uvicorn");
+            } catch {
+              return false;
+            }
+          }
+        }
+      },
+      {
+        framework: "nextjs",
+        language: "typescript",
+        detect: async (root) => {
+          try {
+            const pkg = JSON.parse(await import_promises2.default.readFile(import_node_path2.default.join(root, "package.json"), "utf-8"));
+            return !!(pkg.dependencies?.next || pkg.devDependencies?.next);
+          } catch {
+            return false;
+          }
+        }
+      },
+      {
+        framework: "django",
+        language: "python",
+        detect: async (root) => {
+          try {
+            await import_promises2.default.access(import_node_path2.default.join(root, "manage.py"));
+            return true;
+          } catch {
+            return false;
+          }
+        }
+      },
+      {
+        framework: "spring-boot",
+        language: "java",
+        detect: async (root) => {
+          try {
+            const pom = await import_promises2.default.readFile(import_node_path2.default.join(root, "pom.xml"), "utf-8");
+            return pom.includes("spring-boot-starter");
+          } catch {
+            try {
+              const gradle = await import_promises2.default.readFile(import_node_path2.default.join(root, "build.gradle"), "utf-8");
+              return gradle.includes("spring-boot-starter");
+            } catch {
+              return false;
+            }
+          }
+        }
+      },
+      {
+        framework: "rails",
+        language: "ruby",
+        detect: async (root) => {
+          try {
+            await import_promises2.default.access(import_node_path2.default.join(root, "config", "routes.rb"));
+            return true;
+          } catch {
+            return false;
+          }
+        }
+      },
+      {
+        framework: "go-standard",
+        language: "go",
+        detect: async (root) => {
+          try {
+            await import_promises2.default.access(import_node_path2.default.join(root, "go.mod"));
+            return true;
+          } catch {
+            return false;
+          }
+        }
+      },
+      {
+        framework: "rust-workspace",
+        language: "rust",
+        detect: async (root) => {
+          try {
+            const cargo = await import_promises2.default.readFile(import_node_path2.default.join(root, "Cargo.toml"), "utf-8");
+            return cargo.includes("[workspace]");
+          } catch {
+            return false;
+          }
+        }
+      }
+    ];
+  }
+});
+
+// src/engine/graph-builder.ts
+function buildDependencyGraph(modules) {
+  const moduleNames = new Set(modules.map((m) => m.name));
+  const edgeMap = /* @__PURE__ */ new Map();
+  const pathToModule = /* @__PURE__ */ new Map();
+  for (const mod of modules) {
+    pathToModule.set(import_node_path3.default.normalize(mod.path), mod.name);
+    for (const file of mod.files) {
+      pathToModule.set(import_node_path3.default.normalize(import_node_path3.default.dirname(file)), mod.name);
+    }
+  }
+  for (const mod of modules) {
+    for (const imp of mod.imports) {
+      const key = `${mod.name}->${imp.source}:${imp.isExternal}`;
+      const existing = edgeMap.get(key);
+      if (existing) {
+        existing.weight++;
+        continue;
+      }
+      const resolvedModule = resolveImportToModule(imp.source, mod, modules, pathToModule);
+      const isInternal = !imp.isExternal && (moduleNames.has(imp.source) || resolvedModule !== null);
+      const targetModule = resolvedModule ?? imp.source;
+      if (isInternal && targetModule === mod.name) continue;
+      edgeMap.set(key, {
+        from: mod.name,
+        to: targetModule,
+        type: isInternal ? "internal" : "external",
+        weight: 1
+      });
+    }
+  }
+  const edges = Array.from(edgeMap.values());
+  log.debug(`Built dependency graph: ${edges.length} edges`);
+  return { modules: Array.from(moduleNames), edges };
+}
+function resolveImportToModule(importSource, fromModule, allModules, pathToModule) {
+  const moduleNames = new Set(allModules.map((m) => m.name));
+  if (moduleNames.has(importSource)) return importSource;
+  if (importSource.includes(".") && !importSource.startsWith(".")) {
+    const sourceSegments = importSource.split(".");
+    for (const mod of allModules) {
+      if (mod.language !== "python" && fromModule.language !== "python") continue;
+      for (const file of mod.files) {
+        const fileSegments = file.split(/[/\\]/).map((s) => s.replace(/\.\w+$/, ""));
+        let matchCount = 0;
+        for (const seg of sourceSegments) {
+          if (fileSegments.includes(seg)) matchCount++;
+        }
+        if (matchCount >= Math.ceil(sourceSegments.length * 0.6) && matchCount >= 2) {
+          return mod.name;
+        }
+      }
+    }
+  }
+  if (importSource.startsWith(".")) {
+    const fromDir = import_node_path3.default.dirname(fromModule.files[0] ?? fromModule.path);
+    const resolved = import_node_path3.default.normalize(import_node_path3.default.resolve(fromDir, importSource));
+    for (const [modPath, modName] of pathToModule.entries()) {
+      if (resolved.startsWith(modPath) || modPath.startsWith(resolved)) {
+        return modName;
+      }
+    }
+  }
+  return null;
+}
+function getDependents(graph, moduleName) {
+  return graph.edges.filter((e) => e.to === moduleName && e.type === "internal").map((e) => e.from);
+}
+function getDependencies(graph, moduleName) {
+  const internal = graph.edges.filter((e) => e.from === moduleName && e.type === "internal").map((e) => e.to);
+  const external = graph.edges.filter((e) => e.from === moduleName && e.type === "external").map((e) => e.to);
+  return { internal: [...new Set(internal)], external: [...new Set(external)] };
+}
+var import_node_path3;
+var init_graph_builder = __esm({
+  "src/engine/graph-builder.ts"() {
+    "use strict";
+    import_node_path3 = __toESM(require("node:path"), 1);
+    init_logger();
+  }
+});
+
 // src/constants.ts
 function wikiPaths(repoRoot) {
-  const base = import_node_path3.default.join(repoRoot, WIKI_DIR_NAME);
+  const base = import_node_path4.default.join(repoRoot, WIKI_DIR_NAME);
   return {
     base,
-    team: import_node_path3.default.join(base, TEAM_DIR),
-    cache: import_node_path3.default.join(base, CACHE_DIR),
-    manifest: import_node_path3.default.join(base, CACHE_DIR, MANIFEST_FILE),
-    pendingSync: import_node_path3.default.join(base, CACHE_DIR, PENDING_SYNC_FILE),
-    modules: (layer) => import_node_path3.default.join(base, layer, "modules"),
-    flows: (layer) => import_node_path3.default.join(base, layer, "flows"),
-    graphs: import_node_path3.default.join(base, CACHE_DIR, "graphs")
+    team: import_node_path4.default.join(base, TEAM_DIR),
+    cache: import_node_path4.default.join(base, CACHE_DIR),
+    manifest: import_node_path4.default.join(base, CACHE_DIR, MANIFEST_FILE),
+    pendingSync: import_node_path4.default.join(base, CACHE_DIR, PENDING_SYNC_FILE),
+    modules: (layer) => import_node_path4.default.join(base, layer, "modules"),
+    flows: (layer) => import_node_path4.default.join(base, layer, "flows"),
+    graphs: import_node_path4.default.join(base, CACHE_DIR, "graphs")
   };
 }
-var import_node_path3, WIKI_DIR_NAME, TEAM_DIR, CACHE_DIR, MANIFEST_FILE, PENDING_SYNC_FILE, LANGUAGE_EXTENSIONS, IGNORED_DIRS, IGNORED_FILES, GENERATED_MARKERS;
+var import_node_path4, WIKI_DIR_NAME, TEAM_DIR, CACHE_DIR, MANIFEST_FILE, PENDING_SYNC_FILE, LANGUAGE_EXTENSIONS, IGNORED_DIRS, IGNORED_FILES, GENERATED_MARKERS;
 var init_constants = __esm({
   "src/constants.ts"() {
     "use strict";
-    import_node_path3 = __toESM(require("node:path"), 1);
+    import_node_path4 = __toESM(require("node:path"), 1);
     WIKI_DIR_NAME = ".code-wiki";
     TEAM_DIR = "team";
     CACHE_DIR = "cache";
@@ -13093,7 +17530,7 @@ async function readFile(filePath) {
   }
 }
 async function writeFile(filePath, content) {
-  await ensureDir(import_node_path4.default.dirname(filePath));
+  await ensureDir(import_node_path5.default.dirname(filePath));
   await import_promises3.default.writeFile(filePath, content, "utf-8");
 }
 async function readJson(filePath) {
@@ -13115,7 +17552,7 @@ async function findSourceFiles(repoRoot, extensions) {
   return allFiles.filter((f) => !isIgnoredFile(f));
 }
 function isIgnoredFile(filePath) {
-  const basename = import_node_path4.default.basename(filePath);
+  const basename = import_node_path5.default.basename(filePath);
   if (IGNORED_FILES.includes(basename)) return true;
   if (basename.endsWith(".env") || basename.includes(".secret.") || basename.includes(".credential.")) return true;
   const configPatterns = [
@@ -13124,7 +17561,7 @@ function isIgnoredFile(filePath) {
     /^(package-lock|yarn\.lock|pnpm-lock|bun\.lockb)$/,
     /^(LICENSE|README|CONTRIBUTING|CHANGELOG|\.gitignore|\.eslintignore|\.prettierignore)$/
   ];
-  const dir = import_node_path4.default.dirname(filePath);
+  const dir = import_node_path5.default.dirname(filePath);
   const isAtRoot = dir === "." || dir === "";
   if (isAtRoot && configPatterns.some((pattern) => pattern.test(basename))) return true;
   return false;
@@ -13138,15 +17575,15 @@ async function isGeneratedFile(filePath) {
   return GENERATED_MARKERS.some((marker) => firstLine.includes(marker));
 }
 function detectLanguage(filePath) {
-  const ext2 = import_node_path4.default.extname(filePath);
+  const ext2 = import_node_path5.default.extname(filePath);
   return LANGUAGE_EXTENSIONS[ext2] ?? null;
 }
-var import_promises3, import_node_path4;
+var import_promises3, import_node_path5;
 var init_file_utils = __esm({
   "src/utils/file-utils.ts"() {
     "use strict";
     import_promises3 = __toESM(require("node:fs/promises"), 1);
-    import_node_path4 = __toESM(require("node:path"), 1);
+    import_node_path5 = __toESM(require("node:path"), 1);
     init_esm6();
     init_constants();
   }
@@ -13856,6 +18293,24 @@ var require_dist2 = __commonJS({
   }
 });
 
+// node_modules/@simple-git/args-pathspec/dist/index.mjs
+function c(...n) {
+  const e = new String(n);
+  return t.set(e, n), e;
+}
+function r(n) {
+  return n instanceof String && t.has(n);
+}
+function o(n) {
+  return t.get(n) ?? [];
+}
+var t;
+var init_dist = __esm({
+  "node_modules/@simple-git/args-pathspec/dist/index.mjs"() {
+    t = /* @__PURE__ */ new WeakMap();
+  }
+});
+
 // node_modules/@kwsites/promise-deferred/dist/index.js
 var require_dist3 = __commonJS({
   "node_modules/@kwsites/promise-deferred/dist/index.js"(exports2) {
@@ -13898,6 +18353,5037 @@ var require_dist3 = __commonJS({
   }
 });
 
+// node_modules/@simple-git/argv-parser/dist/index.mjs
+function* U2(e, t2) {
+  const n = t2 === "global";
+  for (const o2 of e)
+    o2.isGlobal === n && (yield o2);
+}
+function F2(e, t2) {
+  for (const { name: o2 } of U2(e, "task")) {
+    if (k.has(o2))
+      return p(true, t2);
+    if (S2.has(o2))
+      return p(false, t2);
+  }
+  const n = t2.at(0)?.toLowerCase();
+  return n === void 0 ? null : P2.has(n) ? p(true, t2.slice(1)) : E.has(n) ? p(false, t2.slice(1)) : t2.length === 1 ? p(false, t2) : p(true, t2);
+}
+function p(e = false, t2 = []) {
+  const n = t2.at(0)?.toLowerCase();
+  return n === void 0 ? null : {
+    isWrite: e,
+    isRead: !e,
+    key: n,
+    value: t2.at(1)
+  };
+}
+function A(e, t2) {
+  return t2.isWrite && t2.value !== void 0 ? { key: t2.key, value: t2.value, scope: e } : { key: t2.key, scope: e };
+}
+function M2(e) {
+  const t2 = e?.indexOf("=") || -1;
+  return !e || t2 < 0 ? null : {
+    key: e.slice(0, t2).trim().toLowerCase(),
+    value: e.slice(t2 + 1)
+  };
+}
+function N(e) {
+  for (const { name: t2 } of U2(e, "task"))
+    switch (t2) {
+      case "--global":
+        return "global";
+      case "--system":
+        return "system";
+      case "--worktree":
+        return "worktree";
+      case "--local":
+        return "local";
+      case "--file":
+      case "-f":
+        return "file";
+    }
+  return "local";
+}
+function G2({ name: e }) {
+  if (e === "-c" || e === "--config")
+    return "inline";
+  if (e === "--config-env")
+    return "env";
+}
+function* O2(e) {
+  for (const t2 of e) {
+    const n = G2(t2), o2 = n && M2(t2.value);
+    o2 && (yield {
+      ...o2,
+      scope: n
+    });
+  }
+}
+function L2(e, t2, n) {
+  const o2 = {
+    read: [],
+    write: [...O2(t2)]
+  };
+  return e === "config" && $2(
+    o2,
+    N(t2),
+    F2(t2, n)
+  ), o2;
+}
+function $2(e, t2, n) {
+  if (n === null)
+    return;
+  const o2 = A(t2, n);
+  n.isWrite ? e.write.push(o2) : e.read.push(o2);
+}
+function I2(e) {
+  const t2 = R2[e ?? ""] ?? T;
+  return {
+    short: new Map([...x.short.entries(), ...t2.short.entries()]),
+    long: t2.long
+  };
+}
+function b(e, t2 = D2) {
+  if (e.startsWith("--")) {
+    const n = e.indexOf("=");
+    if (n > 2)
+      return [{ name: e.slice(0, n), value: e.slice(n + 1), needsNext: false }];
+    const o2 = e.slice(2);
+    return [{ name: e, needsNext: t2.long.has(o2) }];
+  }
+  if (e.length === 2) {
+    const n = e.charAt(1), o2 = t2.short.get(n);
+    return [{ name: e, needsNext: o2 === true }];
+  }
+  return W2(e, t2.short);
+}
+function W2(e, t2) {
+  const n = e.slice(1).split(""), o2 = [];
+  for (let s = 0; s < n.length; s++) {
+    const r2 = n[s], l = t2.get(r2);
+    if (l === void 0)
+      return [{ name: e, needsNext: false }];
+    if (l) {
+      const a = n.slice(s + 1).join("");
+      if (a && ![...a].every((w) => t2.has(w)))
+        return o2.push({ name: `-${r2}`, value: a, needsNext: false }), o2;
+    }
+    o2.push({ name: `-${r2}`, needsNext: l });
+  }
+  return o2;
+}
+function j2(e, t2 = []) {
+  let n = 0;
+  for (; n < e.length; ) {
+    const o2 = String(e[n]);
+    if (!o2.startsWith("-") || o2.length < 2) break;
+    const s = b(o2);
+    let r2 = n + 1;
+    for (const l of s) {
+      const a = {
+        name: l.name,
+        value: l.value,
+        absorbedNext: false,
+        isGlobal: true
+      };
+      l.needsNext && a.value === void 0 && r2 < e.length && (a.value = String(e[r2]), a.absorbedNext = true, r2++), t2.push(a);
+    }
+    n = r2;
+  }
+  return { flags: t2, taskIndex: n };
+}
+function B(e, t2, n = []) {
+  const o2 = I2(t2), s = [], r2 = [];
+  let l = 0;
+  for (; l < e.length; ) {
+    const a = e[l];
+    if (r(a)) {
+      r2.push(...o(a)), l++;
+      continue;
+    }
+    const f = String(a);
+    if (f === "--") {
+      for (let g = l + 1; g < e.length; g++) {
+        const u3 = e[g];
+        r(u3) ? r2.push(...o(u3)) : r2.push(String(u3));
+      }
+      break;
+    }
+    if (!f.startsWith("-") || f.length < 2) {
+      s.push(f), l++;
+      continue;
+    }
+    const w = b(f, o2);
+    let d = l + 1;
+    for (const g of w) {
+      const u3 = {
+        name: g.name,
+        value: g.value,
+        absorbedNext: false,
+        isGlobal: false
+      };
+      g.needsNext && u3.value === void 0 && d < e.length && !r(e[d]) && (u3.value = String(e[d]), u3.absorbedNext = true, d++), n.push(u3);
+    }
+    l = d;
+  }
+  return { flags: n, positionals: s, pathspecs: r2 };
+}
+function* V({
+  write: e
+}) {
+  for (const t2 of e)
+    for (const n of q) {
+      const o2 = n(t2.key);
+      o2 && (yield o2);
+    }
+}
+function c2(e, t2, n = String(e)) {
+  const o2 = typeof e == "string" ? new RegExp(`\\s*${e.toLowerCase()}`) : e;
+  return function(r2) {
+    if (o2.test(r2))
+      return {
+        category: t2,
+        message: `Configuring ${n} is not permitted without enabling ${t2}`
+      };
+  };
+}
+function i(e, t2) {
+  const n = new RegExp(`\\s*${e.toLowerCase().replace(/\./g, "(..+)?.")}`);
+  return c2(n, t2, e);
+}
+function* K(e, t2) {
+  for (const n of t2)
+    for (const o2 of H2) {
+      const s = o2(e, n.name);
+      s && (yield s);
+    }
+}
+function h(e, t2, n, o2 = String(t2)) {
+  const s = typeof t2 == "string" ? new RegExp(`\\s*${t2.toLowerCase()}`) : t2, r2 = `Use of ${e ? `${e} with option ` : ""}${o2} is not permitted without enabling ${n}`;
+  return function(a, f) {
+    if ((!e || a === e) && s.test(f))
+      return {
+        category: n,
+        message: r2
+      };
+  };
+}
+function C2(e, t2, n) {
+  return [...K(e, t2), ...V(n)];
+}
+function Y(...e) {
+  const { flags: t2, taskIndex: n } = j2(e), o2 = n < e.length ? String(e[n]).toLowerCase() : null, s = o2 !== null ? e.slice(n + 1) : [], { positionals: r2, pathspecs: l } = B(s, o2, t2), a = L2(o2, t2, r2);
+  return {
+    task: o2,
+    flags: t2.map(J),
+    paths: l,
+    config: a,
+    vulnerabilities: z(C2(o2, t2, a))
+  };
+}
+function z(e) {
+  return Object.defineProperty(e, "vulnerabilities", {
+    value: e
+  });
+}
+function J({ value: e, name: t2 }) {
+  return e !== void 0 ? { name: t2, value: e } : { name: t2 };
+}
+function* Q(e) {
+  const t2 = parseInt(e.git_config_count ?? "0", 10);
+  for (let n = 0; n < t2; n++) {
+    const o2 = e[`git_config_key_${n}`], s = e[`git_config_value_${n}`];
+    o2 !== void 0 && (yield { key: o2.toLowerCase().trim(), value: s, scope: "env" });
+  }
+}
+function* X(e) {
+  for (const t2 of Object.keys(e))
+    if (_(t2)) {
+      const n = y[t2];
+      yield {
+        category: n,
+        message: `Use of "${t2.toUpperCase()}" is not permitted without enabling ${n}`
+      };
+    }
+}
+function _(e) {
+  return Object.hasOwn(y, e);
+}
+function Z(e) {
+  const t2 = {};
+  for (const [n, o2] of Object.entries(e)) {
+    const s = n.toLowerCase().trim();
+    (_(s) || s.startsWith("git")) && (t2[s] = String(o2));
+  }
+  return t2;
+}
+function ee(e) {
+  const t2 = Z(e), n = {
+    read: [],
+    write: [...Q(t2)]
+  }, o2 = [
+    ...X(t2),
+    ...C2(null, [], n)
+  ];
+  return {
+    config: n,
+    vulnerabilities: o2
+  };
+}
+function ne(e, t2) {
+  return [...Y(...e).vulnerabilities, ...ee(t2).vulnerabilities];
+}
+var k, S2, P2, E, x, D2, R2, T, q, H2, y;
+var init_dist2 = __esm({
+  "node_modules/@simple-git/argv-parser/dist/index.mjs"() {
+    init_dist();
+    k = /* @__PURE__ */ new Set([
+      "--add",
+      "--edit",
+      "--remove-section",
+      "--rename-section",
+      "--replace-all",
+      "--unset",
+      "--unset-all",
+      "-e"
+    ]);
+    S2 = /* @__PURE__ */ new Set([
+      "--get",
+      "--get-all",
+      "--get-color",
+      "--get-colorbool",
+      "--get-regexp",
+      "--get-urlmatch",
+      "--list",
+      "-l"
+    ]);
+    P2 = /* @__PURE__ */ new Set([
+      "edit",
+      "remove-section",
+      "rename-section",
+      "set",
+      "unset"
+    ]);
+    E = /* @__PURE__ */ new Set(["get", "get-color", "get-colorbool", "list"]);
+    x = {
+      short: /* @__PURE__ */ new Map([
+        ["c", true]
+        //  -c <k=v>    set config key for this invocation
+      ])
+    };
+    D2 = {
+      short: new Map([
+        ["C", true],
+        //  -C <path>   change working directory
+        ["P", false],
+        // -P          no pager (alias for --no-pager)
+        ["h", false],
+        // -h          help
+        ["p", false],
+        // -p          paginate
+        ["v", false],
+        // -v          version
+        ...x.short.entries()
+      ]),
+      long: /* @__PURE__ */ new Set([
+        "attr-source",
+        "config-env",
+        "exec-path",
+        "git-dir",
+        "list-cmds",
+        "namespace",
+        "super-prefix",
+        "work-tree"
+      ])
+    };
+    R2 = {
+      clone: {
+        short: /* @__PURE__ */ new Map([
+          ["b", true],
+          // -b <branch>
+          ["j", true],
+          // -j <n>          parallel jobs
+          ["l", false],
+          // -l local
+          ["n", false],
+          // -n no-checkout
+          ["o", true],
+          // -o <name>       remote name
+          ["q", false],
+          // -q quiet
+          ["s", false],
+          // -s shared
+          ["u", true]
+          // -u <upload-pack>
+        ]),
+        long: /* @__PURE__ */ new Set(["branch", "config", "jobs", "origin", "upload-pack", "u", "template"])
+      },
+      commit: {
+        short: /* @__PURE__ */ new Map([
+          ["C", true],
+          // -C <commit>  reuse message
+          ["F", true],
+          // -F <file>    read message from file
+          ["c", true],
+          // -c <commit>  reedit message
+          ["m", true],
+          // -m <msg>
+          ["t", true]
+          // -t <template>
+        ]),
+        long: /* @__PURE__ */ new Set(["file", "message", "reedit-message", "reuse-message", "template"])
+      },
+      config: {
+        short: /* @__PURE__ */ new Map([
+          ["e", false],
+          // -e  open editor
+          ["f", true],
+          //  -f <file>
+          ["l", false]
+          // -l  list
+        ]),
+        long: /* @__PURE__ */ new Set(["blob", "comment", "default", "file", "type", "value"])
+      },
+      fetch: {
+        short: /* @__PURE__ */ new Map(),
+        long: /* @__PURE__ */ new Set(["upload-pack"])
+      },
+      init: {
+        short: /* @__PURE__ */ new Map(),
+        long: /* @__PURE__ */ new Set(["template"])
+      },
+      pull: {
+        short: /* @__PURE__ */ new Map(),
+        long: /* @__PURE__ */ new Set(["upload-pack"])
+      },
+      push: {
+        short: /* @__PURE__ */ new Map(),
+        long: /* @__PURE__ */ new Set(["exec", "receive-pack"])
+      }
+    };
+    T = { short: /* @__PURE__ */ new Map(), long: /* @__PURE__ */ new Set() };
+    q = [
+      c2("alias", "allowUnsafeAlias"),
+      c2("core.askPass", "allowUnsafeAskPass"),
+      c2("core.editor", "allowUnsafeEditor"),
+      c2("core.fsmonitor", "allowUnsafeFsMonitor"),
+      c2("core.gitProxy", "allowUnsafeGitProxy"),
+      c2("core.hooksPath", "allowUnsafeHooksPath"),
+      c2("core.pager", "allowUnsafePager"),
+      c2("core.sshCommand", "allowUnsafeSshCommand"),
+      i("credential.helper", "allowUnsafeCredentialHelper"),
+      i("diff.command", "allowUnsafeDiffExternal"),
+      c2("diff.external", "allowUnsafeDiffExternal"),
+      i("diff.textconv", "allowUnsafeDiffTextConv"),
+      i("filter.clean", "allowUnsafeFilter"),
+      i("filter.smudge", "allowUnsafeFilter"),
+      i("gpg.program", "allowUnsafeGpgProgram"),
+      c2("init.templateDir", "allowUnsafeTemplateDir"),
+      i("merge.driver", "allowUnsafeMergeDriver"),
+      i("mergetool.path", "allowUnsafeMergeDriver"),
+      i("mergetool.cmd", "allowUnsafeMergeDriver"),
+      i("protocol.allow", "allowUnsafeProtocolOverride"),
+      i("remote.receivepack", "allowUnsafePack"),
+      i("remote.uploadpack", "allowUnsafePack"),
+      c2("sequence.editor", "allowUnsafeEditor")
+    ];
+    H2 = [
+      h(
+        null,
+        /--(upload|receive)-pack/,
+        "allowUnsafePack",
+        "--upload-pack or --receive-pack"
+      ),
+      h("clone", /^-\w*u/, "allowUnsafePack"),
+      h("clone", "--u", "allowUnsafePack"),
+      h("push", "--exec", "allowUnsafePack"),
+      h(null, "--template", "allowUnsafeTemplateDir")
+    ];
+    y = {
+      editor: "allowUnsafeEditor",
+      git_askpass: "allowUnsafeAskPass",
+      git_config_global: "allowUnsafeConfigPaths",
+      git_config_system: "allowUnsafeConfigPaths",
+      git_config_count: "allowUnsafeConfigEnvCount",
+      git_config: "allowUnsafeConfigPaths",
+      git_editor: "allowUnsafeEditor",
+      git_exec_path: "allowUnsafeConfigPaths",
+      git_external_diff: "allowUnsafeDiffExternal",
+      git_pager: "allowUnsafePager",
+      git_proxy_command: "allowUnsafeGitProxy",
+      git_template_dir: "allowUnsafeTemplateDir",
+      git_sequence_editor: "allowUnsafeEditor",
+      git_ssh: "allowUnsafeSshCommand",
+      git_ssh_command: "allowUnsafeSshCommand",
+      pager: "allowUnsafePager",
+      prefix: "allowUnsafeConfigPaths",
+      ssh_askpass: "allowUnsafeAskPass"
+    };
+  }
+});
+
+// node_modules/simple-git/dist/esm/index.js
+function asFunction(source) {
+  if (typeof source !== "function") {
+    return NOOP;
+  }
+  return source;
+}
+function isUserFunction(source) {
+  return typeof source === "function" && source !== NOOP;
+}
+function splitOn(input, char) {
+  const index = input.indexOf(char);
+  if (index <= 0) {
+    return [input, ""];
+  }
+  return [input.substr(0, index), input.substr(index + 1)];
+}
+function first(input, offset = 0) {
+  return isArrayLike(input) && input.length > offset ? input[offset] : void 0;
+}
+function last(input, offset = 0) {
+  if (isArrayLike(input) && input.length > offset) {
+    return input[input.length - 1 - offset];
+  }
+}
+function isArrayLike(input) {
+  return filterHasLength(input);
+}
+function toLinesWithContent(input = "", trimmed2 = true, separator = "\n") {
+  return input.split(separator).reduce((output, line) => {
+    const lineContent = trimmed2 ? line.trim() : line;
+    if (lineContent) {
+      output.push(lineContent);
+    }
+    return output;
+  }, []);
+}
+function forEachLineWithContent(input, callback) {
+  return toLinesWithContent(input, true).map((line) => callback(line));
+}
+function folderExists(path12) {
+  return (0, import_file_exists.exists)(path12, import_file_exists.FOLDER);
+}
+function append(target, item) {
+  if (Array.isArray(target)) {
+    if (!target.includes(item)) {
+      target.push(item);
+    }
+  } else {
+    target.add(item);
+  }
+  return item;
+}
+function including(target, item) {
+  if (Array.isArray(target) && !target.includes(item)) {
+    target.push(item);
+  }
+  return target;
+}
+function remove(target, item) {
+  if (Array.isArray(target)) {
+    const index = target.indexOf(item);
+    if (index >= 0) {
+      target.splice(index, 1);
+    }
+  } else {
+    target.delete(item);
+  }
+  return item;
+}
+function asArray(source) {
+  return Array.isArray(source) ? source : [source];
+}
+function asCamelCase(str) {
+  return str.replace(/[\s-]+(.)/g, (_all, chr) => {
+    return chr.toUpperCase();
+  });
+}
+function asStringArray(source) {
+  return asArray(source).map((item) => {
+    return item instanceof String ? item : String(item);
+  });
+}
+function asNumber(source, onNaN = 0) {
+  if (source == null) {
+    return onNaN;
+  }
+  const num = parseInt(source, 10);
+  return Number.isNaN(num) ? onNaN : num;
+}
+function prefixedArray(input, prefix) {
+  const output = [];
+  for (let i2 = 0, max = input.length; i2 < max; i2++) {
+    output.push(prefix, input[i2]);
+  }
+  return output;
+}
+function bufferToString(input) {
+  return (Array.isArray(input) ? Buffer.concat(input) : input).toString("utf-8");
+}
+function pick2(source, properties) {
+  const out = {};
+  properties.forEach((key) => {
+    if (source[key] !== void 0) {
+      out[key] = source[key];
+    }
+  });
+  return out;
+}
+function delay(duration3 = 0) {
+  return new Promise((done) => setTimeout(done, duration3));
+}
+function orVoid(input) {
+  if (input === false) {
+    return void 0;
+  }
+  return input;
+}
+function filterType(input, filter2, def) {
+  if (filter2(input)) {
+    return input;
+  }
+  return arguments.length > 2 ? def : void 0;
+}
+function filterPrimitives(input, omit2) {
+  const type = r(input) ? "string" : typeof input;
+  return /number|string|boolean/.test(type) && (!omit2 || !omit2.includes(type));
+}
+function filterPlainObject(input) {
+  return !!input && objectToString(input) === "[object Object]";
+}
+function filterFunction(input) {
+  return typeof input === "function";
+}
+function useMatchesDefault() {
+  throw new Error(`LineParser:useMatches not implemented`);
+}
+function createInstanceConfig(...options) {
+  const baseDir = process.cwd();
+  const config2 = Object.assign(
+    { baseDir, ...defaultOptions2 },
+    ...options.filter((o2) => typeof o2 === "object" && o2)
+  );
+  config2.baseDir = config2.baseDir || baseDir;
+  config2.trimmed = config2.trimmed === true;
+  return config2;
+}
+function appendTaskOptions(options, commands = []) {
+  if (!filterPlainObject(options)) {
+    return commands;
+  }
+  return Object.keys(options).reduce((commands2, key) => {
+    const value = options[key];
+    if (r(value)) {
+      commands2.push(value);
+    } else if (filterPrimitives(value, ["boolean"])) {
+      commands2.push(key + "=" + value);
+    } else if (Array.isArray(value)) {
+      for (const v of value) {
+        if (!filterPrimitives(v, ["string", "number"])) {
+          commands2.push(key + "=" + v);
+        }
+      }
+    } else {
+      commands2.push(key);
+    }
+    return commands2;
+  }, commands);
+}
+function getTrailingOptions(args, initialPrimitive = 0, objectOnly = false) {
+  const command = [];
+  for (let i2 = 0, max = initialPrimitive < 0 ? args.length : initialPrimitive; i2 < max; i2++) {
+    if ("string|number".includes(typeof args[i2])) {
+      command.push(String(args[i2]));
+    }
+  }
+  appendTaskOptions(trailingOptionsArgument(args), command);
+  if (!objectOnly) {
+    command.push(...trailingArrayArgument(args));
+  }
+  return command;
+}
+function trailingArrayArgument(args) {
+  const hasTrailingCallback = typeof last(args) === "function";
+  return asStringArray(filterType(last(args, hasTrailingCallback ? 1 : 0), filterArray, []));
+}
+function trailingOptionsArgument(args) {
+  const hasTrailingCallback = filterFunction(last(args));
+  return filterType(last(args, hasTrailingCallback ? 1 : 0), filterPlainObject);
+}
+function trailingFunctionArgument(args, includeNoop = true) {
+  const callback = asFunction(last(args));
+  return includeNoop || isUserFunction(callback) ? callback : void 0;
+}
+function callTaskParser(parser4, streams) {
+  return parser4(streams.stdOut, streams.stdErr);
+}
+function parseStringResponse(result, parsers12, texts, trim = true) {
+  asArray(texts).forEach((text) => {
+    for (let lines = toLinesWithContent(text, trim), i2 = 0, max = lines.length; i2 < max; i2++) {
+      const line = (offset = 0) => {
+        if (i2 + offset >= max) {
+          return;
+        }
+        return lines[i2 + offset];
+      };
+      parsers12.some(({ parse: parse3 }) => parse3(line, result));
+    }
+  });
+  return result;
+}
+function checkIsRepoTask(action) {
+  switch (action) {
+    case "bare":
+      return checkIsBareRepoTask();
+    case "root":
+      return checkIsRepoRootTask();
+  }
+  const commands = ["rev-parse", "--is-inside-work-tree"];
+  return {
+    commands,
+    format: "utf-8",
+    onError,
+    parser
+  };
+}
+function checkIsRepoRootTask() {
+  const commands = ["rev-parse", "--git-dir"];
+  return {
+    commands,
+    format: "utf-8",
+    onError,
+    parser(path12) {
+      return /^\.(git)?$/.test(path12.trim());
+    }
+  };
+}
+function checkIsBareRepoTask() {
+  const commands = ["rev-parse", "--is-bare-repository"];
+  return {
+    commands,
+    format: "utf-8",
+    onError,
+    parser
+  };
+}
+function isNotRepoMessage(error2) {
+  return /(Not a git repository|Kein Git-Repository)/i.test(String(error2));
+}
+function cleanSummaryParser(dryRun, text) {
+  const summary = new CleanResponse(dryRun);
+  const regexp = dryRun ? dryRunRemovalRegexp : removalRegexp;
+  toLinesWithContent(text).forEach((line) => {
+    const removed = line.replace(regexp, "");
+    summary.paths.push(removed);
+    (isFolderRegexp.test(removed) ? summary.folders : summary.files).push(removed);
+  });
+  return summary;
+}
+function adhocExecTask(parser4) {
+  return {
+    commands: EMPTY_COMMANDS,
+    format: "empty",
+    parser: parser4
+  };
+}
+function configurationErrorTask(error2) {
+  return {
+    commands: EMPTY_COMMANDS,
+    format: "empty",
+    parser() {
+      throw typeof error2 === "string" ? new TaskConfigurationError(error2) : error2;
+    }
+  };
+}
+function straightThroughStringTask(commands, trimmed2 = false) {
+  return {
+    commands,
+    format: "utf-8",
+    parser(text) {
+      return trimmed2 ? String(text).trim() : text;
+    }
+  };
+}
+function straightThroughBufferTask(commands) {
+  return {
+    commands,
+    format: "buffer",
+    parser(buffer) {
+      return buffer;
+    }
+  };
+}
+function isBufferTask(task) {
+  return task.format === "buffer";
+}
+function isEmptyTask(task) {
+  return task.format === "empty" || !task.commands.length;
+}
+function cleanWithOptionsTask(mode, customArgs) {
+  const { cleanMode, options, valid } = getCleanOptions(mode);
+  if (!cleanMode) {
+    return configurationErrorTask(CONFIG_ERROR_MODE_REQUIRED);
+  }
+  if (!valid.options) {
+    return configurationErrorTask(CONFIG_ERROR_UNKNOWN_OPTION + JSON.stringify(mode));
+  }
+  options.push(...customArgs);
+  if (options.some(isInteractiveMode)) {
+    return configurationErrorTask(CONFIG_ERROR_INTERACTIVE_MODE);
+  }
+  return cleanTask(cleanMode, options);
+}
+function cleanTask(mode, customArgs) {
+  const commands = ["clean", `-${mode}`, ...customArgs];
+  return {
+    commands,
+    format: "utf-8",
+    parser(text) {
+      return cleanSummaryParser(mode === "n", text);
+    }
+  };
+}
+function isCleanOptionsArray(input) {
+  return Array.isArray(input) && input.every((test) => CleanOptionValues.has(test));
+}
+function getCleanOptions(input) {
+  let cleanMode;
+  let options = [];
+  let valid = { cleanMode: false, options: true };
+  input.replace(/[^a-z]i/g, "").split("").forEach((char) => {
+    if (isCleanMode(char)) {
+      cleanMode = char;
+      valid.cleanMode = true;
+    } else {
+      valid.options = valid.options && isKnownOption(options[options.length] = `-${char}`);
+    }
+  });
+  return {
+    cleanMode,
+    options,
+    valid
+  };
+}
+function isCleanMode(cleanMode) {
+  return cleanMode === "f" || cleanMode === "n";
+}
+function isKnownOption(option) {
+  return /^-[a-z]$/i.test(option) && CleanOptionValues.has(option.charAt(1));
+}
+function isInteractiveMode(option) {
+  if (/^-[^\-]/.test(option)) {
+    return option.indexOf("i") > 0;
+  }
+  return option === "--interactive";
+}
+function configListParser(text) {
+  const config2 = new ConfigList();
+  for (const item of configParser(text)) {
+    config2.addValue(item.file, String(item.key), item.value);
+  }
+  return config2;
+}
+function configGetParser(text, key) {
+  let value = null;
+  const values = [];
+  const scopes = /* @__PURE__ */ new Map();
+  for (const item of configParser(text, key)) {
+    if (item.key !== key) {
+      continue;
+    }
+    values.push(value = item.value);
+    if (!scopes.has(item.file)) {
+      scopes.set(item.file, []);
+    }
+    scopes.get(item.file).push(value);
+  }
+  return {
+    key,
+    paths: Array.from(scopes.keys()),
+    scopes,
+    value,
+    values
+  };
+}
+function configFilePath(filePath) {
+  return filePath.replace(/^(file):/, "");
+}
+function* configParser(text, requestedKey = null) {
+  const lines = text.split("\0");
+  for (let i2 = 0, max = lines.length - 1; i2 < max; ) {
+    const file = configFilePath(lines[i2++]);
+    let value = lines[i2++];
+    let key = requestedKey;
+    if (value.includes("\n")) {
+      const line = splitOn(value, "\n");
+      key = line[0];
+      value = line[1];
+    }
+    yield { file, key, value };
+  }
+}
+function asConfigScope(scope, fallback) {
+  if (typeof scope === "string" && Object.hasOwn(GitConfigScope, scope)) {
+    return scope;
+  }
+  return fallback;
+}
+function addConfigTask(key, value, append2, scope) {
+  const commands = ["config", `--${scope}`];
+  if (append2) {
+    commands.push("--add");
+  }
+  commands.push(key, value);
+  return {
+    commands,
+    format: "utf-8",
+    parser(text) {
+      return text;
+    }
+  };
+}
+function getConfigTask(key, scope) {
+  const commands = ["config", "--null", "--show-origin", "--get-all", key];
+  if (scope) {
+    commands.splice(1, 0, `--${scope}`);
+  }
+  return {
+    commands,
+    format: "utf-8",
+    parser(text) {
+      return configGetParser(text, key);
+    }
+  };
+}
+function listConfigTask(scope) {
+  const commands = ["config", "--list", "--show-origin", "--null"];
+  if (scope) {
+    commands.push(`--${scope}`);
+  }
+  return {
+    commands,
+    format: "utf-8",
+    parser(text) {
+      return configListParser(text);
+    }
+  };
+}
+function config_default() {
+  return {
+    addConfig(key, value, ...rest) {
+      return this._runTask(
+        addConfigTask(
+          key,
+          value,
+          rest[0] === true,
+          asConfigScope(
+            rest[1],
+            "local"
+            /* local */
+          )
+        ),
+        trailingFunctionArgument(arguments)
+      );
+    },
+    getConfig(key, scope) {
+      return this._runTask(
+        getConfigTask(key, asConfigScope(scope, void 0)),
+        trailingFunctionArgument(arguments)
+      );
+    },
+    listConfig(...rest) {
+      return this._runTask(
+        listConfigTask(asConfigScope(rest[0], void 0)),
+        trailingFunctionArgument(arguments)
+      );
+    }
+  };
+}
+function isDiffNameStatus(input) {
+  return diffNameStatus.has(input);
+}
+function grepQueryBuilder(...params) {
+  return new GrepQuery().param(...params);
+}
+function parseGrep(grep) {
+  const paths = /* @__PURE__ */ new Set();
+  const results = {};
+  forEachLineWithContent(grep, (input) => {
+    const [path12, line, preview] = input.split(NULL);
+    paths.add(path12);
+    (results[path12] = results[path12] || []).push({
+      line: asNumber(line),
+      path: path12,
+      preview
+    });
+  });
+  return {
+    paths,
+    results
+  };
+}
+function grep_default() {
+  return {
+    grep(searchTerm) {
+      const then = trailingFunctionArgument(arguments);
+      const options = getTrailingOptions(arguments);
+      for (const option of disallowedOptions) {
+        if (options.includes(option)) {
+          return this._runTask(
+            configurationErrorTask(`git.grep: use of "${option}" is not supported.`),
+            then
+          );
+        }
+      }
+      if (typeof searchTerm === "string") {
+        searchTerm = grepQueryBuilder().param(searchTerm);
+      }
+      const commands = ["grep", "--null", "-n", "--full-name", ...options, ...searchTerm];
+      return this._runTask(
+        {
+          commands,
+          format: "utf-8",
+          parser(stdOut) {
+            return parseGrep(stdOut);
+          }
+        },
+        then
+      );
+    }
+  };
+}
+function resetTask(mode, customArgs) {
+  const commands = ["reset"];
+  if (isValidResetMode(mode)) {
+    commands.push(`--${mode}`);
+  }
+  commands.push(...customArgs);
+  return straightThroughStringTask(commands);
+}
+function getResetMode(mode) {
+  if (isValidResetMode(mode)) {
+    return mode;
+  }
+  switch (typeof mode) {
+    case "string":
+    case "undefined":
+      return "soft";
+  }
+  return;
+}
+function isValidResetMode(mode) {
+  return typeof mode === "string" && validResetModes.includes(mode);
+}
+function createLog() {
+  return (0, import_debug.default)("simple-git");
+}
+function prefixedLogger(to, prefix, forward) {
+  if (!prefix || !String(prefix).replace(/\s*/, "")) {
+    return !forward ? to : (message, ...args) => {
+      to(message, ...args);
+      forward(message, ...args);
+    };
+  }
+  return (message, ...args) => {
+    to(`%s ${message}`, prefix, ...args);
+    if (forward) {
+      forward(message, ...args);
+    }
+  };
+}
+function childLoggerName(name, childDebugger, { namespace: parentNamespace }) {
+  if (typeof name === "string") {
+    return name;
+  }
+  const childNamespace = childDebugger && childDebugger.namespace || "";
+  if (childNamespace.startsWith(parentNamespace)) {
+    return childNamespace.substr(parentNamespace.length + 1);
+  }
+  return childNamespace || parentNamespace;
+}
+function createLogger(label, verbose, initialStep, infoDebugger = createLog()) {
+  const labelPrefix = label && `[${label}]` || "";
+  const spawned = [];
+  const debugDebugger = typeof verbose === "string" ? infoDebugger.extend(verbose) : verbose;
+  const key = childLoggerName(filterType(verbose, filterString), debugDebugger, infoDebugger);
+  return step(initialStep);
+  function sibling(name, initial) {
+    return append(
+      spawned,
+      createLogger(label, key.replace(/^[^:]+/, name), initial, infoDebugger)
+    );
+  }
+  function step(phase) {
+    const stepPrefix = phase && `[${phase}]` || "";
+    const debug2 = debugDebugger && prefixedLogger(debugDebugger, stepPrefix) || NOOP;
+    const info = prefixedLogger(infoDebugger, `${labelPrefix} ${stepPrefix}`, debug2);
+    return Object.assign(debugDebugger ? debug2 : info, {
+      label,
+      sibling,
+      info,
+      step
+    });
+  }
+}
+function pluginContext(task, commands) {
+  return {
+    method: first(task.commands) || "",
+    commands
+  };
+}
+function onErrorReceived(target, logger) {
+  return (err) => {
+    logger(`[ERROR] child process exception %o`, err);
+    target.push(Buffer.from(String(err.stack), "ascii"));
+  };
+}
+function onDataReceived(target, name, logger, output) {
+  return (buffer) => {
+    logger(`%s received %L bytes`, name, buffer);
+    output(`%B`, buffer);
+    target.push(buffer);
+  };
+}
+function taskCallback(task, response, callback = NOOP) {
+  const onSuccess = (data) => {
+    callback(null, data);
+  };
+  const onError2 = (err) => {
+    if (err?.task === task) {
+      callback(
+        err instanceof GitResponseError ? addDeprecationNoticeToError(err) : err,
+        void 0
+      );
+    }
+  };
+  response.then(onSuccess, onError2);
+}
+function addDeprecationNoticeToError(err) {
+  let log2 = (name) => {
+    console.warn(
+      `simple-git deprecation notice: accessing GitResponseError.${name} should be GitResponseError.git.${name}, this will no longer be available in version 3`
+    );
+    log2 = NOOP;
+  };
+  return Object.create(err, Object.getOwnPropertyNames(err.git).reduce(descriptorReducer, {}));
+  function descriptorReducer(all, name) {
+    if (name in err) {
+      return all;
+    }
+    all[name] = {
+      enumerable: false,
+      configurable: false,
+      get() {
+        log2(name);
+        return err.git[name];
+      }
+    };
+    return all;
+  }
+}
+function changeWorkingDirectoryTask(directory, root) {
+  return adhocExecTask((instance) => {
+    if (!folderExists(directory)) {
+      throw new Error(`Git.cwd: cannot change to non-directory "${directory}"`);
+    }
+    return (root || instance).cwd = directory;
+  });
+}
+function checkoutTask(args) {
+  const commands = ["checkout", ...args];
+  if (commands[1] === "-b" && commands.includes("-B")) {
+    commands[1] = remove(commands, "-B");
+  }
+  return straightThroughStringTask(commands);
+}
+function checkout_default() {
+  return {
+    checkout() {
+      return this._runTask(
+        checkoutTask(getTrailingOptions(arguments, 1)),
+        trailingFunctionArgument(arguments)
+      );
+    },
+    checkoutBranch(branchName, startPoint) {
+      return this._runTask(
+        checkoutTask(["-b", branchName, startPoint, ...getTrailingOptions(arguments)]),
+        trailingFunctionArgument(arguments)
+      );
+    },
+    checkoutLocalBranch(branchName) {
+      return this._runTask(
+        checkoutTask(["-b", branchName, ...getTrailingOptions(arguments)]),
+        trailingFunctionArgument(arguments)
+      );
+    }
+  };
+}
+function countObjectsResponse() {
+  return {
+    count: 0,
+    garbage: 0,
+    inPack: 0,
+    packs: 0,
+    prunePackable: 0,
+    size: 0,
+    sizeGarbage: 0,
+    sizePack: 0
+  };
+}
+function count_objects_default() {
+  return {
+    countObjects() {
+      return this._runTask({
+        commands: ["count-objects", "--verbose"],
+        format: "utf-8",
+        parser(stdOut) {
+          return parseStringResponse(countObjectsResponse(), [parser2], stdOut);
+        }
+      });
+    }
+  };
+}
+function parseCommitResult(stdOut) {
+  const result = {
+    author: null,
+    branch: "",
+    commit: "",
+    root: false,
+    summary: {
+      changes: 0,
+      insertions: 0,
+      deletions: 0
+    }
+  };
+  return parseStringResponse(result, parsers, stdOut);
+}
+function commitTask(message, files, customArgs) {
+  const commands = [
+    "-c",
+    "core.abbrev=40",
+    "commit",
+    ...prefixedArray(message, "-m"),
+    ...files,
+    ...customArgs
+  ];
+  return {
+    commands,
+    format: "utf-8",
+    parser: parseCommitResult
+  };
+}
+function commit_default() {
+  return {
+    commit(message, ...rest) {
+      const next = trailingFunctionArgument(arguments);
+      const task = rejectDeprecatedSignatures(message) || commitTask(
+        asArray(message),
+        asArray(filterType(rest[0], filterStringOrStringArray, [])),
+        [
+          ...asStringArray(filterType(rest[1], filterArray, [])),
+          ...getTrailingOptions(arguments, 0, true)
+        ]
+      );
+      return this._runTask(task, next);
+    }
+  };
+  function rejectDeprecatedSignatures(message) {
+    return !filterStringOrStringArray(message) && configurationErrorTask(
+      `git.commit: requires the commit message to be supplied as a string/string[]`
+    );
+  }
+}
+function first_commit_default() {
+  return {
+    firstCommit() {
+      return this._runTask(
+        straightThroughStringTask(["rev-list", "--max-parents=0", "HEAD"], true),
+        trailingFunctionArgument(arguments)
+      );
+    }
+  };
+}
+function hashObjectTask(filePath, write) {
+  const commands = ["hash-object", filePath];
+  if (write) {
+    commands.push("-w");
+  }
+  return straightThroughStringTask(commands, true);
+}
+function parseInit(bare, path12, text) {
+  const response = String(text).trim();
+  let result;
+  if (result = initResponseRegex.exec(response)) {
+    return new InitSummary(bare, path12, false, result[1]);
+  }
+  if (result = reInitResponseRegex.exec(response)) {
+    return new InitSummary(bare, path12, true, result[1]);
+  }
+  let gitDir = "";
+  const tokens = response.split(" ");
+  while (tokens.length) {
+    const token = tokens.shift();
+    if (token === "in") {
+      gitDir = tokens.join(" ");
+      break;
+    }
+  }
+  return new InitSummary(bare, path12, /^re/i.test(response), gitDir);
+}
+function hasBareCommand(command) {
+  return command.includes(bareCommand);
+}
+function initTask(bare = false, path12, customArgs) {
+  const commands = ["init", ...customArgs];
+  if (bare && !hasBareCommand(commands)) {
+    commands.splice(1, 0, bareCommand);
+  }
+  return {
+    commands,
+    format: "utf-8",
+    parser(text) {
+      return parseInit(commands.includes("--bare"), path12, text);
+    }
+  };
+}
+function logFormatFromCommand(customArgs) {
+  for (let i2 = 0; i2 < customArgs.length; i2++) {
+    const format = logFormatRegex.exec(customArgs[i2]);
+    if (format) {
+      return `--${format[1]}`;
+    }
+  }
+  return "";
+}
+function isLogFormat(customArg) {
+  return logFormatRegex.test(customArg);
+}
+function getDiffParser(format = "") {
+  const parser4 = diffSummaryParsers[format];
+  return (stdOut) => parseStringResponse(new DiffSummary(), parser4, stdOut, false);
+}
+function lineBuilder(tokens, fields) {
+  return fields.reduce(
+    (line, field, index) => {
+      line[field] = tokens[index] || "";
+      return line;
+    },
+    /* @__PURE__ */ Object.create({ diff: null })
+  );
+}
+function createListLogSummaryParser(splitter = SPLITTER, fields = defaultFieldNames, logFormat = "") {
+  const parseDiffResult = getDiffParser(logFormat);
+  return function(stdOut) {
+    const all = toLinesWithContent(
+      stdOut.trim(),
+      false,
+      START_BOUNDARY
+    ).map(function(item) {
+      const lineDetail = item.split(COMMIT_BOUNDARY);
+      const listLogLine = lineBuilder(lineDetail[0].split(splitter), fields);
+      if (lineDetail.length > 1 && !!lineDetail[1].trim()) {
+        listLogLine.diff = parseDiffResult(lineDetail[1]);
+      }
+      return listLogLine;
+    });
+    return {
+      all,
+      latest: all.length && all[0] || null,
+      total: all.length
+    };
+  };
+}
+function diffSummaryTask(customArgs) {
+  let logFormat = logFormatFromCommand(customArgs);
+  const commands = ["diff"];
+  if (logFormat === "") {
+    logFormat = "--stat";
+    commands.push("--stat=4096");
+  }
+  commands.push(...customArgs);
+  return validateLogFormatConfig(commands) || {
+    commands,
+    format: "utf-8",
+    parser: getDiffParser(logFormat)
+  };
+}
+function validateLogFormatConfig(customArgs) {
+  const flags = customArgs.filter(isLogFormat);
+  if (flags.length > 1) {
+    return configurationErrorTask(
+      `Summary flags are mutually exclusive - pick one of ${flags.join(",")}`
+    );
+  }
+  if (flags.length && customArgs.includes("-z")) {
+    return configurationErrorTask(
+      `Summary flag ${flags} parsing is not compatible with null termination option '-z'`
+    );
+  }
+}
+function prettyFormat(format, splitter) {
+  const fields = [];
+  const formatStr = [];
+  Object.keys(format).forEach((field) => {
+    fields.push(field);
+    formatStr.push(String(format[field]));
+  });
+  return [fields, formatStr.join(splitter)];
+}
+function userOptions(input) {
+  return Object.keys(input).reduce((out, key) => {
+    if (!(key in excludeOptions)) {
+      out[key] = input[key];
+    }
+    return out;
+  }, {});
+}
+function parseLogOptions(opt = {}, customArgs = []) {
+  const splitter = filterType(opt.splitter, filterString, SPLITTER);
+  const format = filterPlainObject(opt.format) ? opt.format : {
+    hash: "%H",
+    date: opt.strictDate === false ? "%ai" : "%aI",
+    message: "%s",
+    refs: "%D",
+    body: opt.multiLine ? "%B" : "%b",
+    author_name: opt.mailMap !== false ? "%aN" : "%an",
+    author_email: opt.mailMap !== false ? "%aE" : "%ae"
+  };
+  const [fields, formatStr] = prettyFormat(format, splitter);
+  const suffix = [];
+  const command = [
+    `--pretty=format:${START_BOUNDARY}${formatStr}${COMMIT_BOUNDARY}`,
+    ...customArgs
+  ];
+  const maxCount = opt.n || opt["max-count"] || opt.maxCount;
+  if (maxCount) {
+    command.push(`--max-count=${maxCount}`);
+  }
+  if (opt.from || opt.to) {
+    const rangeOperator = opt.symmetric !== false ? "..." : "..";
+    suffix.push(`${opt.from || ""}${rangeOperator}${opt.to || ""}`);
+  }
+  if (filterString(opt.file)) {
+    command.push("--follow", c(opt.file));
+  }
+  appendTaskOptions(userOptions(opt), command);
+  return {
+    fields,
+    splitter,
+    commands: [...command, ...suffix]
+  };
+}
+function logTask(splitter, fields, customArgs) {
+  const parser4 = createListLogSummaryParser(splitter, fields, logFormatFromCommand(customArgs));
+  return {
+    commands: ["log", ...customArgs],
+    format: "utf-8",
+    parser: parser4
+  };
+}
+function log_default() {
+  return {
+    log(...rest) {
+      const next = trailingFunctionArgument(arguments);
+      const options = parseLogOptions(
+        trailingOptionsArgument(arguments),
+        asStringArray(filterType(arguments[0], filterArray, []))
+      );
+      const task = rejectDeprecatedSignatures(...rest) || validateLogFormatConfig(options.commands) || createLogTask(options);
+      return this._runTask(task, next);
+    }
+  };
+  function createLogTask(options) {
+    return logTask(options.splitter, options.fields, options.commands);
+  }
+  function rejectDeprecatedSignatures(from, to) {
+    return filterString(from) && filterString(to) && configurationErrorTask(
+      `git.log(string, string) should be replaced with git.log({ from: string, to: string })`
+    );
+  }
+}
+function objectEnumerationResult(remoteMessages) {
+  return remoteMessages.objects = remoteMessages.objects || {
+    compressing: 0,
+    counting: 0,
+    enumerating: 0,
+    packReused: 0,
+    reused: { count: 0, delta: 0 },
+    total: { count: 0, delta: 0 }
+  };
+}
+function asObjectCount(source) {
+  const count = /^\s*(\d+)/.exec(source);
+  const delta = /delta (\d+)/i.exec(source);
+  return {
+    count: asNumber(count && count[1] || "0"),
+    delta: asNumber(delta && delta[1] || "0")
+  };
+}
+function parseRemoteMessages(_stdOut, stdErr) {
+  return parseStringResponse({ remoteMessages: new RemoteMessageSummary() }, parsers2, stdErr);
+}
+function parsePullErrorResult(stdOut, stdErr) {
+  const pullError = parseStringResponse(new PullFailedSummary(), errorParsers, [stdOut, stdErr]);
+  return pullError.message && pullError;
+}
+function mergeTask(customArgs) {
+  if (!customArgs.length) {
+    return configurationErrorTask("Git.merge requires at least one option");
+  }
+  return {
+    commands: ["merge", ...customArgs],
+    format: "utf-8",
+    parser(stdOut, stdErr) {
+      const merge2 = parseMergeResult(stdOut, stdErr);
+      if (merge2.failed) {
+        throw new GitResponseError(merge2);
+      }
+      return merge2;
+    }
+  };
+}
+function pushResultPushedItem(local, remote, status) {
+  const deleted = status.includes("deleted");
+  const tag = status.includes("tag") || /^refs\/tags/.test(local);
+  const alreadyUpdated = !status.includes("new");
+  return {
+    deleted,
+    tag,
+    branch: !tag,
+    new: !alreadyUpdated,
+    alreadyUpdated,
+    local,
+    remote
+  };
+}
+function pushTagsTask(ref = {}, customArgs) {
+  append(customArgs, "--tags");
+  return pushTask(ref, customArgs);
+}
+function pushTask(ref = {}, customArgs) {
+  const commands = ["push", ...customArgs];
+  if (ref.branch) {
+    commands.splice(1, 0, ref.branch);
+  }
+  if (ref.remote) {
+    commands.splice(1, 0, ref.remote);
+  }
+  remove(commands, "-v");
+  append(commands, "--verbose");
+  append(commands, "--porcelain");
+  return {
+    commands,
+    format: "utf-8",
+    parser: parsePushResult
+  };
+}
+function show_default() {
+  return {
+    showBuffer() {
+      const commands = ["show", ...getTrailingOptions(arguments, 1)];
+      if (!commands.includes("--binary")) {
+        commands.splice(1, 0, "--binary");
+      }
+      return this._runTask(
+        straightThroughBufferTask(commands),
+        trailingFunctionArgument(arguments)
+      );
+    },
+    show() {
+      const commands = ["show", ...getTrailingOptions(arguments, 1)];
+      return this._runTask(
+        straightThroughStringTask(commands),
+        trailingFunctionArgument(arguments)
+      );
+    }
+  };
+}
+function renamedFile(line) {
+  const [to, from] = line.split(NULL);
+  return {
+    from: from || to,
+    to
+  };
+}
+function parser3(indexX, indexY, handler) {
+  return [`${indexX}${indexY}`, handler];
+}
+function conflicts(indexX, ...indexY) {
+  return indexY.map((y2) => parser3(indexX, y2, (result, file) => result.conflicted.push(file)));
+}
+function splitLine(result, lineStr) {
+  const trimmed2 = lineStr.trim();
+  switch (" ") {
+    case trimmed2.charAt(2):
+      return data(trimmed2.charAt(0), trimmed2.charAt(1), trimmed2.slice(3));
+    case trimmed2.charAt(1):
+      return data(" ", trimmed2.charAt(0), trimmed2.slice(2));
+    default:
+      return;
+  }
+  function data(index, workingDir, path12) {
+    const raw = `${index}${workingDir}`;
+    const handler = parsers6.get(raw);
+    if (handler) {
+      handler(result, path12);
+    }
+    if (raw !== "##" && raw !== "!!") {
+      result.files.push(new FileStatusSummary(path12, index, workingDir));
+    }
+  }
+}
+function statusTask(customArgs) {
+  const commands = [
+    "status",
+    "--porcelain",
+    "-b",
+    "-u",
+    "--null",
+    ...customArgs.filter((arg) => !ignoredOptions.includes(arg))
+  ];
+  return {
+    format: "utf-8",
+    commands,
+    parser(text) {
+      return parseStatusSummary(text);
+    }
+  };
+}
+function versionResponse(major = 0, minor = 0, patch = 0, agent = "", installed = true) {
+  return Object.defineProperty(
+    {
+      major,
+      minor,
+      patch,
+      agent,
+      installed
+    },
+    "toString",
+    {
+      value() {
+        return `${this.major}.${this.minor}.${this.patch}`;
+      },
+      configurable: false,
+      enumerable: false
+    }
+  );
+}
+function notInstalledResponse() {
+  return versionResponse(0, 0, 0, "", false);
+}
+function version_default() {
+  return {
+    version() {
+      return this._runTask({
+        commands: ["--version"],
+        format: "utf-8",
+        parser: versionParser,
+        onError(result, error2, done, fail) {
+          if (result.exitCode === -2) {
+            return done(Buffer.from(NOT_INSTALLED));
+          }
+          fail(error2);
+        }
+      });
+    }
+  };
+}
+function versionParser(stdOut) {
+  if (stdOut === NOT_INSTALLED) {
+    return notInstalledResponse();
+  }
+  return parseStringResponse(versionResponse(0, 0, 0, stdOut), parsers7, stdOut);
+}
+function createCloneTask(api, task, repoPath, ...args) {
+  if (!filterString(repoPath)) {
+    return configurationErrorTask(`git.${api}() requires a string 'repoPath'`);
+  }
+  return task(repoPath, filterType(args[0], filterString), getTrailingOptions(arguments));
+}
+function clone_default() {
+  return {
+    clone(repo, ...rest) {
+      return this._runTask(
+        createCloneTask("clone", cloneTask, filterType(repo, filterString), ...rest),
+        trailingFunctionArgument(arguments)
+      );
+    },
+    mirror(repo, ...rest) {
+      return this._runTask(
+        createCloneTask("mirror", cloneMirrorTask, filterType(repo, filterString), ...rest),
+        trailingFunctionArgument(arguments)
+      );
+    }
+  };
+}
+function applyPatchTask(patches, customArgs) {
+  return straightThroughStringTask(["apply", ...customArgs, ...patches]);
+}
+function branchDeletionSuccess(branch, hash) {
+  return {
+    branch,
+    hash,
+    success: true
+  };
+}
+function branchDeletionFailure(branch) {
+  return {
+    branch,
+    hash: null,
+    success: false
+  };
+}
+function hasBranchDeletionError(data, processExitCode) {
+  return processExitCode === 1 && deleteErrorRegex.test(data);
+}
+function branchStatus(input) {
+  return input ? input.charAt(0) : "";
+}
+function parseBranchSummary(stdOut, currentOnly = false) {
+  return parseStringResponse(
+    new BranchSummaryResult(),
+    currentOnly ? [currentBranchParser] : parsers9,
+    stdOut
+  );
+}
+function containsDeleteBranchCommand(commands) {
+  const deleteCommands = ["-d", "-D", "--delete"];
+  return commands.some((command) => deleteCommands.includes(command));
+}
+function branchTask(customArgs) {
+  const isDelete = containsDeleteBranchCommand(customArgs);
+  const isCurrentOnly = customArgs.includes("--show-current");
+  const commands = ["branch", ...customArgs];
+  if (commands.length === 1) {
+    commands.push("-a");
+  }
+  if (!commands.includes("-v")) {
+    commands.splice(1, 0, "-v");
+  }
+  return {
+    format: "utf-8",
+    commands,
+    parser(stdOut, stdErr) {
+      if (isDelete) {
+        return parseBranchDeletions(stdOut, stdErr).all[0];
+      }
+      return parseBranchSummary(stdOut, isCurrentOnly);
+    }
+  };
+}
+function branchLocalTask() {
+  return {
+    format: "utf-8",
+    commands: ["branch", "-v"],
+    parser(stdOut) {
+      return parseBranchSummary(stdOut);
+    }
+  };
+}
+function deleteBranchesTask(branches, forceDelete = false) {
+  return {
+    format: "utf-8",
+    commands: ["branch", "-v", forceDelete ? "-D" : "-d", ...branches],
+    parser(stdOut, stdErr) {
+      return parseBranchDeletions(stdOut, stdErr);
+    },
+    onError({ exitCode, stdOut }, error2, done, fail) {
+      if (!hasBranchDeletionError(String(error2), exitCode)) {
+        return fail(error2);
+      }
+      done(stdOut);
+    }
+  };
+}
+function deleteBranchTask(branch, forceDelete = false) {
+  const task = {
+    format: "utf-8",
+    commands: ["branch", "-v", forceDelete ? "-D" : "-d", branch],
+    parser(stdOut, stdErr) {
+      return parseBranchDeletions(stdOut, stdErr).branches[branch];
+    },
+    onError({ exitCode, stdErr, stdOut }, error2, _2, fail) {
+      if (!hasBranchDeletionError(String(error2), exitCode)) {
+        return fail(error2);
+      }
+      throw new GitResponseError(
+        task.parser(bufferToString(stdOut), bufferToString(stdErr)),
+        String(error2)
+      );
+    }
+  };
+  return task;
+}
+function toPath(input) {
+  const path12 = input.trim().replace(/^["']|["']$/g, "");
+  return path12 && (0, import_node_path6.normalize)(path12);
+}
+function checkIgnoreTask(paths) {
+  return {
+    commands: ["check-ignore", ...paths],
+    format: "utf-8",
+    parser: parseCheckIgnore
+  };
+}
+function parseFetchResult(stdOut, stdErr) {
+  const result = {
+    raw: stdOut,
+    remote: null,
+    branches: [],
+    tags: [],
+    updated: [],
+    deleted: []
+  };
+  return parseStringResponse(result, parsers10, [stdOut, stdErr]);
+}
+function disallowedCommand(command) {
+  return /^--upload-pack(=|$)/.test(command);
+}
+function fetchTask(remote, branch, customArgs) {
+  const commands = ["fetch", ...customArgs];
+  if (remote && branch) {
+    commands.push(remote, branch);
+  }
+  const banned = commands.find(disallowedCommand);
+  if (banned) {
+    return configurationErrorTask(`git.fetch: potential exploit argument blocked.`);
+  }
+  return {
+    commands,
+    format: "utf-8",
+    parser: parseFetchResult
+  };
+}
+function parseMoveResult(stdOut) {
+  return parseStringResponse({ moves: [] }, parsers11, stdOut);
+}
+function moveTask(from, to) {
+  return {
+    commands: ["mv", "-v", ...asArray(from), to],
+    format: "utf-8",
+    parser: parseMoveResult
+  };
+}
+function pullTask(remote, branch, customArgs) {
+  const commands = ["pull", ...customArgs];
+  if (remote && branch) {
+    commands.splice(1, 0, remote, branch);
+  }
+  return {
+    commands,
+    format: "utf-8",
+    parser(stdOut, stdErr) {
+      return parsePullResult(stdOut, stdErr);
+    },
+    onError(result, _error, _done, fail) {
+      const pullError = parsePullErrorResult(
+        bufferToString(result.stdOut),
+        bufferToString(result.stdErr)
+      );
+      if (pullError) {
+        return fail(new GitResponseError(pullError));
+      }
+      fail(_error);
+    }
+  };
+}
+function parseGetRemotes(text) {
+  const remotes = {};
+  forEach(text, ([name]) => remotes[name] = { name });
+  return Object.values(remotes);
+}
+function parseGetRemotesVerbose(text) {
+  const remotes = {};
+  forEach(text, ([name, url, purpose]) => {
+    if (!Object.hasOwn(remotes, name)) {
+      remotes[name] = {
+        name,
+        refs: { fetch: "", push: "" }
+      };
+    }
+    if (purpose && url) {
+      remotes[name].refs[purpose.replace(/[^a-z]/g, "")] = url;
+    }
+  });
+  return Object.values(remotes);
+}
+function forEach(text, handler) {
+  forEachLineWithContent(text, (line) => handler(line.split(/\s+/)));
+}
+function addRemoteTask(remoteName, remoteRepo, customArgs) {
+  return straightThroughStringTask(["remote", "add", ...customArgs, remoteName, remoteRepo]);
+}
+function getRemotesTask(verbose) {
+  const commands = ["remote"];
+  if (verbose) {
+    commands.push("-v");
+  }
+  return {
+    commands,
+    format: "utf-8",
+    parser: verbose ? parseGetRemotesVerbose : parseGetRemotes
+  };
+}
+function listRemotesTask(customArgs) {
+  const commands = [...customArgs];
+  if (commands[0] !== "ls-remote") {
+    commands.unshift("ls-remote");
+  }
+  return straightThroughStringTask(commands);
+}
+function remoteTask(customArgs) {
+  const commands = [...customArgs];
+  if (commands[0] !== "remote") {
+    commands.unshift("remote");
+  }
+  return straightThroughStringTask(commands);
+}
+function removeRemoteTask(remoteName) {
+  return straightThroughStringTask(["remote", "remove", remoteName]);
+}
+function stashListTask(opt = {}, customArgs) {
+  const options = parseLogOptions(opt);
+  const commands = ["stash", "list", ...options.commands, ...customArgs];
+  const parser4 = createListLogSummaryParser(
+    options.splitter,
+    options.fields,
+    logFormatFromCommand(commands)
+  );
+  return validateLogFormatConfig(commands) || {
+    commands,
+    format: "utf-8",
+    parser: parser4
+  };
+}
+function addSubModuleTask(repo, path12) {
+  return subModuleTask(["add", repo, path12]);
+}
+function initSubModuleTask(customArgs) {
+  return subModuleTask(["init", ...customArgs]);
+}
+function subModuleTask(customArgs) {
+  const commands = [...customArgs];
+  if (commands[0] !== "submodule") {
+    commands.unshift("submodule");
+  }
+  return straightThroughStringTask(commands);
+}
+function updateSubModuleTask(customArgs) {
+  return subModuleTask(["update", ...customArgs]);
+}
+function singleSorted(a, b2) {
+  const aIsNum = Number.isNaN(a);
+  const bIsNum = Number.isNaN(b2);
+  if (aIsNum !== bIsNum) {
+    return aIsNum ? 1 : -1;
+  }
+  return aIsNum ? sorted(a, b2) : 0;
+}
+function sorted(a, b2) {
+  return a === b2 ? 0 : a > b2 ? 1 : -1;
+}
+function trimmed(input) {
+  return input.trim();
+}
+function toNumber(input) {
+  if (typeof input === "string") {
+    return parseInt(input.replace(/^\D+/g, ""), 10) || 0;
+  }
+  return 0;
+}
+function tagListTask(customArgs = []) {
+  const hasCustomSort = customArgs.some((option) => /^--sort=/.test(option));
+  return {
+    format: "utf-8",
+    commands: ["tag", "-l", ...customArgs],
+    parser(text) {
+      return parseTagList(text, hasCustomSort);
+    }
+  };
+}
+function addTagTask(name) {
+  return {
+    format: "utf-8",
+    commands: ["tag", name],
+    parser() {
+      return { name };
+    }
+  };
+}
+function addAnnotatedTagTask(name, tagMessage) {
+  return {
+    format: "utf-8",
+    commands: ["tag", "-a", "-m", tagMessage, name],
+    parser() {
+      return { name };
+    }
+  };
+}
+function abortPlugin(signal) {
+  if (!signal) {
+    return;
+  }
+  const onSpawnAfter = {
+    type: "spawn.after",
+    action(_data, context) {
+      function kill() {
+        context.kill(new GitPluginError(void 0, "abort", "Abort signal received"));
+      }
+      signal.addEventListener("abort", kill);
+      context.spawned.on("close", () => signal.removeEventListener("abort", kill));
+    }
+  };
+  const onSpawnBefore = {
+    type: "spawn.before",
+    action(_data, context) {
+      if (signal.aborted) {
+        context.kill(new GitPluginError(void 0, "abort", "Abort already signaled"));
+      }
+    }
+  };
+  return [onSpawnBefore, onSpawnAfter];
+}
+function blockUnsafeOperationsPlugin(options = {}) {
+  return {
+    type: "spawn.args",
+    action(args, { env }) {
+      for (const vulnerability of ne(args, env)) {
+        if (options[vulnerability.category] !== true) {
+          throw new GitPluginError(void 0, "unsafe", vulnerability.message);
+        }
+      }
+      return args;
+    }
+  };
+}
+function commandConfigPrefixingPlugin(configuration) {
+  const prefix = prefixedArray(configuration, "-c");
+  return {
+    type: "spawn.args",
+    action(data) {
+      return [...prefix, ...data];
+    }
+  };
+}
+function completionDetectionPlugin({
+  onClose = true,
+  onExit = 50
+} = {}) {
+  function createEvents() {
+    let exitCode = -1;
+    const events = {
+      close: (0, import_promise_deferred2.deferred)(),
+      closeTimeout: (0, import_promise_deferred2.deferred)(),
+      exit: (0, import_promise_deferred2.deferred)(),
+      exitTimeout: (0, import_promise_deferred2.deferred)()
+    };
+    const result = Promise.race([
+      onClose === false ? never2 : events.closeTimeout.promise,
+      onExit === false ? never2 : events.exitTimeout.promise
+    ]);
+    configureTimeout(onClose, events.close, events.closeTimeout);
+    configureTimeout(onExit, events.exit, events.exitTimeout);
+    return {
+      close(code) {
+        exitCode = code;
+        events.close.done();
+      },
+      exit(code) {
+        exitCode = code;
+        events.exit.done();
+      },
+      get exitCode() {
+        return exitCode;
+      },
+      result
+    };
+  }
+  function configureTimeout(flag, event, timeout) {
+    if (flag === false) {
+      return;
+    }
+    (flag === true ? event.promise : event.promise.then(() => delay(flag))).then(timeout.done);
+  }
+  return {
+    type: "spawn.after",
+    async action(_data, { spawned, close }) {
+      const events = createEvents();
+      let deferClose = true;
+      let quickClose = () => void (deferClose = false);
+      spawned.stdout?.on("data", quickClose);
+      spawned.stderr?.on("data", quickClose);
+      spawned.on("error", quickClose);
+      spawned.on("close", (code) => events.close(code));
+      spawned.on("exit", (code) => events.exit(code));
+      try {
+        await events.result;
+        if (deferClose) {
+          await delay(50);
+        }
+        close(events.exitCode);
+      } catch (err) {
+        close(events.exitCode, err);
+      }
+    }
+  };
+}
+function isBadArgument(arg) {
+  return !arg || !/^([a-z]:)?([a-z0-9/.\\_~-]+)$/i.test(arg);
+}
+function toBinaryConfig(input, allowUnsafe) {
+  if (input.length < 1 || input.length > 2) {
+    throw new GitPluginError(void 0, "binary", WRONG_NUMBER_ERR);
+  }
+  const isBad = input.some(isBadArgument);
+  if (isBad) {
+    if (allowUnsafe) {
+      console.warn(WRONG_CHARS_ERR);
+    } else {
+      throw new GitPluginError(void 0, "binary", WRONG_CHARS_ERR);
+    }
+  }
+  const [binary, prefix] = input;
+  return {
+    binary,
+    prefix
+  };
+}
+function customBinaryPlugin(plugins, input = ["git"], allowUnsafe = false) {
+  let config2 = toBinaryConfig(asArray(input), allowUnsafe);
+  plugins.on("binary", (input2) => {
+    config2 = toBinaryConfig(asArray(input2), allowUnsafe);
+  });
+  plugins.append("spawn.binary", () => {
+    return config2.binary;
+  });
+  plugins.append("spawn.args", (data) => {
+    return config2.prefix ? [config2.prefix, ...data] : data;
+  });
+}
+function isTaskError(result) {
+  return !!(result.exitCode && result.stdErr.length);
+}
+function getErrorMessage(result) {
+  return Buffer.concat([...result.stdOut, ...result.stdErr]);
+}
+function errorDetectionHandler(overwrite = false, isError = isTaskError, errorMessage = getErrorMessage) {
+  return (error2, result) => {
+    if (!overwrite && error2 || !isError(result)) {
+      return error2;
+    }
+    return errorMessage(result);
+  };
+}
+function errorDetectionPlugin(config2) {
+  return {
+    type: "task.error",
+    action(data, context) {
+      const error2 = config2(data.error, {
+        stdErr: context.stdErr,
+        stdOut: context.stdOut,
+        exitCode: context.exitCode
+      });
+      if (Buffer.isBuffer(error2)) {
+        return { error: new GitError(void 0, error2.toString("utf-8")) };
+      }
+      return {
+        error: error2
+      };
+    }
+  };
+}
+function progressMonitorPlugin(progress) {
+  const progressCommand = "--progress";
+  const progressMethods = ["checkout", "clone", "fetch", "pull", "push"];
+  const onProgress = {
+    type: "spawn.after",
+    action(_data, context) {
+      if (!context.commands.includes(progressCommand)) {
+        return;
+      }
+      context.spawned.stderr?.on("data", (chunk) => {
+        const message = /^([\s\S]+?):\s*(\d+)% \((\d+)\/(\d+)\)/.exec(chunk.toString("utf8"));
+        if (!message) {
+          return;
+        }
+        progress({
+          method: context.method,
+          stage: progressEventStage(message[1]),
+          progress: asNumber(message[2]),
+          processed: asNumber(message[3]),
+          total: asNumber(message[4])
+        });
+      });
+    }
+  };
+  const onArgs = {
+    type: "spawn.args",
+    action(args, context) {
+      if (!progressMethods.includes(context.method)) {
+        return args;
+      }
+      return including(args, progressCommand);
+    }
+  };
+  return [onArgs, onProgress];
+}
+function progressEventStage(input) {
+  return String(input.toLowerCase().split(" ", 1)) || "unknown";
+}
+function spawnOptionsPlugin(spawnOptions) {
+  const options = pick2(spawnOptions, ["uid", "gid"]);
+  return {
+    type: "spawn.options",
+    action(data) {
+      return { ...options, ...data };
+    }
+  };
+}
+function timeoutPlugin({
+  block,
+  stdErr = true,
+  stdOut = true
+}) {
+  if (block > 0) {
+    return {
+      type: "spawn.after",
+      action(_data, context) {
+        let timeout;
+        function wait() {
+          timeout && clearTimeout(timeout);
+          timeout = setTimeout(kill, block);
+        }
+        function stop() {
+          context.spawned.stdout?.off("data", wait);
+          context.spawned.stderr?.off("data", wait);
+          context.spawned.off("exit", stop);
+          context.spawned.off("close", stop);
+          timeout && clearTimeout(timeout);
+        }
+        function kill() {
+          stop();
+          context.kill(new GitPluginError(void 0, "timeout", `block timeout reached`));
+        }
+        stdOut && context.spawned.stdout?.on("data", wait);
+        stdErr && context.spawned.stderr?.on("data", wait);
+        context.spawned.on("exit", stop);
+        context.spawned.on("close", stop);
+        wait();
+      }
+    };
+  }
+}
+function suffixPathsPlugin() {
+  return {
+    type: "spawn.args",
+    action(data) {
+      const prefix = [];
+      let suffix;
+      function append2(args) {
+        (suffix = suffix || []).push(...args);
+      }
+      for (let i2 = 0; i2 < data.length; i2++) {
+        const param = data[i2];
+        if (r(param)) {
+          append2(o(param));
+          continue;
+        }
+        if (param === "--") {
+          append2(
+            data.slice(i2 + 1).flatMap((item) => r(item) && o(item) || item)
+          );
+          break;
+        }
+        prefix.push(param);
+      }
+      return !suffix ? prefix : [...prefix, "--", ...suffix.map(String)];
+    }
+  };
+}
+function gitInstanceFactory(baseDir, options) {
+  const plugins = new PluginStore();
+  const config2 = createInstanceConfig(
+    baseDir && (typeof baseDir === "string" ? { baseDir } : baseDir) || {},
+    options
+  );
+  if (!folderExists(config2.baseDir)) {
+    throw new GitConstructError(
+      config2,
+      `Cannot use simple-git on a directory that does not exist`
+    );
+  }
+  if (Array.isArray(config2.config)) {
+    plugins.add(commandConfigPrefixingPlugin(config2.config));
+  }
+  plugins.add(blockUnsafeOperationsPlugin(config2.unsafe));
+  plugins.add(completionDetectionPlugin(config2.completion));
+  config2.abort && plugins.add(abortPlugin(config2.abort));
+  config2.progress && plugins.add(progressMonitorPlugin(config2.progress));
+  config2.timeout && plugins.add(timeoutPlugin(config2.timeout));
+  config2.spawnOptions && plugins.add(spawnOptionsPlugin(config2.spawnOptions));
+  plugins.add(suffixPathsPlugin());
+  plugins.add(errorDetectionPlugin(errorDetectionHandler(true)));
+  config2.errors && plugins.add(errorDetectionPlugin(config2.errors));
+  customBinaryPlugin(plugins, config2.binary, config2.unsafe?.allowUnsafeCustomBinary);
+  return new Git(config2, plugins);
+}
+var import_file_exists, import_debug, import_child_process, import_promise_deferred, import_node_path6, import_promise_deferred2, import_node_events2, __defProp2, __getOwnPropDesc2, __getOwnPropNames2, __hasOwnProp2, __esm2, __commonJS2, __export2, __copyProps2, __toCommonJS, GitError, init_git_error, GitResponseError, init_git_response_error, TaskConfigurationError, init_task_configuration_error, NULL, NOOP, objectToString, init_util2, filterArray, filterNumber, filterString, filterStringOrStringArray, filterHasLength, init_argument_filters, ExitCodes, init_exit_codes, GitOutputStreams, init_git_output_streams, LineParser, RemoteLineParser, init_line_parser, defaultOptions2, init_simple_git_options, init_task_options, init_task_parser, utils_exports, init_utils, check_is_repo_exports, CheckRepoActions, onError, parser, init_check_is_repo, CleanResponse, removalRegexp, dryRunRemovalRegexp, isFolderRegexp, init_CleanSummary, task_exports, EMPTY_COMMANDS, init_task, clean_exports, CONFIG_ERROR_INTERACTIVE_MODE, CONFIG_ERROR_MODE_REQUIRED, CONFIG_ERROR_UNKNOWN_OPTION, CleanOptions, CleanOptionValues, init_clean, ConfigList, init_ConfigList, GitConfigScope, init_config, DiffNameStatus, diffNameStatus, init_diff_name_status, disallowedOptions, Query, _a2, GrepQuery, init_grep, reset_exports, ResetMode, validResetModes, init_reset, init_git_logger, TasksPendingQueue, init_tasks_pending_queue, GitExecutorChain, init_git_executor_chain, git_executor_exports, GitExecutor, init_git_executor, init_task_callback, init_change_working_directory, init_checkout, parser2, init_count_objects, parsers, init_parse_commit, init_commit, init_first_commit, init_hash_object, InitSummary, initResponseRegex, reInitResponseRegex, init_InitSummary, bareCommand, init_init, logFormatRegex, init_log_format, DiffSummary, init_DiffSummary, statParser, numStatParser, nameOnlyParser, nameStatusParser, diffSummaryParsers, init_parse_diff_summary, START_BOUNDARY, COMMIT_BOUNDARY, SPLITTER, defaultFieldNames, init_parse_list_log_summary, diff_exports, init_diff, excludeOptions, init_log, MergeSummaryConflict, MergeSummaryDetail, init_MergeSummary, PullSummary, PullFailedSummary, init_PullSummary, remoteMessagesObjectParsers, init_parse_remote_objects, parsers2, RemoteMessageSummary, init_parse_remote_messages, FILE_UPDATE_REGEX, SUMMARY_REGEX, ACTION_REGEX, parsers3, errorParsers, parsePullDetail, parsePullResult, init_parse_pull, parsers4, parseMergeResult, parseMergeDetail, init_parse_merge, init_merge, parsers5, parsePushResult, parsePushDetail, init_parse_push, push_exports, init_push, init_show, fromPathRegex, FileStatusSummary, init_FileStatusSummary, StatusSummary, parsers6, parseStatusSummary, init_StatusSummary, ignoredOptions, init_status, NOT_INSTALLED, parsers7, init_version, cloneTask, cloneMirrorTask, init_clone, simple_git_api_exports, SimpleGitApi, init_simple_git_api, scheduler_exports, createScheduledTask, Scheduler, init_scheduler, apply_patch_exports, init_apply_patch, BranchDeletionBatch, init_BranchDeleteSummary, deleteSuccessRegex, deleteErrorRegex, parsers8, parseBranchDeletions, init_parse_branch_delete, BranchSummaryResult, init_BranchSummary, parsers9, currentBranchParser, init_parse_branch, branch_exports, init_branch, parseCheckIgnore, init_CheckIgnore, check_ignore_exports, init_check_ignore, parsers10, init_parse_fetch, fetch_exports, init_fetch, parsers11, init_parse_move, move_exports, init_move, pull_exports, init_pull, init_GetRemoteSummary, remote_exports, init_remote, stash_list_exports, init_stash_list, sub_module_exports, init_sub_module, TagList, parseTagList, init_TagList, tag_exports, init_tag, require_git, GitConstructError, GitPluginError, never2, WRONG_NUMBER_ERR, WRONG_CHARS_ERR, PluginStore, Git, simpleGit;
+var init_esm7 = __esm({
+  "node_modules/simple-git/dist/esm/index.js"() {
+    import_file_exists = __toESM(require_dist2(), 1);
+    init_dist();
+    init_dist();
+    import_debug = __toESM(require_src(), 1);
+    import_child_process = require("child_process");
+    init_dist();
+    init_dist();
+    import_promise_deferred = __toESM(require_dist3(), 1);
+    import_node_path6 = require("node:path");
+    init_dist();
+    init_dist2();
+    import_promise_deferred2 = __toESM(require_dist3(), 1);
+    import_node_events2 = require("node:events");
+    init_dist();
+    __defProp2 = Object.defineProperty;
+    __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
+    __getOwnPropNames2 = Object.getOwnPropertyNames;
+    __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    __esm2 = (fn, res) => function __init() {
+      return fn && (res = (0, fn[__getOwnPropNames2(fn)[0]])(fn = 0)), res;
+    };
+    __commonJS2 = (cb, mod) => function __require() {
+      return mod || (0, cb[__getOwnPropNames2(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    };
+    __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: true });
+    };
+    __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
+    init_git_error = __esm2({
+      "src/lib/errors/git-error.ts"() {
+        "use strict";
+        GitError = class extends Error {
+          constructor(task, message) {
+            super(message);
+            this.task = task;
+            Object.setPrototypeOf(this, new.target.prototype);
+          }
+        };
+      }
+    });
+    init_git_response_error = __esm2({
+      "src/lib/errors/git-response-error.ts"() {
+        "use strict";
+        init_git_error();
+        GitResponseError = class extends GitError {
+          constructor(git, message) {
+            super(void 0, message || String(git));
+            this.git = git;
+          }
+        };
+      }
+    });
+    init_task_configuration_error = __esm2({
+      "src/lib/errors/task-configuration-error.ts"() {
+        "use strict";
+        init_git_error();
+        TaskConfigurationError = class extends GitError {
+          constructor(message) {
+            super(void 0, message);
+          }
+        };
+      }
+    });
+    init_util2 = __esm2({
+      "src/lib/utils/util.ts"() {
+        "use strict";
+        init_argument_filters();
+        NULL = "\0";
+        NOOP = () => {
+        };
+        objectToString = Object.prototype.toString.call.bind(Object.prototype.toString);
+      }
+    });
+    init_argument_filters = __esm2({
+      "src/lib/utils/argument-filters.ts"() {
+        "use strict";
+        init_util2();
+        filterArray = (input) => {
+          return Array.isArray(input);
+        };
+        filterNumber = (input) => {
+          return typeof input === "number";
+        };
+        filterString = (input) => {
+          return typeof input === "string" || r(input);
+        };
+        filterStringOrStringArray = (input) => {
+          return filterString(input) || Array.isArray(input) && input.every(filterString);
+        };
+        filterHasLength = (input) => {
+          if (input == null || "number|boolean|function".includes(typeof input)) {
+            return false;
+          }
+          return typeof input.length === "number";
+        };
+      }
+    });
+    init_exit_codes = __esm2({
+      "src/lib/utils/exit-codes.ts"() {
+        "use strict";
+        ExitCodes = /* @__PURE__ */ ((ExitCodes2) => {
+          ExitCodes2[ExitCodes2["SUCCESS"] = 0] = "SUCCESS";
+          ExitCodes2[ExitCodes2["ERROR"] = 1] = "ERROR";
+          ExitCodes2[ExitCodes2["NOT_FOUND"] = -2] = "NOT_FOUND";
+          ExitCodes2[ExitCodes2["UNCLEAN"] = 128] = "UNCLEAN";
+          return ExitCodes2;
+        })(ExitCodes || {});
+      }
+    });
+    init_git_output_streams = __esm2({
+      "src/lib/utils/git-output-streams.ts"() {
+        "use strict";
+        GitOutputStreams = class _GitOutputStreams {
+          constructor(stdOut, stdErr) {
+            this.stdOut = stdOut;
+            this.stdErr = stdErr;
+          }
+          asStrings() {
+            return new _GitOutputStreams(this.stdOut.toString("utf8"), this.stdErr.toString("utf8"));
+          }
+        };
+      }
+    });
+    init_line_parser = __esm2({
+      "src/lib/utils/line-parser.ts"() {
+        "use strict";
+        LineParser = class {
+          constructor(regExp, useMatches) {
+            this.matches = [];
+            this.useMatches = useMatchesDefault;
+            this.parse = (line, target) => {
+              this.resetMatches();
+              if (!this._regExp.every((reg, index) => this.addMatch(reg, index, line(index)))) {
+                return false;
+              }
+              return this.useMatches(target, this.prepareMatches()) !== false;
+            };
+            this._regExp = Array.isArray(regExp) ? regExp : [regExp];
+            if (useMatches) {
+              this.useMatches = useMatches;
+            }
+          }
+          resetMatches() {
+            this.matches.length = 0;
+          }
+          prepareMatches() {
+            return this.matches;
+          }
+          addMatch(reg, index, line) {
+            const matched = line && reg.exec(line);
+            if (matched) {
+              this.pushMatch(index, matched);
+            }
+            return !!matched;
+          }
+          pushMatch(_index, matched) {
+            this.matches.push(...matched.slice(1));
+          }
+        };
+        RemoteLineParser = class extends LineParser {
+          addMatch(reg, index, line) {
+            return /^remote:\s/.test(String(line)) && super.addMatch(reg, index, line);
+          }
+          pushMatch(index, matched) {
+            if (index > 0 || matched.length > 1) {
+              super.pushMatch(index, matched);
+            }
+          }
+        };
+      }
+    });
+    init_simple_git_options = __esm2({
+      "src/lib/utils/simple-git-options.ts"() {
+        "use strict";
+        defaultOptions2 = {
+          binary: "git",
+          maxConcurrentProcesses: 5,
+          config: [],
+          trimmed: false
+        };
+      }
+    });
+    init_task_options = __esm2({
+      "src/lib/utils/task-options.ts"() {
+        "use strict";
+        init_argument_filters();
+        init_util2();
+      }
+    });
+    init_task_parser = __esm2({
+      "src/lib/utils/task-parser.ts"() {
+        "use strict";
+        init_util2();
+      }
+    });
+    utils_exports = {};
+    __export2(utils_exports, {
+      ExitCodes: () => ExitCodes,
+      GitOutputStreams: () => GitOutputStreams,
+      LineParser: () => LineParser,
+      NOOP: () => NOOP,
+      NULL: () => NULL,
+      RemoteLineParser: () => RemoteLineParser,
+      append: () => append,
+      appendTaskOptions: () => appendTaskOptions,
+      asArray: () => asArray,
+      asCamelCase: () => asCamelCase,
+      asFunction: () => asFunction,
+      asNumber: () => asNumber,
+      asStringArray: () => asStringArray,
+      bufferToString: () => bufferToString,
+      callTaskParser: () => callTaskParser,
+      createInstanceConfig: () => createInstanceConfig,
+      delay: () => delay,
+      filterArray: () => filterArray,
+      filterFunction: () => filterFunction,
+      filterHasLength: () => filterHasLength,
+      filterNumber: () => filterNumber,
+      filterPlainObject: () => filterPlainObject,
+      filterPrimitives: () => filterPrimitives,
+      filterString: () => filterString,
+      filterStringOrStringArray: () => filterStringOrStringArray,
+      filterType: () => filterType,
+      first: () => first,
+      folderExists: () => folderExists,
+      forEachLineWithContent: () => forEachLineWithContent,
+      getTrailingOptions: () => getTrailingOptions,
+      including: () => including,
+      isUserFunction: () => isUserFunction,
+      last: () => last,
+      objectToString: () => objectToString,
+      orVoid: () => orVoid,
+      parseStringResponse: () => parseStringResponse,
+      pick: () => pick2,
+      prefixedArray: () => prefixedArray,
+      remove: () => remove,
+      splitOn: () => splitOn,
+      toLinesWithContent: () => toLinesWithContent,
+      trailingFunctionArgument: () => trailingFunctionArgument,
+      trailingOptionsArgument: () => trailingOptionsArgument
+    });
+    init_utils = __esm2({
+      "src/lib/utils/index.ts"() {
+        "use strict";
+        init_argument_filters();
+        init_exit_codes();
+        init_git_output_streams();
+        init_line_parser();
+        init_simple_git_options();
+        init_task_options();
+        init_task_parser();
+        init_util2();
+      }
+    });
+    check_is_repo_exports = {};
+    __export2(check_is_repo_exports, {
+      CheckRepoActions: () => CheckRepoActions,
+      checkIsBareRepoTask: () => checkIsBareRepoTask,
+      checkIsRepoRootTask: () => checkIsRepoRootTask,
+      checkIsRepoTask: () => checkIsRepoTask
+    });
+    init_check_is_repo = __esm2({
+      "src/lib/tasks/check-is-repo.ts"() {
+        "use strict";
+        init_utils();
+        CheckRepoActions = /* @__PURE__ */ ((CheckRepoActions2) => {
+          CheckRepoActions2["BARE"] = "bare";
+          CheckRepoActions2["IN_TREE"] = "tree";
+          CheckRepoActions2["IS_REPO_ROOT"] = "root";
+          return CheckRepoActions2;
+        })(CheckRepoActions || {});
+        onError = ({ exitCode }, error2, done, fail) => {
+          if (exitCode === 128 && isNotRepoMessage(error2)) {
+            return done(Buffer.from("false"));
+          }
+          fail(error2);
+        };
+        parser = (text) => {
+          return text.trim() === "true";
+        };
+      }
+    });
+    init_CleanSummary = __esm2({
+      "src/lib/responses/CleanSummary.ts"() {
+        "use strict";
+        init_utils();
+        CleanResponse = class {
+          constructor(dryRun) {
+            this.dryRun = dryRun;
+            this.paths = [];
+            this.files = [];
+            this.folders = [];
+          }
+        };
+        removalRegexp = /^[a-z]+\s*/i;
+        dryRunRemovalRegexp = /^[a-z]+\s+[a-z]+\s*/i;
+        isFolderRegexp = /\/$/;
+      }
+    });
+    task_exports = {};
+    __export2(task_exports, {
+      EMPTY_COMMANDS: () => EMPTY_COMMANDS,
+      adhocExecTask: () => adhocExecTask,
+      configurationErrorTask: () => configurationErrorTask,
+      isBufferTask: () => isBufferTask,
+      isEmptyTask: () => isEmptyTask,
+      straightThroughBufferTask: () => straightThroughBufferTask,
+      straightThroughStringTask: () => straightThroughStringTask
+    });
+    init_task = __esm2({
+      "src/lib/tasks/task.ts"() {
+        "use strict";
+        init_task_configuration_error();
+        EMPTY_COMMANDS = [];
+      }
+    });
+    clean_exports = {};
+    __export2(clean_exports, {
+      CONFIG_ERROR_INTERACTIVE_MODE: () => CONFIG_ERROR_INTERACTIVE_MODE,
+      CONFIG_ERROR_MODE_REQUIRED: () => CONFIG_ERROR_MODE_REQUIRED,
+      CONFIG_ERROR_UNKNOWN_OPTION: () => CONFIG_ERROR_UNKNOWN_OPTION,
+      CleanOptions: () => CleanOptions,
+      cleanTask: () => cleanTask,
+      cleanWithOptionsTask: () => cleanWithOptionsTask,
+      isCleanOptionsArray: () => isCleanOptionsArray
+    });
+    init_clean = __esm2({
+      "src/lib/tasks/clean.ts"() {
+        "use strict";
+        init_CleanSummary();
+        init_utils();
+        init_task();
+        CONFIG_ERROR_INTERACTIVE_MODE = "Git clean interactive mode is not supported";
+        CONFIG_ERROR_MODE_REQUIRED = 'Git clean mode parameter ("n" or "f") is required';
+        CONFIG_ERROR_UNKNOWN_OPTION = "Git clean unknown option found in: ";
+        CleanOptions = /* @__PURE__ */ ((CleanOptions2) => {
+          CleanOptions2["DRY_RUN"] = "n";
+          CleanOptions2["FORCE"] = "f";
+          CleanOptions2["IGNORED_INCLUDED"] = "x";
+          CleanOptions2["IGNORED_ONLY"] = "X";
+          CleanOptions2["EXCLUDING"] = "e";
+          CleanOptions2["QUIET"] = "q";
+          CleanOptions2["RECURSIVE"] = "d";
+          return CleanOptions2;
+        })(CleanOptions || {});
+        CleanOptionValues = /* @__PURE__ */ new Set([
+          "i",
+          ...asStringArray(Object.values(CleanOptions))
+        ]);
+      }
+    });
+    init_ConfigList = __esm2({
+      "src/lib/responses/ConfigList.ts"() {
+        "use strict";
+        init_utils();
+        ConfigList = class {
+          constructor() {
+            this.files = [];
+            this.values = /* @__PURE__ */ Object.create(null);
+          }
+          get all() {
+            if (!this._all) {
+              this._all = this.files.reduce((all, file) => {
+                return Object.assign(all, this.values[file]);
+              }, {});
+            }
+            return this._all;
+          }
+          addFile(file) {
+            if (!(file in this.values)) {
+              const latest = last(this.files);
+              this.values[file] = latest ? Object.create(this.values[latest]) : {};
+              this.files.push(file);
+            }
+            return this.values[file];
+          }
+          addValue(file, key, value) {
+            const values = this.addFile(file);
+            if (!Object.hasOwn(values, key)) {
+              values[key] = value;
+            } else if (Array.isArray(values[key])) {
+              values[key].push(value);
+            } else {
+              values[key] = [values[key], value];
+            }
+            this._all = void 0;
+          }
+        };
+      }
+    });
+    init_config = __esm2({
+      "src/lib/tasks/config.ts"() {
+        "use strict";
+        init_ConfigList();
+        init_utils();
+        GitConfigScope = /* @__PURE__ */ ((GitConfigScope2) => {
+          GitConfigScope2["system"] = "system";
+          GitConfigScope2["global"] = "global";
+          GitConfigScope2["local"] = "local";
+          GitConfigScope2["worktree"] = "worktree";
+          return GitConfigScope2;
+        })(GitConfigScope || {});
+      }
+    });
+    init_diff_name_status = __esm2({
+      "src/lib/tasks/diff-name-status.ts"() {
+        "use strict";
+        DiffNameStatus = /* @__PURE__ */ ((DiffNameStatus2) => {
+          DiffNameStatus2["ADDED"] = "A";
+          DiffNameStatus2["COPIED"] = "C";
+          DiffNameStatus2["DELETED"] = "D";
+          DiffNameStatus2["MODIFIED"] = "M";
+          DiffNameStatus2["RENAMED"] = "R";
+          DiffNameStatus2["CHANGED"] = "T";
+          DiffNameStatus2["UNMERGED"] = "U";
+          DiffNameStatus2["UNKNOWN"] = "X";
+          DiffNameStatus2["BROKEN"] = "B";
+          return DiffNameStatus2;
+        })(DiffNameStatus || {});
+        diffNameStatus = new Set(Object.values(DiffNameStatus));
+      }
+    });
+    init_grep = __esm2({
+      "src/lib/tasks/grep.ts"() {
+        "use strict";
+        init_utils();
+        init_task();
+        disallowedOptions = ["-h"];
+        Query = Symbol("grepQuery");
+        GrepQuery = class {
+          constructor() {
+            this[_a2] = [];
+          }
+          *[(_a2 = Query, Symbol.iterator)]() {
+            for (const query of this[Query]) {
+              yield query;
+            }
+          }
+          and(...and) {
+            and.length && this[Query].push("--and", "(", ...prefixedArray(and, "-e"), ")");
+            return this;
+          }
+          param(...param) {
+            this[Query].push(...prefixedArray(param, "-e"));
+            return this;
+          }
+        };
+      }
+    });
+    reset_exports = {};
+    __export2(reset_exports, {
+      ResetMode: () => ResetMode,
+      getResetMode: () => getResetMode,
+      resetTask: () => resetTask
+    });
+    init_reset = __esm2({
+      "src/lib/tasks/reset.ts"() {
+        "use strict";
+        init_utils();
+        init_task();
+        ResetMode = /* @__PURE__ */ ((ResetMode2) => {
+          ResetMode2["MIXED"] = "mixed";
+          ResetMode2["SOFT"] = "soft";
+          ResetMode2["HARD"] = "hard";
+          ResetMode2["MERGE"] = "merge";
+          ResetMode2["KEEP"] = "keep";
+          return ResetMode2;
+        })(ResetMode || {});
+        validResetModes = asStringArray(Object.values(ResetMode));
+      }
+    });
+    init_git_logger = __esm2({
+      "src/lib/git-logger.ts"() {
+        "use strict";
+        init_utils();
+        import_debug.default.formatters.L = (value) => String(filterHasLength(value) ? value.length : "-");
+        import_debug.default.formatters.B = (value) => {
+          if (Buffer.isBuffer(value)) {
+            return value.toString("utf8");
+          }
+          return objectToString(value);
+        };
+      }
+    });
+    init_tasks_pending_queue = __esm2({
+      "src/lib/runners/tasks-pending-queue.ts"() {
+        "use strict";
+        init_git_error();
+        init_git_logger();
+        TasksPendingQueue = class _TasksPendingQueue {
+          constructor(logLabel = "GitExecutor") {
+            this.logLabel = logLabel;
+            this._queue = /* @__PURE__ */ new Map();
+          }
+          withProgress(task) {
+            return this._queue.get(task);
+          }
+          createProgress(task) {
+            const name = _TasksPendingQueue.getName(task.commands[0]);
+            const logger = createLogger(this.logLabel, name);
+            return {
+              task,
+              logger,
+              name
+            };
+          }
+          push(task) {
+            const progress = this.createProgress(task);
+            progress.logger("Adding task to the queue, commands = %o", task.commands);
+            this._queue.set(task, progress);
+            return progress;
+          }
+          fatal(err) {
+            for (const [task, { logger }] of Array.from(this._queue.entries())) {
+              if (task === err.task) {
+                logger.info(`Failed %o`, err);
+                logger(
+                  `Fatal exception, any as-yet un-started tasks run through this executor will not be attempted`
+                );
+              } else {
+                logger.info(
+                  `A fatal exception occurred in a previous task, the queue has been purged: %o`,
+                  err.message
+                );
+              }
+              this.complete(task);
+            }
+            if (this._queue.size !== 0) {
+              throw new Error(`Queue size should be zero after fatal: ${this._queue.size}`);
+            }
+          }
+          complete(task) {
+            const progress = this.withProgress(task);
+            if (progress) {
+              this._queue.delete(task);
+            }
+          }
+          attempt(task) {
+            const progress = this.withProgress(task);
+            if (!progress) {
+              throw new GitError(void 0, "TasksPendingQueue: attempt called for an unknown task");
+            }
+            progress.logger("Starting task");
+            return progress;
+          }
+          static getName(name = "empty") {
+            return `task:${name}:${++_TasksPendingQueue.counter}`;
+          }
+          static {
+            this.counter = 0;
+          }
+        };
+      }
+    });
+    init_git_executor_chain = __esm2({
+      "src/lib/runners/git-executor-chain.ts"() {
+        "use strict";
+        init_git_error();
+        init_task();
+        init_utils();
+        init_tasks_pending_queue();
+        GitExecutorChain = class {
+          constructor(_executor, _scheduler, _plugins) {
+            this._executor = _executor;
+            this._scheduler = _scheduler;
+            this._plugins = _plugins;
+            this._chain = Promise.resolve();
+            this._queue = new TasksPendingQueue();
+          }
+          get cwd() {
+            return this._cwd || this._executor.cwd;
+          }
+          set cwd(cwd) {
+            this._cwd = cwd;
+          }
+          get env() {
+            return this._executor.env;
+          }
+          get outputHandler() {
+            return this._executor.outputHandler;
+          }
+          chain() {
+            return this;
+          }
+          push(task) {
+            this._queue.push(task);
+            return this._chain = this._chain.then(() => this.attemptTask(task));
+          }
+          async attemptTask(task) {
+            const onScheduleComplete = await this._scheduler.next();
+            const onQueueComplete = () => this._queue.complete(task);
+            try {
+              const { logger } = this._queue.attempt(task);
+              return await (isEmptyTask(task) ? this.attemptEmptyTask(task, logger) : this.attemptRemoteTask(task, logger));
+            } catch (e) {
+              throw this.onFatalException(task, e);
+            } finally {
+              onQueueComplete();
+              onScheduleComplete();
+            }
+          }
+          onFatalException(task, e) {
+            const gitError = e instanceof GitError ? Object.assign(e, { task }) : new GitError(task, e && String(e));
+            this._chain = Promise.resolve();
+            this._queue.fatal(gitError);
+            return gitError;
+          }
+          async attemptRemoteTask(task, logger) {
+            const binary = this._plugins.exec("spawn.binary", "", pluginContext(task, task.commands));
+            const args = this._plugins.exec("spawn.args", [...task.commands], {
+              ...pluginContext(task, task.commands),
+              env: { ...this.env }
+            });
+            const raw = await this.gitResponse(
+              task,
+              binary,
+              args,
+              this.outputHandler,
+              logger.step("SPAWN")
+            );
+            const outputStreams = await this.handleTaskData(task, args, raw, logger.step("HANDLE"));
+            logger(`passing response to task's parser as a %s`, task.format);
+            if (isBufferTask(task)) {
+              return callTaskParser(task.parser, outputStreams);
+            }
+            return callTaskParser(task.parser, outputStreams.asStrings());
+          }
+          async attemptEmptyTask(task, logger) {
+            logger(`empty task bypassing child process to call to task's parser`);
+            return task.parser(this);
+          }
+          handleTaskData(task, args, result, logger) {
+            const { exitCode, rejection, stdOut, stdErr } = result;
+            return new Promise((done, fail) => {
+              logger(`Preparing to handle process response exitCode=%d stdOut=`, exitCode);
+              const { error: error2 } = this._plugins.exec(
+                "task.error",
+                { error: rejection },
+                {
+                  ...pluginContext(task, args),
+                  ...result
+                }
+              );
+              if (error2 && task.onError) {
+                logger.info(`exitCode=%s handling with custom error handler`);
+                return task.onError(
+                  result,
+                  error2,
+                  (newStdOut) => {
+                    logger.info(`custom error handler treated as success`);
+                    logger(`custom error returned a %s`, objectToString(newStdOut));
+                    done(
+                      new GitOutputStreams(
+                        Array.isArray(newStdOut) ? Buffer.concat(newStdOut) : newStdOut,
+                        Buffer.concat(stdErr)
+                      )
+                    );
+                  },
+                  fail
+                );
+              }
+              if (error2) {
+                logger.info(
+                  `handling as error: exitCode=%s stdErr=%s rejection=%o`,
+                  exitCode,
+                  stdErr.length,
+                  rejection
+                );
+                return fail(error2);
+              }
+              logger.info(`retrieving task output complete`);
+              done(new GitOutputStreams(Buffer.concat(stdOut), Buffer.concat(stdErr)));
+            });
+          }
+          async gitResponse(task, command, args, outputHandler, logger) {
+            const outputLogger = logger.sibling("output");
+            const spawnOptions = this._plugins.exec(
+              "spawn.options",
+              {
+                cwd: this.cwd,
+                env: this.env,
+                windowsHide: true
+              },
+              pluginContext(task, task.commands)
+            );
+            return new Promise((done) => {
+              const stdOut = [];
+              const stdErr = [];
+              logger.info(`%s %o`, command, args);
+              logger("%O", spawnOptions);
+              let rejection = this._beforeSpawn(task, args);
+              if (rejection) {
+                return done({
+                  stdOut,
+                  stdErr,
+                  exitCode: 9901,
+                  rejection
+                });
+              }
+              this._plugins.exec("spawn.before", void 0, {
+                ...pluginContext(task, args),
+                kill(reason) {
+                  rejection = reason || rejection;
+                }
+              });
+              const spawned = (0, import_child_process.spawn)(command, args, spawnOptions);
+              spawned.stdout.on(
+                "data",
+                onDataReceived(stdOut, "stdOut", logger, outputLogger.step("stdOut"))
+              );
+              spawned.stderr.on(
+                "data",
+                onDataReceived(stdErr, "stdErr", logger, outputLogger.step("stdErr"))
+              );
+              spawned.on("error", onErrorReceived(stdErr, logger));
+              if (outputHandler) {
+                logger(`Passing child process stdOut/stdErr to custom outputHandler`);
+                outputHandler(command, spawned.stdout, spawned.stderr, [...args]);
+              }
+              this._plugins.exec("spawn.after", void 0, {
+                ...pluginContext(task, args),
+                spawned,
+                close(exitCode, reason) {
+                  done({
+                    stdOut,
+                    stdErr,
+                    exitCode,
+                    rejection: rejection || reason
+                  });
+                },
+                kill(reason) {
+                  if (spawned.killed) {
+                    return;
+                  }
+                  rejection = reason;
+                  spawned.kill("SIGINT");
+                }
+              });
+            });
+          }
+          _beforeSpawn(task, args) {
+            let rejection;
+            this._plugins.exec("spawn.before", void 0, {
+              ...pluginContext(task, args),
+              kill(reason) {
+                rejection = reason || rejection;
+              }
+            });
+            return rejection;
+          }
+        };
+      }
+    });
+    git_executor_exports = {};
+    __export2(git_executor_exports, {
+      GitExecutor: () => GitExecutor
+    });
+    init_git_executor = __esm2({
+      "src/lib/runners/git-executor.ts"() {
+        "use strict";
+        init_git_executor_chain();
+        GitExecutor = class {
+          constructor(cwd, _scheduler, _plugins) {
+            this.cwd = cwd;
+            this._scheduler = _scheduler;
+            this._plugins = _plugins;
+            this._chain = new GitExecutorChain(this, this._scheduler, this._plugins);
+          }
+          chain() {
+            return new GitExecutorChain(this, this._scheduler, this._plugins);
+          }
+          push(task) {
+            return this._chain.push(task);
+          }
+        };
+      }
+    });
+    init_task_callback = __esm2({
+      "src/lib/task-callback.ts"() {
+        "use strict";
+        init_git_response_error();
+        init_utils();
+      }
+    });
+    init_change_working_directory = __esm2({
+      "src/lib/tasks/change-working-directory.ts"() {
+        "use strict";
+        init_utils();
+        init_task();
+      }
+    });
+    init_checkout = __esm2({
+      "src/lib/tasks/checkout.ts"() {
+        "use strict";
+        init_utils();
+        init_task();
+      }
+    });
+    init_count_objects = __esm2({
+      "src/lib/tasks/count-objects.ts"() {
+        "use strict";
+        init_utils();
+        parser2 = new LineParser(
+          /([a-z-]+): (\d+)$/,
+          (result, [key, value]) => {
+            const property = asCamelCase(key);
+            if (Object.hasOwn(result, property)) {
+              result[property] = asNumber(value);
+            }
+          }
+        );
+      }
+    });
+    init_parse_commit = __esm2({
+      "src/lib/parsers/parse-commit.ts"() {
+        "use strict";
+        init_utils();
+        parsers = [
+          new LineParser(/^\[([^\s]+)( \([^)]+\))? ([^\]]+)/, (result, [branch, root, commit]) => {
+            result.branch = branch;
+            result.commit = commit;
+            result.root = !!root;
+          }),
+          new LineParser(/\s*Author:\s(.+)/i, (result, [author]) => {
+            const parts = author.split("<");
+            const email2 = parts.pop();
+            if (!email2 || !email2.includes("@")) {
+              return;
+            }
+            result.author = {
+              email: email2.substr(0, email2.length - 1),
+              name: parts.join("<").trim()
+            };
+          }),
+          new LineParser(
+            /(\d+)[^,]*(?:,\s*(\d+)[^,]*)(?:,\s*(\d+))/g,
+            (result, [changes, insertions, deletions]) => {
+              result.summary.changes = parseInt(changes, 10) || 0;
+              result.summary.insertions = parseInt(insertions, 10) || 0;
+              result.summary.deletions = parseInt(deletions, 10) || 0;
+            }
+          ),
+          new LineParser(
+            /^(\d+)[^,]*(?:,\s*(\d+)[^(]+\(([+-]))?/,
+            (result, [changes, lines, direction]) => {
+              result.summary.changes = parseInt(changes, 10) || 0;
+              const count = parseInt(lines, 10) || 0;
+              if (direction === "-") {
+                result.summary.deletions = count;
+              } else if (direction === "+") {
+                result.summary.insertions = count;
+              }
+            }
+          )
+        ];
+      }
+    });
+    init_commit = __esm2({
+      "src/lib/tasks/commit.ts"() {
+        "use strict";
+        init_parse_commit();
+        init_utils();
+        init_task();
+      }
+    });
+    init_first_commit = __esm2({
+      "src/lib/tasks/first-commit.ts"() {
+        "use strict";
+        init_utils();
+        init_task();
+      }
+    });
+    init_hash_object = __esm2({
+      "src/lib/tasks/hash-object.ts"() {
+        "use strict";
+        init_task();
+      }
+    });
+    init_InitSummary = __esm2({
+      "src/lib/responses/InitSummary.ts"() {
+        "use strict";
+        InitSummary = class {
+          constructor(bare, path12, existing, gitDir) {
+            this.bare = bare;
+            this.path = path12;
+            this.existing = existing;
+            this.gitDir = gitDir;
+          }
+        };
+        initResponseRegex = /^Init.+ repository in (.+)$/;
+        reInitResponseRegex = /^Rein.+ in (.+)$/;
+      }
+    });
+    init_init = __esm2({
+      "src/lib/tasks/init.ts"() {
+        "use strict";
+        init_InitSummary();
+        bareCommand = "--bare";
+      }
+    });
+    init_log_format = __esm2({
+      "src/lib/args/log-format.ts"() {
+        "use strict";
+        logFormatRegex = /^--(stat|numstat|name-only|name-status)(=|$)/;
+      }
+    });
+    init_DiffSummary = __esm2({
+      "src/lib/responses/DiffSummary.ts"() {
+        "use strict";
+        DiffSummary = class {
+          constructor() {
+            this.changed = 0;
+            this.deletions = 0;
+            this.insertions = 0;
+            this.files = [];
+          }
+        };
+      }
+    });
+    init_parse_diff_summary = __esm2({
+      "src/lib/parsers/parse-diff-summary.ts"() {
+        "use strict";
+        init_log_format();
+        init_DiffSummary();
+        init_diff_name_status();
+        init_utils();
+        statParser = [
+          new LineParser(
+            /^(.+)\s+\|\s+(\d+)(\s+[+\-]+)?$/,
+            (result, [file, changes, alterations = ""]) => {
+              result.files.push({
+                file: file.trim(),
+                changes: asNumber(changes),
+                insertions: alterations.replace(/[^+]/g, "").length,
+                deletions: alterations.replace(/[^-]/g, "").length,
+                binary: false
+              });
+            }
+          ),
+          new LineParser(
+            /^(.+) \|\s+Bin ([0-9.]+) -> ([0-9.]+) ([a-z]+)/,
+            (result, [file, before, after]) => {
+              result.files.push({
+                file: file.trim(),
+                before: asNumber(before),
+                after: asNumber(after),
+                binary: true
+              });
+            }
+          ),
+          new LineParser(
+            /(\d+) files? changed\s*((?:, \d+ [^,]+){0,2})/,
+            (result, [changed, summary]) => {
+              const inserted = /(\d+) i/.exec(summary);
+              const deleted = /(\d+) d/.exec(summary);
+              result.changed = asNumber(changed);
+              result.insertions = asNumber(inserted?.[1]);
+              result.deletions = asNumber(deleted?.[1]);
+            }
+          )
+        ];
+        numStatParser = [
+          new LineParser(
+            /(\d+)\t(\d+)\t(.+)$/,
+            (result, [changesInsert, changesDelete, file]) => {
+              const insertions = asNumber(changesInsert);
+              const deletions = asNumber(changesDelete);
+              result.changed++;
+              result.insertions += insertions;
+              result.deletions += deletions;
+              result.files.push({
+                file,
+                changes: insertions + deletions,
+                insertions,
+                deletions,
+                binary: false
+              });
+            }
+          ),
+          new LineParser(/-\t-\t(.+)$/, (result, [file]) => {
+            result.changed++;
+            result.files.push({
+              file,
+              after: 0,
+              before: 0,
+              binary: true
+            });
+          })
+        ];
+        nameOnlyParser = [
+          new LineParser(/(.+)$/, (result, [file]) => {
+            result.changed++;
+            result.files.push({
+              file,
+              changes: 0,
+              insertions: 0,
+              deletions: 0,
+              binary: false
+            });
+          })
+        ];
+        nameStatusParser = [
+          new LineParser(
+            /([ACDMRTUXB])([0-9]{0,3})\t(.[^\t]*)(\t(.[^\t]*))?$/,
+            (result, [status, similarity, from, _to, to]) => {
+              result.changed++;
+              result.files.push({
+                file: to ?? from,
+                changes: 0,
+                insertions: 0,
+                deletions: 0,
+                binary: false,
+                status: orVoid(isDiffNameStatus(status) && status),
+                from: orVoid(!!to && from !== to && from),
+                similarity: asNumber(similarity)
+              });
+            }
+          )
+        ];
+        diffSummaryParsers = {
+          [
+            ""
+            /* NONE */
+          ]: statParser,
+          [
+            "--stat"
+            /* STAT */
+          ]: statParser,
+          [
+            "--numstat"
+            /* NUM_STAT */
+          ]: numStatParser,
+          [
+            "--name-status"
+            /* NAME_STATUS */
+          ]: nameStatusParser,
+          [
+            "--name-only"
+            /* NAME_ONLY */
+          ]: nameOnlyParser
+        };
+      }
+    });
+    init_parse_list_log_summary = __esm2({
+      "src/lib/parsers/parse-list-log-summary.ts"() {
+        "use strict";
+        init_utils();
+        init_parse_diff_summary();
+        init_log_format();
+        START_BOUNDARY = "\xF2\xF2\xF2\xF2\xF2\xF2 ";
+        COMMIT_BOUNDARY = " \xF2\xF2";
+        SPLITTER = " \xF2 ";
+        defaultFieldNames = ["hash", "date", "message", "refs", "author_name", "author_email"];
+      }
+    });
+    diff_exports = {};
+    __export2(diff_exports, {
+      diffSummaryTask: () => diffSummaryTask,
+      validateLogFormatConfig: () => validateLogFormatConfig
+    });
+    init_diff = __esm2({
+      "src/lib/tasks/diff.ts"() {
+        "use strict";
+        init_log_format();
+        init_parse_diff_summary();
+        init_task();
+      }
+    });
+    init_log = __esm2({
+      "src/lib/tasks/log.ts"() {
+        "use strict";
+        init_log_format();
+        init_parse_list_log_summary();
+        init_utils();
+        init_task();
+        init_diff();
+        excludeOptions = /* @__PURE__ */ ((excludeOptions2) => {
+          excludeOptions2[excludeOptions2["--pretty"] = 0] = "--pretty";
+          excludeOptions2[excludeOptions2["max-count"] = 1] = "max-count";
+          excludeOptions2[excludeOptions2["maxCount"] = 2] = "maxCount";
+          excludeOptions2[excludeOptions2["n"] = 3] = "n";
+          excludeOptions2[excludeOptions2["file"] = 4] = "file";
+          excludeOptions2[excludeOptions2["format"] = 5] = "format";
+          excludeOptions2[excludeOptions2["from"] = 6] = "from";
+          excludeOptions2[excludeOptions2["to"] = 7] = "to";
+          excludeOptions2[excludeOptions2["splitter"] = 8] = "splitter";
+          excludeOptions2[excludeOptions2["symmetric"] = 9] = "symmetric";
+          excludeOptions2[excludeOptions2["mailMap"] = 10] = "mailMap";
+          excludeOptions2[excludeOptions2["multiLine"] = 11] = "multiLine";
+          excludeOptions2[excludeOptions2["strictDate"] = 12] = "strictDate";
+          return excludeOptions2;
+        })(excludeOptions || {});
+      }
+    });
+    init_MergeSummary = __esm2({
+      "src/lib/responses/MergeSummary.ts"() {
+        "use strict";
+        MergeSummaryConflict = class {
+          constructor(reason, file = null, meta) {
+            this.reason = reason;
+            this.file = file;
+            this.meta = meta;
+          }
+          toString() {
+            return `${this.file}:${this.reason}`;
+          }
+        };
+        MergeSummaryDetail = class {
+          constructor() {
+            this.conflicts = [];
+            this.merges = [];
+            this.result = "success";
+          }
+          get failed() {
+            return this.conflicts.length > 0;
+          }
+          get reason() {
+            return this.result;
+          }
+          toString() {
+            if (this.conflicts.length) {
+              return `CONFLICTS: ${this.conflicts.join(", ")}`;
+            }
+            return "OK";
+          }
+        };
+      }
+    });
+    init_PullSummary = __esm2({
+      "src/lib/responses/PullSummary.ts"() {
+        "use strict";
+        PullSummary = class {
+          constructor() {
+            this.remoteMessages = {
+              all: []
+            };
+            this.created = [];
+            this.deleted = [];
+            this.files = [];
+            this.deletions = {};
+            this.insertions = {};
+            this.summary = {
+              changes: 0,
+              deletions: 0,
+              insertions: 0
+            };
+          }
+        };
+        PullFailedSummary = class {
+          constructor() {
+            this.remote = "";
+            this.hash = {
+              local: "",
+              remote: ""
+            };
+            this.branch = {
+              local: "",
+              remote: ""
+            };
+            this.message = "";
+          }
+          toString() {
+            return this.message;
+          }
+        };
+      }
+    });
+    init_parse_remote_objects = __esm2({
+      "src/lib/parsers/parse-remote-objects.ts"() {
+        "use strict";
+        init_utils();
+        remoteMessagesObjectParsers = [
+          new RemoteLineParser(
+            /^remote:\s*(enumerating|counting|compressing) objects: (\d+),/i,
+            (result, [action, count]) => {
+              const key = action.toLowerCase();
+              const enumeration = objectEnumerationResult(result.remoteMessages);
+              Object.assign(enumeration, { [key]: asNumber(count) });
+            }
+          ),
+          new RemoteLineParser(
+            /^remote:\s*(enumerating|counting|compressing) objects: \d+% \(\d+\/(\d+)\),/i,
+            (result, [action, count]) => {
+              const key = action.toLowerCase();
+              const enumeration = objectEnumerationResult(result.remoteMessages);
+              Object.assign(enumeration, { [key]: asNumber(count) });
+            }
+          ),
+          new RemoteLineParser(
+            /total ([^,]+), reused ([^,]+), pack-reused (\d+)/i,
+            (result, [total, reused, packReused]) => {
+              const objects = objectEnumerationResult(result.remoteMessages);
+              objects.total = asObjectCount(total);
+              objects.reused = asObjectCount(reused);
+              objects.packReused = asNumber(packReused);
+            }
+          )
+        ];
+      }
+    });
+    init_parse_remote_messages = __esm2({
+      "src/lib/parsers/parse-remote-messages.ts"() {
+        "use strict";
+        init_utils();
+        init_parse_remote_objects();
+        parsers2 = [
+          new RemoteLineParser(/^remote:\s*(.+)$/, (result, [text]) => {
+            result.remoteMessages.all.push(text.trim());
+            return false;
+          }),
+          ...remoteMessagesObjectParsers,
+          new RemoteLineParser(
+            [/create a (?:pull|merge) request/i, /\s(https?:\/\/\S+)$/],
+            (result, [pullRequestUrl]) => {
+              result.remoteMessages.pullRequestUrl = pullRequestUrl;
+            }
+          ),
+          new RemoteLineParser(
+            [/found (\d+) vulnerabilities.+\(([^)]+)\)/i, /\s(https?:\/\/\S+)$/],
+            (result, [count, summary, url]) => {
+              result.remoteMessages.vulnerabilities = {
+                count: asNumber(count),
+                summary,
+                url
+              };
+            }
+          )
+        ];
+        RemoteMessageSummary = class {
+          constructor() {
+            this.all = [];
+          }
+        };
+      }
+    });
+    init_parse_pull = __esm2({
+      "src/lib/parsers/parse-pull.ts"() {
+        "use strict";
+        init_PullSummary();
+        init_utils();
+        init_parse_remote_messages();
+        FILE_UPDATE_REGEX = /^\s*(.+?)\s+\|\s+\d+\s*(\+*)(-*)/;
+        SUMMARY_REGEX = /(\d+)\D+((\d+)\D+\(\+\))?(\D+(\d+)\D+\(-\))?/;
+        ACTION_REGEX = /^(create|delete) mode \d+ (.+)/;
+        parsers3 = [
+          new LineParser(FILE_UPDATE_REGEX, (result, [file, insertions, deletions]) => {
+            result.files.push(file);
+            if (insertions) {
+              result.insertions[file] = insertions.length;
+            }
+            if (deletions) {
+              result.deletions[file] = deletions.length;
+            }
+          }),
+          new LineParser(SUMMARY_REGEX, (result, [changes, , insertions, , deletions]) => {
+            if (insertions !== void 0 || deletions !== void 0) {
+              result.summary.changes = +changes || 0;
+              result.summary.insertions = +insertions || 0;
+              result.summary.deletions = +deletions || 0;
+              return true;
+            }
+            return false;
+          }),
+          new LineParser(ACTION_REGEX, (result, [action, file]) => {
+            append(result.files, file);
+            append(action === "create" ? result.created : result.deleted, file);
+          })
+        ];
+        errorParsers = [
+          new LineParser(/^from\s(.+)$/i, (result, [remote]) => void (result.remote = remote)),
+          new LineParser(/^fatal:\s(.+)$/, (result, [message]) => void (result.message = message)),
+          new LineParser(
+            /([a-z0-9]+)\.\.([a-z0-9]+)\s+(\S+)\s+->\s+(\S+)$/,
+            (result, [hashLocal, hashRemote, branchLocal, branchRemote]) => {
+              result.branch.local = branchLocal;
+              result.hash.local = hashLocal;
+              result.branch.remote = branchRemote;
+              result.hash.remote = hashRemote;
+            }
+          )
+        ];
+        parsePullDetail = (stdOut, stdErr) => {
+          return parseStringResponse(new PullSummary(), parsers3, [stdOut, stdErr]);
+        };
+        parsePullResult = (stdOut, stdErr) => {
+          return Object.assign(
+            new PullSummary(),
+            parsePullDetail(stdOut, stdErr),
+            parseRemoteMessages(stdOut, stdErr)
+          );
+        };
+      }
+    });
+    init_parse_merge = __esm2({
+      "src/lib/parsers/parse-merge.ts"() {
+        "use strict";
+        init_MergeSummary();
+        init_utils();
+        init_parse_pull();
+        parsers4 = [
+          new LineParser(/^Auto-merging\s+(.+)$/, (summary, [autoMerge]) => {
+            summary.merges.push(autoMerge);
+          }),
+          new LineParser(/^CONFLICT\s+\((.+)\): Merge conflict in (.+)$/, (summary, [reason, file]) => {
+            summary.conflicts.push(new MergeSummaryConflict(reason, file));
+          }),
+          new LineParser(
+            /^CONFLICT\s+\((.+\/delete)\): (.+) deleted in (.+) and/,
+            (summary, [reason, file, deleteRef]) => {
+              summary.conflicts.push(new MergeSummaryConflict(reason, file, { deleteRef }));
+            }
+          ),
+          new LineParser(/^CONFLICT\s+\((.+)\):/, (summary, [reason]) => {
+            summary.conflicts.push(new MergeSummaryConflict(reason, null));
+          }),
+          new LineParser(/^Automatic merge failed;\s+(.+)$/, (summary, [result]) => {
+            summary.result = result;
+          })
+        ];
+        parseMergeResult = (stdOut, stdErr) => {
+          return Object.assign(parseMergeDetail(stdOut, stdErr), parsePullResult(stdOut, stdErr));
+        };
+        parseMergeDetail = (stdOut) => {
+          return parseStringResponse(new MergeSummaryDetail(), parsers4, stdOut);
+        };
+      }
+    });
+    init_merge = __esm2({
+      "src/lib/tasks/merge.ts"() {
+        "use strict";
+        init_git_response_error();
+        init_parse_merge();
+        init_task();
+      }
+    });
+    init_parse_push = __esm2({
+      "src/lib/parsers/parse-push.ts"() {
+        "use strict";
+        init_utils();
+        init_parse_remote_messages();
+        parsers5 = [
+          new LineParser(/^Pushing to (.+)$/, (result, [repo]) => {
+            result.repo = repo;
+          }),
+          new LineParser(/^updating local tracking ref '(.+)'/, (result, [local]) => {
+            result.ref = {
+              ...result.ref || {},
+              local
+            };
+          }),
+          new LineParser(/^[=*-]\s+([^:]+):(\S+)\s+\[(.+)]$/, (result, [local, remote, type]) => {
+            result.pushed.push(pushResultPushedItem(local, remote, type));
+          }),
+          new LineParser(
+            /^Branch '([^']+)' set up to track remote branch '([^']+)' from '([^']+)'/,
+            (result, [local, remote, remoteName]) => {
+              result.branch = {
+                ...result.branch || {},
+                local,
+                remote,
+                remoteName
+              };
+            }
+          ),
+          new LineParser(
+            /^([^:]+):(\S+)\s+([a-z0-9]+)\.\.([a-z0-9]+)$/,
+            (result, [local, remote, from, to]) => {
+              result.update = {
+                head: {
+                  local,
+                  remote
+                },
+                hash: {
+                  from,
+                  to
+                }
+              };
+            }
+          )
+        ];
+        parsePushResult = (stdOut, stdErr) => {
+          const pushDetail = parsePushDetail(stdOut, stdErr);
+          const responseDetail = parseRemoteMessages(stdOut, stdErr);
+          return {
+            ...pushDetail,
+            ...responseDetail
+          };
+        };
+        parsePushDetail = (stdOut, stdErr) => {
+          return parseStringResponse({ pushed: [] }, parsers5, [stdOut, stdErr]);
+        };
+      }
+    });
+    push_exports = {};
+    __export2(push_exports, {
+      pushTagsTask: () => pushTagsTask,
+      pushTask: () => pushTask
+    });
+    init_push = __esm2({
+      "src/lib/tasks/push.ts"() {
+        "use strict";
+        init_parse_push();
+        init_utils();
+      }
+    });
+    init_show = __esm2({
+      "src/lib/tasks/show.ts"() {
+        "use strict";
+        init_utils();
+        init_task();
+      }
+    });
+    init_FileStatusSummary = __esm2({
+      "src/lib/responses/FileStatusSummary.ts"() {
+        "use strict";
+        fromPathRegex = /^(.+)\0(.+)$/;
+        FileStatusSummary = class {
+          constructor(path12, index, working_dir) {
+            this.path = path12;
+            this.index = index;
+            this.working_dir = working_dir;
+            if (index === "R" || working_dir === "R") {
+              const detail = fromPathRegex.exec(path12) || [null, path12, path12];
+              this.from = detail[2] || "";
+              this.path = detail[1] || "";
+            }
+          }
+        };
+      }
+    });
+    init_StatusSummary = __esm2({
+      "src/lib/responses/StatusSummary.ts"() {
+        "use strict";
+        init_utils();
+        init_FileStatusSummary();
+        StatusSummary = class {
+          constructor() {
+            this.not_added = [];
+            this.conflicted = [];
+            this.created = [];
+            this.deleted = [];
+            this.ignored = void 0;
+            this.modified = [];
+            this.renamed = [];
+            this.files = [];
+            this.staged = [];
+            this.ahead = 0;
+            this.behind = 0;
+            this.current = null;
+            this.tracking = null;
+            this.detached = false;
+            this.isClean = () => {
+              return !this.files.length;
+            };
+          }
+        };
+        parsers6 = new Map([
+          parser3(
+            " ",
+            "A",
+            (result, file) => result.created.push(file)
+          ),
+          parser3(
+            " ",
+            "D",
+            (result, file) => result.deleted.push(file)
+          ),
+          parser3(
+            " ",
+            "M",
+            (result, file) => result.modified.push(file)
+          ),
+          parser3("A", " ", (result, file) => {
+            result.created.push(file);
+            result.staged.push(file);
+          }),
+          parser3("A", "M", (result, file) => {
+            result.created.push(file);
+            result.staged.push(file);
+            result.modified.push(file);
+          }),
+          parser3("D", " ", (result, file) => {
+            result.deleted.push(file);
+            result.staged.push(file);
+          }),
+          parser3("M", " ", (result, file) => {
+            result.modified.push(file);
+            result.staged.push(file);
+          }),
+          parser3("M", "M", (result, file) => {
+            result.modified.push(file);
+            result.staged.push(file);
+          }),
+          parser3("R", " ", (result, file) => {
+            result.renamed.push(renamedFile(file));
+          }),
+          parser3("R", "M", (result, file) => {
+            const renamed = renamedFile(file);
+            result.renamed.push(renamed);
+            result.modified.push(renamed.to);
+          }),
+          parser3("!", "!", (_result, _file2) => {
+            (_result.ignored = _result.ignored || []).push(_file2);
+          }),
+          parser3(
+            "?",
+            "?",
+            (result, file) => result.not_added.push(file)
+          ),
+          ...conflicts(
+            "A",
+            "A",
+            "U"
+            /* UNMERGED */
+          ),
+          ...conflicts(
+            "D",
+            "D",
+            "U"
+            /* UNMERGED */
+          ),
+          ...conflicts(
+            "U",
+            "A",
+            "D",
+            "U"
+            /* UNMERGED */
+          ),
+          [
+            "##",
+            (result, line) => {
+              const aheadReg = /ahead (\d+)/;
+              const behindReg = /behind (\d+)/;
+              const currentReg = /^(.+?(?=(?:\.{3}|\s|$)))/;
+              const trackingReg = /\.{3}(\S*)/;
+              const onEmptyBranchReg = /\son\s(\S+?)(?=\.{3}|$)/;
+              let regexResult = aheadReg.exec(line);
+              result.ahead = regexResult && +regexResult[1] || 0;
+              regexResult = behindReg.exec(line);
+              result.behind = regexResult && +regexResult[1] || 0;
+              regexResult = currentReg.exec(line);
+              result.current = filterType(regexResult?.[1], filterString, null);
+              regexResult = trackingReg.exec(line);
+              result.tracking = filterType(regexResult?.[1], filterString, null);
+              regexResult = onEmptyBranchReg.exec(line);
+              if (regexResult) {
+                result.current = filterType(regexResult?.[1], filterString, result.current);
+              }
+              result.detached = /\(no branch\)/.test(line);
+            }
+          ]
+        ]);
+        parseStatusSummary = function(text) {
+          const lines = text.split(NULL);
+          const status = new StatusSummary();
+          for (let i2 = 0, l = lines.length; i2 < l; ) {
+            let line = lines[i2++].trim();
+            if (!line) {
+              continue;
+            }
+            if (line.charAt(0) === "R") {
+              line += NULL + (lines[i2++] || "");
+            }
+            splitLine(status, line);
+          }
+          return status;
+        };
+      }
+    });
+    init_status = __esm2({
+      "src/lib/tasks/status.ts"() {
+        "use strict";
+        init_StatusSummary();
+        ignoredOptions = ["--null", "-z"];
+      }
+    });
+    init_version = __esm2({
+      "src/lib/tasks/version.ts"() {
+        "use strict";
+        init_utils();
+        NOT_INSTALLED = "installed=false";
+        parsers7 = [
+          new LineParser(
+            /version (\d+)\.(\d+)\.(\d+)(?:\s*\((.+)\))?/,
+            (result, [major, minor, patch, agent = ""]) => {
+              Object.assign(
+                result,
+                versionResponse(asNumber(major), asNumber(minor), asNumber(patch), agent)
+              );
+            }
+          ),
+          new LineParser(
+            /version (\d+)\.(\d+)\.(\D+)(.+)?$/,
+            (result, [major, minor, patch, agent = ""]) => {
+              Object.assign(result, versionResponse(asNumber(major), asNumber(minor), patch, agent));
+            }
+          )
+        ];
+      }
+    });
+    init_clone = __esm2({
+      "src/lib/tasks/clone.ts"() {
+        "use strict";
+        init_task();
+        init_utils();
+        cloneTask = (repo, directory, customArgs) => {
+          const commands = ["clone", ...customArgs];
+          filterString(repo) && commands.push(c(repo));
+          filterString(directory) && commands.push(c(directory));
+          return straightThroughStringTask(commands);
+        };
+        cloneMirrorTask = (repo, directory, customArgs) => {
+          append(customArgs, "--mirror");
+          return cloneTask(repo, directory, customArgs);
+        };
+      }
+    });
+    simple_git_api_exports = {};
+    __export2(simple_git_api_exports, {
+      SimpleGitApi: () => SimpleGitApi
+    });
+    init_simple_git_api = __esm2({
+      "src/lib/simple-git-api.ts"() {
+        "use strict";
+        init_task_callback();
+        init_change_working_directory();
+        init_checkout();
+        init_count_objects();
+        init_commit();
+        init_config();
+        init_first_commit();
+        init_grep();
+        init_hash_object();
+        init_init();
+        init_log();
+        init_merge();
+        init_push();
+        init_show();
+        init_status();
+        init_task();
+        init_version();
+        init_utils();
+        init_clone();
+        SimpleGitApi = class {
+          constructor(_executor) {
+            this._executor = _executor;
+          }
+          _runTask(task, then) {
+            const chain = this._executor.chain();
+            const promise = chain.push(task);
+            if (then) {
+              taskCallback(task, promise, then);
+            }
+            return Object.create(this, {
+              then: { value: promise.then.bind(promise) },
+              catch: { value: promise.catch.bind(promise) },
+              _executor: { value: chain }
+            });
+          }
+          add(files) {
+            return this._runTask(
+              straightThroughStringTask(["add", ...asArray(files)]),
+              trailingFunctionArgument(arguments)
+            );
+          }
+          cwd(directory) {
+            const next = trailingFunctionArgument(arguments);
+            if (typeof directory === "string") {
+              return this._runTask(changeWorkingDirectoryTask(directory, this._executor), next);
+            }
+            if (typeof directory?.path === "string") {
+              return this._runTask(
+                changeWorkingDirectoryTask(
+                  directory.path,
+                  directory.root && this._executor || void 0
+                ),
+                next
+              );
+            }
+            return this._runTask(
+              configurationErrorTask("Git.cwd: workingDirectory must be supplied as a string"),
+              next
+            );
+          }
+          hashObject(path12, write) {
+            return this._runTask(
+              hashObjectTask(path12, write === true),
+              trailingFunctionArgument(arguments)
+            );
+          }
+          init(bare) {
+            return this._runTask(
+              initTask(bare === true, this._executor.cwd, getTrailingOptions(arguments)),
+              trailingFunctionArgument(arguments)
+            );
+          }
+          merge() {
+            return this._runTask(
+              mergeTask(getTrailingOptions(arguments)),
+              trailingFunctionArgument(arguments)
+            );
+          }
+          mergeFromTo(remote, branch) {
+            if (!(filterString(remote) && filterString(branch))) {
+              return this._runTask(
+                configurationErrorTask(
+                  `Git.mergeFromTo requires that the 'remote' and 'branch' arguments are supplied as strings`
+                )
+              );
+            }
+            return this._runTask(
+              mergeTask([remote, branch, ...getTrailingOptions(arguments)]),
+              trailingFunctionArgument(arguments, false)
+            );
+          }
+          outputHandler(handler) {
+            this._executor.outputHandler = handler;
+            return this;
+          }
+          push() {
+            const task = pushTask(
+              {
+                remote: filterType(arguments[0], filterString),
+                branch: filterType(arguments[1], filterString)
+              },
+              getTrailingOptions(arguments)
+            );
+            return this._runTask(task, trailingFunctionArgument(arguments));
+          }
+          stash() {
+            return this._runTask(
+              straightThroughStringTask(["stash", ...getTrailingOptions(arguments)]),
+              trailingFunctionArgument(arguments)
+            );
+          }
+          status() {
+            return this._runTask(
+              statusTask(getTrailingOptions(arguments)),
+              trailingFunctionArgument(arguments)
+            );
+          }
+        };
+        Object.assign(
+          SimpleGitApi.prototype,
+          checkout_default(),
+          clone_default(),
+          commit_default(),
+          config_default(),
+          count_objects_default(),
+          first_commit_default(),
+          grep_default(),
+          log_default(),
+          show_default(),
+          version_default()
+        );
+      }
+    });
+    scheduler_exports = {};
+    __export2(scheduler_exports, {
+      Scheduler: () => Scheduler
+    });
+    init_scheduler = __esm2({
+      "src/lib/runners/scheduler.ts"() {
+        "use strict";
+        init_utils();
+        init_git_logger();
+        createScheduledTask = /* @__PURE__ */ (() => {
+          let id = 0;
+          return () => {
+            id++;
+            const { promise, done } = (0, import_promise_deferred.createDeferred)();
+            return {
+              promise,
+              done,
+              id
+            };
+          };
+        })();
+        Scheduler = class {
+          constructor(concurrency = 2) {
+            this.concurrency = concurrency;
+            this.logger = createLogger("", "scheduler");
+            this.pending = [];
+            this.running = [];
+            this.logger(`Constructed, concurrency=%s`, concurrency);
+          }
+          schedule() {
+            if (!this.pending.length || this.running.length >= this.concurrency) {
+              this.logger(
+                `Schedule attempt ignored, pending=%s running=%s concurrency=%s`,
+                this.pending.length,
+                this.running.length,
+                this.concurrency
+              );
+              return;
+            }
+            const task = append(this.running, this.pending.shift());
+            this.logger(`Attempting id=%s`, task.id);
+            task.done(() => {
+              this.logger(`Completing id=`, task.id);
+              remove(this.running, task);
+              this.schedule();
+            });
+          }
+          next() {
+            const { promise, id } = append(this.pending, createScheduledTask());
+            this.logger(`Scheduling id=%s`, id);
+            this.schedule();
+            return promise;
+          }
+        };
+      }
+    });
+    apply_patch_exports = {};
+    __export2(apply_patch_exports, {
+      applyPatchTask: () => applyPatchTask
+    });
+    init_apply_patch = __esm2({
+      "src/lib/tasks/apply-patch.ts"() {
+        "use strict";
+        init_task();
+      }
+    });
+    init_BranchDeleteSummary = __esm2({
+      "src/lib/responses/BranchDeleteSummary.ts"() {
+        "use strict";
+        BranchDeletionBatch = class {
+          constructor() {
+            this.all = [];
+            this.branches = {};
+            this.errors = [];
+          }
+          get success() {
+            return !this.errors.length;
+          }
+        };
+      }
+    });
+    init_parse_branch_delete = __esm2({
+      "src/lib/parsers/parse-branch-delete.ts"() {
+        "use strict";
+        init_BranchDeleteSummary();
+        init_utils();
+        deleteSuccessRegex = /(\S+)\s+\(\S+\s([^)]+)\)/;
+        deleteErrorRegex = /^error[^']+'([^']+)'/m;
+        parsers8 = [
+          new LineParser(deleteSuccessRegex, (result, [branch, hash]) => {
+            const deletion = branchDeletionSuccess(branch, hash);
+            result.all.push(deletion);
+            result.branches[branch] = deletion;
+          }),
+          new LineParser(deleteErrorRegex, (result, [branch]) => {
+            const deletion = branchDeletionFailure(branch);
+            result.errors.push(deletion);
+            result.all.push(deletion);
+            result.branches[branch] = deletion;
+          })
+        ];
+        parseBranchDeletions = (stdOut, stdErr) => {
+          return parseStringResponse(new BranchDeletionBatch(), parsers8, [stdOut, stdErr]);
+        };
+      }
+    });
+    init_BranchSummary = __esm2({
+      "src/lib/responses/BranchSummary.ts"() {
+        "use strict";
+        BranchSummaryResult = class {
+          constructor() {
+            this.all = [];
+            this.branches = {};
+            this.current = "";
+            this.detached = false;
+          }
+          push(status, detached, name, commit, label) {
+            if (status === "*") {
+              this.detached = detached;
+              this.current = name;
+            }
+            this.all.push(name);
+            this.branches[name] = {
+              current: status === "*",
+              linkedWorkTree: status === "+",
+              name,
+              commit,
+              label
+            };
+          }
+        };
+      }
+    });
+    init_parse_branch = __esm2({
+      "src/lib/parsers/parse-branch.ts"() {
+        "use strict";
+        init_BranchSummary();
+        init_utils();
+        parsers9 = [
+          new LineParser(
+            /^([*+]\s)?\((?:HEAD )?detached (?:from|at) (\S+)\)\s+([a-z0-9]+)\s(.*)$/,
+            (result, [current, name, commit, label]) => {
+              result.push(branchStatus(current), true, name, commit, label);
+            }
+          ),
+          new LineParser(
+            /^([*+]\s)?(\S+)\s+([a-z0-9]+)\s?(.*)$/s,
+            (result, [current, name, commit, label]) => {
+              result.push(branchStatus(current), false, name, commit, label);
+            }
+          )
+        ];
+        currentBranchParser = new LineParser(/^(\S+)$/s, (result, [name]) => {
+          result.push("*", false, name, "", "");
+        });
+      }
+    });
+    branch_exports = {};
+    __export2(branch_exports, {
+      branchLocalTask: () => branchLocalTask,
+      branchTask: () => branchTask,
+      containsDeleteBranchCommand: () => containsDeleteBranchCommand,
+      deleteBranchTask: () => deleteBranchTask,
+      deleteBranchesTask: () => deleteBranchesTask
+    });
+    init_branch = __esm2({
+      "src/lib/tasks/branch.ts"() {
+        "use strict";
+        init_git_response_error();
+        init_parse_branch_delete();
+        init_parse_branch();
+        init_utils();
+      }
+    });
+    init_CheckIgnore = __esm2({
+      "src/lib/responses/CheckIgnore.ts"() {
+        "use strict";
+        parseCheckIgnore = (text) => {
+          return text.split(/\n/g).map(toPath).filter(Boolean);
+        };
+      }
+    });
+    check_ignore_exports = {};
+    __export2(check_ignore_exports, {
+      checkIgnoreTask: () => checkIgnoreTask
+    });
+    init_check_ignore = __esm2({
+      "src/lib/tasks/check-ignore.ts"() {
+        "use strict";
+        init_CheckIgnore();
+      }
+    });
+    init_parse_fetch = __esm2({
+      "src/lib/parsers/parse-fetch.ts"() {
+        "use strict";
+        init_utils();
+        parsers10 = [
+          new LineParser(/From (.+)$/, (result, [remote]) => {
+            result.remote = remote;
+          }),
+          new LineParser(/\* \[new branch]\s+(\S+)\s*-> (.+)$/, (result, [name, tracking]) => {
+            result.branches.push({
+              name,
+              tracking
+            });
+          }),
+          new LineParser(/\* \[new tag]\s+(\S+)\s*-> (.+)$/, (result, [name, tracking]) => {
+            result.tags.push({
+              name,
+              tracking
+            });
+          }),
+          new LineParser(/- \[deleted]\s+\S+\s*-> (.+)$/, (result, [tracking]) => {
+            result.deleted.push({
+              tracking
+            });
+          }),
+          new LineParser(
+            /\s*([^.]+)\.\.(\S+)\s+(\S+)\s*-> (.+)$/,
+            (result, [from, to, name, tracking]) => {
+              result.updated.push({
+                name,
+                tracking,
+                to,
+                from
+              });
+            }
+          )
+        ];
+      }
+    });
+    fetch_exports = {};
+    __export2(fetch_exports, {
+      fetchTask: () => fetchTask
+    });
+    init_fetch = __esm2({
+      "src/lib/tasks/fetch.ts"() {
+        "use strict";
+        init_parse_fetch();
+        init_task();
+      }
+    });
+    init_parse_move = __esm2({
+      "src/lib/parsers/parse-move.ts"() {
+        "use strict";
+        init_utils();
+        parsers11 = [
+          new LineParser(/^Renaming (.+) to (.+)$/, (result, [from, to]) => {
+            result.moves.push({ from, to });
+          })
+        ];
+      }
+    });
+    move_exports = {};
+    __export2(move_exports, {
+      moveTask: () => moveTask
+    });
+    init_move = __esm2({
+      "src/lib/tasks/move.ts"() {
+        "use strict";
+        init_parse_move();
+        init_utils();
+      }
+    });
+    pull_exports = {};
+    __export2(pull_exports, {
+      pullTask: () => pullTask
+    });
+    init_pull = __esm2({
+      "src/lib/tasks/pull.ts"() {
+        "use strict";
+        init_git_response_error();
+        init_parse_pull();
+        init_utils();
+      }
+    });
+    init_GetRemoteSummary = __esm2({
+      "src/lib/responses/GetRemoteSummary.ts"() {
+        "use strict";
+        init_utils();
+      }
+    });
+    remote_exports = {};
+    __export2(remote_exports, {
+      addRemoteTask: () => addRemoteTask,
+      getRemotesTask: () => getRemotesTask,
+      listRemotesTask: () => listRemotesTask,
+      remoteTask: () => remoteTask,
+      removeRemoteTask: () => removeRemoteTask
+    });
+    init_remote = __esm2({
+      "src/lib/tasks/remote.ts"() {
+        "use strict";
+        init_GetRemoteSummary();
+        init_task();
+      }
+    });
+    stash_list_exports = {};
+    __export2(stash_list_exports, {
+      stashListTask: () => stashListTask
+    });
+    init_stash_list = __esm2({
+      "src/lib/tasks/stash-list.ts"() {
+        "use strict";
+        init_log_format();
+        init_parse_list_log_summary();
+        init_diff();
+        init_log();
+      }
+    });
+    sub_module_exports = {};
+    __export2(sub_module_exports, {
+      addSubModuleTask: () => addSubModuleTask,
+      initSubModuleTask: () => initSubModuleTask,
+      subModuleTask: () => subModuleTask,
+      updateSubModuleTask: () => updateSubModuleTask
+    });
+    init_sub_module = __esm2({
+      "src/lib/tasks/sub-module.ts"() {
+        "use strict";
+        init_task();
+      }
+    });
+    init_TagList = __esm2({
+      "src/lib/responses/TagList.ts"() {
+        "use strict";
+        TagList = class {
+          constructor(all, latest) {
+            this.all = all;
+            this.latest = latest;
+          }
+        };
+        parseTagList = function(data, customSort = false) {
+          const tags = data.split("\n").map(trimmed).filter(Boolean);
+          if (!customSort) {
+            tags.sort(function(tagA, tagB) {
+              const partsA = tagA.split(".");
+              const partsB = tagB.split(".");
+              if (partsA.length === 1 || partsB.length === 1) {
+                return singleSorted(toNumber(partsA[0]), toNumber(partsB[0]));
+              }
+              for (let i2 = 0, l = Math.max(partsA.length, partsB.length); i2 < l; i2++) {
+                const diff = sorted(toNumber(partsA[i2]), toNumber(partsB[i2]));
+                if (diff) {
+                  return diff;
+                }
+              }
+              return 0;
+            });
+          }
+          const latest = customSort ? tags[0] : [...tags].reverse().find((tag) => tag.indexOf(".") >= 0);
+          return new TagList(tags, latest);
+        };
+      }
+    });
+    tag_exports = {};
+    __export2(tag_exports, {
+      addAnnotatedTagTask: () => addAnnotatedTagTask,
+      addTagTask: () => addTagTask,
+      tagListTask: () => tagListTask
+    });
+    init_tag = __esm2({
+      "src/lib/tasks/tag.ts"() {
+        "use strict";
+        init_TagList();
+      }
+    });
+    require_git = __commonJS2({
+      "src/git.js"(exports2, module2) {
+        "use strict";
+        var { GitExecutor: GitExecutor2 } = (init_git_executor(), __toCommonJS(git_executor_exports));
+        var { SimpleGitApi: SimpleGitApi2 } = (init_simple_git_api(), __toCommonJS(simple_git_api_exports));
+        var { Scheduler: Scheduler2 } = (init_scheduler(), __toCommonJS(scheduler_exports));
+        var { adhocExecTask: adhocExecTask2, configurationErrorTask: configurationErrorTask2 } = (init_task(), __toCommonJS(task_exports));
+        var {
+          asArray: asArray2,
+          filterArray: filterArray2,
+          filterPrimitives: filterPrimitives2,
+          filterString: filterString2,
+          filterStringOrStringArray: filterStringOrStringArray2,
+          filterType: filterType2,
+          getTrailingOptions: getTrailingOptions2,
+          trailingFunctionArgument: trailingFunctionArgument2,
+          trailingOptionsArgument: trailingOptionsArgument2
+        } = (init_utils(), __toCommonJS(utils_exports));
+        var { applyPatchTask: applyPatchTask2 } = (init_apply_patch(), __toCommonJS(apply_patch_exports));
+        var {
+          branchTask: branchTask2,
+          branchLocalTask: branchLocalTask2,
+          deleteBranchesTask: deleteBranchesTask2,
+          deleteBranchTask: deleteBranchTask2
+        } = (init_branch(), __toCommonJS(branch_exports));
+        var { checkIgnoreTask: checkIgnoreTask2 } = (init_check_ignore(), __toCommonJS(check_ignore_exports));
+        var { checkIsRepoTask: checkIsRepoTask2 } = (init_check_is_repo(), __toCommonJS(check_is_repo_exports));
+        var { cleanWithOptionsTask: cleanWithOptionsTask2, isCleanOptionsArray: isCleanOptionsArray2 } = (init_clean(), __toCommonJS(clean_exports));
+        var { diffSummaryTask: diffSummaryTask2 } = (init_diff(), __toCommonJS(diff_exports));
+        var { fetchTask: fetchTask2 } = (init_fetch(), __toCommonJS(fetch_exports));
+        var { moveTask: moveTask2 } = (init_move(), __toCommonJS(move_exports));
+        var { pullTask: pullTask2 } = (init_pull(), __toCommonJS(pull_exports));
+        var { pushTagsTask: pushTagsTask2 } = (init_push(), __toCommonJS(push_exports));
+        var {
+          addRemoteTask: addRemoteTask2,
+          getRemotesTask: getRemotesTask2,
+          listRemotesTask: listRemotesTask2,
+          remoteTask: remoteTask2,
+          removeRemoteTask: removeRemoteTask2
+        } = (init_remote(), __toCommonJS(remote_exports));
+        var { getResetMode: getResetMode2, resetTask: resetTask2 } = (init_reset(), __toCommonJS(reset_exports));
+        var { stashListTask: stashListTask2 } = (init_stash_list(), __toCommonJS(stash_list_exports));
+        var {
+          addSubModuleTask: addSubModuleTask2,
+          initSubModuleTask: initSubModuleTask2,
+          subModuleTask: subModuleTask2,
+          updateSubModuleTask: updateSubModuleTask2
+        } = (init_sub_module(), __toCommonJS(sub_module_exports));
+        var { addAnnotatedTagTask: addAnnotatedTagTask2, addTagTask: addTagTask2, tagListTask: tagListTask2 } = (init_tag(), __toCommonJS(tag_exports));
+        var { straightThroughBufferTask: straightThroughBufferTask2, straightThroughStringTask: straightThroughStringTask2 } = (init_task(), __toCommonJS(task_exports));
+        function Git2(options, plugins) {
+          this._plugins = plugins;
+          this._executor = new GitExecutor2(
+            options.baseDir,
+            new Scheduler2(options.maxConcurrentProcesses),
+            plugins
+          );
+          this._trimmed = options.trimmed;
+        }
+        (Git2.prototype = Object.create(SimpleGitApi2.prototype)).constructor = Git2;
+        Git2.prototype.customBinary = function(command) {
+          this._plugins.reconfigure("binary", command);
+          return this;
+        };
+        Git2.prototype.env = function(name, value) {
+          if (arguments.length === 1 && typeof name === "object") {
+            this._executor.env = name;
+          } else {
+            (this._executor.env = this._executor.env || {})[name] = value;
+          }
+          return this;
+        };
+        Git2.prototype.stashList = function(options) {
+          return this._runTask(
+            stashListTask2(
+              trailingOptionsArgument2(arguments) || {},
+              filterArray2(options) && options || []
+            ),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.mv = function(from, to) {
+          return this._runTask(moveTask2(from, to), trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.checkoutLatestTag = function(then) {
+          var git = this;
+          return this.pull(function() {
+            git.tags(function(err, tags) {
+              git.checkout(tags.latest, then);
+            });
+          });
+        };
+        Git2.prototype.pull = function(remote, branch, options, then) {
+          return this._runTask(
+            pullTask2(
+              filterType2(remote, filterString2),
+              filterType2(branch, filterString2),
+              getTrailingOptions2(arguments)
+            ),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.fetch = function(remote, branch) {
+          return this._runTask(
+            fetchTask2(
+              filterType2(remote, filterString2),
+              filterType2(branch, filterString2),
+              getTrailingOptions2(arguments)
+            ),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.silent = function(silence) {
+          return this._runTask(
+            adhocExecTask2(
+              () => console.warn(
+                "simple-git deprecation notice: git.silent: logging should be configured using the `debug` library / `DEBUG` environment variable, this method will be removed."
+              )
+            )
+          );
+        };
+        Git2.prototype.tags = function(options, then) {
+          return this._runTask(
+            tagListTask2(getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.rebase = function() {
+          return this._runTask(
+            straightThroughStringTask2(["rebase", ...getTrailingOptions2(arguments)]),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.reset = function(mode) {
+          return this._runTask(
+            resetTask2(getResetMode2(mode), getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.revert = function(commit) {
+          const next = trailingFunctionArgument2(arguments);
+          if (typeof commit !== "string") {
+            return this._runTask(configurationErrorTask2("Commit must be a string"), next);
+          }
+          return this._runTask(
+            straightThroughStringTask2(["revert", ...getTrailingOptions2(arguments, 0, true), commit]),
+            next
+          );
+        };
+        Git2.prototype.addTag = function(name) {
+          const task = typeof name === "string" ? addTagTask2(name) : configurationErrorTask2("Git.addTag requires a tag name");
+          return this._runTask(task, trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.addAnnotatedTag = function(tagName, tagMessage) {
+          return this._runTask(
+            addAnnotatedTagTask2(tagName, tagMessage),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.deleteLocalBranch = function(branchName, forceDelete, then) {
+          return this._runTask(
+            deleteBranchTask2(branchName, typeof forceDelete === "boolean" ? forceDelete : false),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.deleteLocalBranches = function(branchNames, forceDelete, then) {
+          return this._runTask(
+            deleteBranchesTask2(branchNames, typeof forceDelete === "boolean" ? forceDelete : false),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.branch = function(options, then) {
+          return this._runTask(
+            branchTask2(getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.branchLocal = function(then) {
+          return this._runTask(branchLocalTask2(), trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.raw = function(commands) {
+          const createRestCommands = !Array.isArray(commands);
+          const command = [].slice.call(createRestCommands ? arguments : commands, 0);
+          for (let i2 = 0; i2 < command.length && createRestCommands; i2++) {
+            if (!filterPrimitives2(command[i2])) {
+              command.splice(i2, command.length - i2);
+              break;
+            }
+          }
+          command.push(...getTrailingOptions2(arguments, 0, true));
+          var next = trailingFunctionArgument2(arguments);
+          if (!command.length) {
+            return this._runTask(
+              configurationErrorTask2("Raw: must supply one or more command to execute"),
+              next
+            );
+          }
+          return this._runTask(straightThroughStringTask2(command, this._trimmed), next);
+        };
+        Git2.prototype.submoduleAdd = function(repo, path12, then) {
+          return this._runTask(addSubModuleTask2(repo, path12), trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.submoduleUpdate = function(args, then) {
+          return this._runTask(
+            updateSubModuleTask2(getTrailingOptions2(arguments, true)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.submoduleInit = function(args, then) {
+          return this._runTask(
+            initSubModuleTask2(getTrailingOptions2(arguments, true)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.subModule = function(options, then) {
+          return this._runTask(
+            subModuleTask2(getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.listRemote = function() {
+          return this._runTask(
+            listRemotesTask2(getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.addRemote = function(remoteName, remoteRepo, then) {
+          return this._runTask(
+            addRemoteTask2(remoteName, remoteRepo, getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.removeRemote = function(remoteName, then) {
+          return this._runTask(removeRemoteTask2(remoteName), trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.getRemotes = function(verbose, then) {
+          return this._runTask(getRemotesTask2(verbose === true), trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.remote = function(options, then) {
+          return this._runTask(
+            remoteTask2(getTrailingOptions2(arguments)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.tag = function(options, then) {
+          const command = getTrailingOptions2(arguments);
+          if (command[0] !== "tag") {
+            command.unshift("tag");
+          }
+          return this._runTask(straightThroughStringTask2(command), trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.updateServerInfo = function(then) {
+          return this._runTask(
+            straightThroughStringTask2(["update-server-info"]),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.pushTags = function(remote, then) {
+          const task = pushTagsTask2(
+            { remote: filterType2(remote, filterString2) },
+            getTrailingOptions2(arguments)
+          );
+          return this._runTask(task, trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.rm = function(files) {
+          return this._runTask(
+            straightThroughStringTask2(["rm", "-f", ...asArray2(files)]),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.rmKeepLocal = function(files) {
+          return this._runTask(
+            straightThroughStringTask2(["rm", "--cached", ...asArray2(files)]),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.catFile = function(options, then) {
+          return this._catFile("utf-8", arguments);
+        };
+        Git2.prototype.binaryCatFile = function() {
+          return this._catFile("buffer", arguments);
+        };
+        Git2.prototype._catFile = function(format, args) {
+          var handler = trailingFunctionArgument2(args);
+          var command = ["cat-file"];
+          var options = args[0];
+          if (typeof options === "string") {
+            return this._runTask(
+              configurationErrorTask2("Git.catFile: options must be supplied as an array of strings"),
+              handler
+            );
+          }
+          if (Array.isArray(options)) {
+            command.push.apply(command, options);
+          }
+          const task = format === "buffer" ? straightThroughBufferTask2(command) : straightThroughStringTask2(command);
+          return this._runTask(task, handler);
+        };
+        Git2.prototype.diff = function(options, then) {
+          const task = filterString2(options) ? configurationErrorTask2(
+            "git.diff: supplying options as a single string is no longer supported, switch to an array of strings"
+          ) : straightThroughStringTask2(["diff", ...getTrailingOptions2(arguments)]);
+          return this._runTask(task, trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.diffSummary = function() {
+          return this._runTask(
+            diffSummaryTask2(getTrailingOptions2(arguments, 1)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.applyPatch = function(patches) {
+          const task = !filterStringOrStringArray2(patches) ? configurationErrorTask2(
+            `git.applyPatch requires one or more string patches as the first argument`
+          ) : applyPatchTask2(asArray2(patches), getTrailingOptions2([].slice.call(arguments, 1)));
+          return this._runTask(task, trailingFunctionArgument2(arguments));
+        };
+        Git2.prototype.revparse = function() {
+          const commands = ["rev-parse", ...getTrailingOptions2(arguments, true)];
+          return this._runTask(
+            straightThroughStringTask2(commands, true),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.clean = function(mode, options, then) {
+          const usingCleanOptionsArray = isCleanOptionsArray2(mode);
+          const cleanMode = usingCleanOptionsArray && mode.join("") || filterType2(mode, filterString2) || "";
+          const customArgs = getTrailingOptions2([].slice.call(arguments, usingCleanOptionsArray ? 1 : 0));
+          return this._runTask(
+            cleanWithOptionsTask2(cleanMode, customArgs),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.exec = function(then) {
+          const task = {
+            commands: [],
+            format: "utf-8",
+            parser() {
+              if (typeof then === "function") {
+                then();
+              }
+            }
+          };
+          return this._runTask(task);
+        };
+        Git2.prototype.clearQueue = function() {
+          return this._runTask(
+            adhocExecTask2(
+              () => console.warn(
+                "simple-git deprecation notice: clearQueue() is deprecated and will be removed, switch to using the abortPlugin instead."
+              )
+            )
+          );
+        };
+        Git2.prototype.checkIgnore = function(pathnames, then) {
+          return this._runTask(
+            checkIgnoreTask2(asArray2(filterType2(pathnames, filterStringOrStringArray2, []))),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        Git2.prototype.checkIsRepo = function(checkType, then) {
+          return this._runTask(
+            checkIsRepoTask2(filterType2(checkType, filterString2)),
+            trailingFunctionArgument2(arguments)
+          );
+        };
+        module2.exports = Git2;
+      }
+    });
+    init_git_error();
+    GitConstructError = class extends GitError {
+      constructor(config2, message) {
+        super(void 0, message);
+        this.config = config2;
+      }
+    };
+    init_git_error();
+    init_git_error();
+    GitPluginError = class extends GitError {
+      constructor(task, plugin, message) {
+        super(task, message);
+        this.task = task;
+        this.plugin = plugin;
+        Object.setPrototypeOf(this, new.target.prototype);
+      }
+    };
+    init_git_response_error();
+    init_task_configuration_error();
+    init_check_is_repo();
+    init_clean();
+    init_config();
+    init_diff_name_status();
+    init_grep();
+    init_reset();
+    init_utils();
+    init_utils();
+    never2 = (0, import_promise_deferred2.deferred)().promise;
+    init_utils();
+    WRONG_NUMBER_ERR = `Invalid value supplied for custom binary, requires a single string or an array containing either one or two strings`;
+    WRONG_CHARS_ERR = `Invalid value supplied for custom binary, restricted characters must be removed or supply the unsafe.allowUnsafeCustomBinary option`;
+    init_git_error();
+    init_utils();
+    PluginStore = class {
+      constructor() {
+        this.plugins = /* @__PURE__ */ new Set();
+        this.events = new import_node_events2.EventEmitter();
+      }
+      on(type, listener) {
+        this.events.on(type, listener);
+      }
+      reconfigure(type, data) {
+        this.events.emit(type, data);
+      }
+      append(type, action) {
+        const plugin = append(this.plugins, { type, action });
+        return () => this.plugins.delete(plugin);
+      }
+      add(plugin) {
+        const plugins = [];
+        asArray(plugin).forEach((plugin2) => plugin2 && this.plugins.add(append(plugins, plugin2)));
+        return () => {
+          plugins.forEach((plugin2) => this.plugins.delete(plugin2));
+        };
+      }
+      exec(type, data, context) {
+        let output = data;
+        const contextual = Object.freeze(Object.create(context));
+        for (const plugin of this.plugins) {
+          if (plugin.type === type) {
+            output = plugin.action(output, contextual);
+          }
+        }
+        return output;
+      }
+    };
+    init_utils();
+    init_utils();
+    init_utils();
+    Git = require_git();
+    init_git_response_error();
+    simpleGit = gitInstanceFactory;
+  }
+});
+
+// src/utils/git-utils.ts
+async function getChangedFiles(repoRoot, since) {
+  const git = simpleGit(repoRoot);
+  if (since) {
+    const diff2 = await git.diff(["--name-only", since]);
+    return diff2.trim().split("\n").filter(Boolean);
+  }
+  const diff = await git.diff(["--name-only", "HEAD"]);
+  return diff.trim().split("\n").filter(Boolean);
+}
+async function getFileHashes(repoRoot, filePaths) {
+  const git = simpleGit(repoRoot);
+  const hashes = {};
+  for (const fp of filePaths) {
+    try {
+      const result = await git.hashObject(fp);
+      hashes[fp] = result.trim();
+    } catch {
+      log.warn(`Could not hash file: ${fp}`);
+      hashes[fp] = "unknown";
+    }
+  }
+  return hashes;
+}
+async function getModuleHash(repoRoot, moduleFiles) {
+  const hashes = await getFileHashes(repoRoot, moduleFiles);
+  const combined = Object.entries(hashes).sort(([a], [b2]) => a.localeCompare(b2)).map(([k2, v]) => `${k2}:${v}`).join("|");
+  const { createHash } = await import("node:crypto");
+  return createHash("sha256").update(combined).digest("hex").slice(0, 12);
+}
+async function getCurrentCommit(repoRoot) {
+  const git = simpleGit(repoRoot);
+  const result = await git.revparse(["HEAD"]);
+  return result.trim().slice(0, 7);
+}
+var init_git_utils = __esm({
+  "src/utils/git-utils.ts"() {
+    "use strict";
+    init_esm7();
+    init_logger();
+  }
+});
+
+// src/storage/manifest.ts
+async function loadManifest(manifestPath) {
+  const manifest = await readJson(manifestPath);
+  if (manifest && manifest.version === 1) return manifest;
+  return createEmptyManifest();
+}
+function createEmptyManifest() {
+  return {
+    version: 1,
+    lastFullBuild: "",
+    baseCommit: "",
+    modules: {}
+  };
+}
+async function saveManifest(manifestPath, manifest) {
+  await writeJson(manifestPath, manifest);
+  log.debug("Manifest saved", { moduleCount: Object.keys(manifest.modules).length });
+}
+function setModuleEntry(manifest, moduleName, entry) {
+  return {
+    ...manifest,
+    modules: { ...manifest.modules, [moduleName]: entry }
+  };
+}
+function getModuleEntry(manifest, moduleName) {
+  return manifest.modules[moduleName];
+}
+var init_manifest = __esm({
+  "src/storage/manifest.ts"() {
+    "use strict";
+    init_file_utils();
+    init_logger();
+  }
+});
+
+// src/storage/cache-manager.ts
+var import_node_path7, CacheManager;
+var init_cache_manager = __esm({
+  "src/storage/cache-manager.ts"() {
+    "use strict";
+    init_constants();
+    init_file_utils();
+    init_git_utils();
+    init_manifest();
+    init_logger();
+    import_node_path7 = __toESM(require("node:path"), 1);
+    CacheManager = class {
+      constructor(repoRoot) {
+        this.repoRoot = repoRoot;
+        this.paths = wikiPaths(repoRoot);
+      }
+      paths;
+      async init() {
+        await ensureDir(this.paths.cache);
+        await ensureDir(this.paths.modules("cache"));
+        await ensureDir(this.paths.flows("cache"));
+        await ensureDir(this.paths.graphs);
+      }
+      async getManifest() {
+        return loadManifest(this.paths.manifest);
+      }
+      async isModuleFresh(moduleName, moduleFiles) {
+        const manifest = await this.getManifest();
+        const entry = getModuleEntry(manifest, moduleName);
+        if (!entry) return false;
+        const currentHash = await getModuleHash(this.repoRoot, moduleFiles);
+        return entry.gitHash === currentHash;
+      }
+      async getCachedModule(moduleName) {
+        const manifest = await this.getManifest();
+        const entry = getModuleEntry(manifest, moduleName);
+        if (!entry) return null;
+        const cachePath = import_node_path7.default.join(this.paths.modules("cache"), `${moduleName}.json`);
+        return readJson(cachePath);
+      }
+      async cacheModule(moduleName, wiki, moduleFiles) {
+        const cachePath = import_node_path7.default.join(this.paths.modules("cache"), `${moduleName}.json`);
+        await writeJson(cachePath, wiki);
+        const gitHash = await getModuleHash(this.repoRoot, moduleFiles);
+        const manifest = await this.getManifest();
+        const updated = setModuleEntry(manifest, moduleName, {
+          cacheFile: `modules/${moduleName}.json`,
+          gitHash,
+          fileCount: moduleFiles.length,
+          analyzedAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+        await saveManifest(this.paths.manifest, updated);
+        log.info(`Cached module: ${moduleName}`);
+      }
+      async cacheGraph(graph) {
+        const graphPath = import_node_path7.default.join(this.paths.graphs, "dependency.json");
+        await writeJson(graphPath, graph);
+      }
+      async getCachedGraph() {
+        const graphPath = import_node_path7.default.join(this.paths.graphs, "dependency.json");
+        return readJson(graphPath);
+      }
+      async invalidateModule(moduleName) {
+        const manifest = await this.getManifest();
+        const { [moduleName]: _2, ...rest } = manifest.modules;
+        await saveManifest(this.paths.manifest, { ...manifest, modules: rest });
+        log.debug(`Invalidated cache for module: ${moduleName}`);
+      }
+      async cacheOverview(overview) {
+        const overviewPath = import_node_path7.default.join(this.paths.cache, "overview.json");
+        await writeJson(overviewPath, overview);
+      }
+      async getCachedOverview() {
+        const overviewPath = import_node_path7.default.join(this.paths.cache, "overview.json");
+        return readJson(overviewPath);
+      }
+      async cacheTechStack(ts) {
+        const tsPath = import_node_path7.default.join(this.paths.cache, "tech-stack.json");
+        await writeJson(tsPath, ts);
+      }
+      async getCachedTechStack() {
+        const tsPath = import_node_path7.default.join(this.paths.cache, "tech-stack.json");
+        return readJson(tsPath);
+      }
+      async cacheGrouping(grouping) {
+        const groupingPath = import_node_path7.default.join(this.paths.cache, "grouping.json");
+        await writeJson(groupingPath, grouping);
+        log.info(`Cached module grouping: ${grouping.modules.length} modules`);
+      }
+      async getCachedGrouping() {
+        const groupingPath = import_node_path7.default.join(this.paths.cache, "grouping.json");
+        return readJson(groupingPath);
+      }
+    };
+  }
+});
+
 // src/storage/team-writer.ts
 var team_writer_exports = {};
 __export(team_writer_exports, {
@@ -13907,18 +23393,18 @@ async function writeTeamWiki(repoRoot, overview, moduleWikis, flows) {
   const paths = wikiPaths(repoRoot);
   const written = [];
   await ensureDir(paths.team);
-  await ensureDir(import_node_path9.default.join(paths.team, "modules"));
-  await ensureDir(import_node_path9.default.join(paths.team, "flows"));
-  const archPath = import_node_path9.default.join(paths.team, "architecture.md");
+  await ensureDir(import_node_path8.default.join(paths.team, "modules"));
+  await ensureDir(import_node_path8.default.join(paths.team, "flows"));
+  const archPath = import_node_path8.default.join(paths.team, "architecture.md");
   await writeFile(archPath, renderArchitectureMd(overview));
   written.push(archPath);
   for (const mod of moduleWikis) {
-    const modPath = import_node_path9.default.join(paths.team, "modules", `${mod.name}.md`);
+    const modPath = import_node_path8.default.join(paths.team, "modules", `${mod.name}.md`);
     await writeFile(modPath, renderModuleMd(mod, overview.lastUpdated, overview.modules));
     written.push(modPath);
   }
   for (const flow of flows) {
-    const flowPath = import_node_path9.default.join(paths.team, "flows", `${flow.name}.md`);
+    const flowPath = import_node_path8.default.join(paths.team, "flows", `${flow.name}.md`);
     await writeFile(flowPath, renderFlowMd(flow, overview.lastUpdated));
     written.push(flowPath);
   }
@@ -13930,11 +23416,11 @@ async function writeTeamWiki(repoRoot, overview, moduleWikis, flows) {
     }))
   );
   if (allGotchas.length > 0) {
-    const gotchasPath = import_node_path9.default.join(paths.team, "gotchas.md");
+    const gotchasPath = import_node_path8.default.join(paths.team, "gotchas.md");
     await writeFile(gotchasPath, renderGotchasMd(allGotchas, overview.lastUpdated));
     written.push(gotchasPath);
   }
-  const indexPath = import_node_path9.default.join(paths.team, "README.md");
+  const indexPath = import_node_path8.default.join(paths.team, "README.md");
   await writeFile(indexPath, renderIndexMd(overview, moduleWikis));
   written.push(indexPath);
   return written;
@@ -14300,13 +23786,13 @@ ${rows}`;
   }).join("\n\n");
   return sections;
 }
-var import_node_path9, ROLE_ORDER, ROLE_LABELS;
+var import_node_path8, ROLE_ORDER, ROLE_LABELS;
 var init_team_writer = __esm({
   "src/storage/team-writer.ts"() {
     "use strict";
     init_file_utils();
     init_constants();
-    import_node_path9 = __toESM(require("node:path"), 1);
+    import_node_path8 = __toESM(require("node:path"), 1);
     ROLE_ORDER = ["framework", "core", "ui", "database", "build", "testing", "utility", "other"];
     ROLE_LABELS = {
       framework: "Framework & Runtime",
@@ -14321,4046 +23807,662 @@ var init_team_writer = __esm({
   }
 });
 
-// node_modules/zod/v3/external.js
-var external_exports = {};
-__export(external_exports, {
-  BRAND: () => BRAND,
-  DIRTY: () => DIRTY,
-  EMPTY_PATH: () => EMPTY_PATH,
-  INVALID: () => INVALID,
-  NEVER: () => NEVER,
-  OK: () => OK,
-  ParseStatus: () => ParseStatus,
-  Schema: () => ZodType,
-  ZodAny: () => ZodAny,
-  ZodArray: () => ZodArray,
-  ZodBigInt: () => ZodBigInt,
-  ZodBoolean: () => ZodBoolean,
-  ZodBranded: () => ZodBranded,
-  ZodCatch: () => ZodCatch,
-  ZodDate: () => ZodDate,
-  ZodDefault: () => ZodDefault,
-  ZodDiscriminatedUnion: () => ZodDiscriminatedUnion,
-  ZodEffects: () => ZodEffects,
-  ZodEnum: () => ZodEnum,
-  ZodError: () => ZodError,
-  ZodFirstPartyTypeKind: () => ZodFirstPartyTypeKind,
-  ZodFunction: () => ZodFunction,
-  ZodIntersection: () => ZodIntersection,
-  ZodIssueCode: () => ZodIssueCode,
-  ZodLazy: () => ZodLazy,
-  ZodLiteral: () => ZodLiteral,
-  ZodMap: () => ZodMap,
-  ZodNaN: () => ZodNaN,
-  ZodNativeEnum: () => ZodNativeEnum,
-  ZodNever: () => ZodNever,
-  ZodNull: () => ZodNull,
-  ZodNullable: () => ZodNullable,
-  ZodNumber: () => ZodNumber,
-  ZodObject: () => ZodObject,
-  ZodOptional: () => ZodOptional,
-  ZodParsedType: () => ZodParsedType,
-  ZodPipeline: () => ZodPipeline,
-  ZodPromise: () => ZodPromise,
-  ZodReadonly: () => ZodReadonly,
-  ZodRecord: () => ZodRecord,
-  ZodSchema: () => ZodType,
-  ZodSet: () => ZodSet,
-  ZodString: () => ZodString,
-  ZodSymbol: () => ZodSymbol,
-  ZodTransformer: () => ZodEffects,
-  ZodTuple: () => ZodTuple,
-  ZodType: () => ZodType,
-  ZodUndefined: () => ZodUndefined,
-  ZodUnion: () => ZodUnion,
-  ZodUnknown: () => ZodUnknown,
-  ZodVoid: () => ZodVoid,
-  addIssueToContext: () => addIssueToContext,
-  any: () => anyType,
-  array: () => arrayType,
-  bigint: () => bigIntType,
-  boolean: () => booleanType,
-  coerce: () => coerce,
-  custom: () => custom,
-  date: () => dateType,
-  datetimeRegex: () => datetimeRegex,
-  defaultErrorMap: () => en_default,
-  discriminatedUnion: () => discriminatedUnionType,
-  effect: () => effectsType,
-  enum: () => enumType,
-  function: () => functionType,
-  getErrorMap: () => getErrorMap,
-  getParsedType: () => getParsedType,
-  instanceof: () => instanceOfType,
-  intersection: () => intersectionType,
-  isAborted: () => isAborted,
-  isAsync: () => isAsync,
-  isDirty: () => isDirty,
-  isValid: () => isValid,
-  late: () => late,
-  lazy: () => lazyType,
-  literal: () => literalType,
-  makeIssue: () => makeIssue,
-  map: () => mapType,
-  nan: () => nanType,
-  nativeEnum: () => nativeEnumType,
-  never: () => neverType,
-  null: () => nullType,
-  nullable: () => nullableType,
-  number: () => numberType,
-  object: () => objectType,
-  objectUtil: () => objectUtil,
-  oboolean: () => oboolean,
-  onumber: () => onumber,
-  optional: () => optionalType,
-  ostring: () => ostring,
-  pipeline: () => pipelineType,
-  preprocess: () => preprocessType,
-  promise: () => promiseType,
-  quotelessJson: () => quotelessJson,
-  record: () => recordType,
-  set: () => setType,
-  setErrorMap: () => setErrorMap,
-  strictObject: () => strictObjectType,
-  string: () => stringType,
-  symbol: () => symbolType,
-  transformer: () => effectsType,
-  tuple: () => tupleType,
-  undefined: () => undefinedType,
-  union: () => unionType,
-  unknown: () => unknownType,
-  util: () => util,
-  void: () => voidType
+// src/prompts/templates.ts
+var MODULE_SUMMARY_PROMPT, IMPACT_ANALYSIS_PROMPT, PROJECT_OVERVIEW_PROMPT, MODULE_DETECTION_PROMPT;
+var init_templates = __esm({
+  "src/prompts/templates.ts"() {
+    "use strict";
+    MODULE_SUMMARY_PROMPT = `You are analyzing a code module to produce rich, developer-facing documentation. Based on the AST analysis below, generate a structured module summary.
+
+CRITICAL ACCURACY RULES:
+- Base EVERY claim on evidence from the provided AST analysis, imports, and exports
+- Do NOT guess or fabricate information not present in the data
+- If data is insufficient for a field, omit it rather than invent content
+- For gotchas: only flag issues you can verify from the actual code structure
+- For invariants: only state constraints that are clearly enforced by the code
+- Double-check any claims about code behavior against the actual exports and imports listed
+
+Output JSON matching this shape:
+{
+  "name": "module-name",
+  "summary": "One-sentence module purpose (used as frontmatter summary)",
+  "readWhen": ["When you are changing X", "When you need to understand Y"],
+  "responsibility": "2-3 sentences describing WHAT this module does and WHY it exists (narrative, not bullet points)",
+  "boundary": "What this module explicitly does NOT cover \u2014 where its responsibility ends",
+  "quickStart": {
+    "description": "One sentence explaining the fastest way to get started with this module",
+    "codeExample": "Minimal code to bootstrap or use this module (3-8 lines)",
+    "language": "typescript"
+  },
+  "keyAbstractions": [
+    { "name": "SymbolName", "kind": "type|function|class|interface|constant", "description": "What this abstraction represents and when to use it" }
+  ],
+  "usagePatterns": [
+    { "title": "Pattern name", "description": "When and how to use this pattern", "codeExample": "actual code snippet showing usage", "language": "typescript" }
+  ],
+  "invariants": ["Hard constraints that must always hold (e.g. 'Exactly one Gateway per host')"],
+  "configKeys": [
+    { "key": "some.config.path", "type": "string", "default": "value", "description": "What this config controls" }
+  ],
+  "keyTypes": ["TypeName1", "TypeName2"],
+  "exports": ["exportName1", "exportName2"],
+  "dependencies": { "internal": ["module-a"], "external": ["some-npm-pkg"] },
+  "dependents": ["module-b"],
+  "relatedModules": ["module-c"],
+  "gotchas": [
+    { "description": "Non-obvious pitfall with specific details", "severity": "warning|caution|note" }
+  ]
+}
+
+Rules:
+- summary: concise one-liner suitable for a docs index page
+- readWhen: 2-4 scenarios when a developer should read this doc (e.g. "Adding a new channel plugin", "Debugging WebSocket connection issues")
+- responsibility: narrative prose, not bullet points. Explain the module's role in the overall system.
+- quickStart: a minimal, copy-paste-ready example that gets a developer running with this module in under 30 seconds. Omit if the module has no public API (e.g. tests, config files).
+- keyAbstractions: cover the 3-8 most important types/functions/classes. For each, explain WHAT it represents and WHEN a developer would interact with it. Pick only meaningful abstractions, not trivial helpers.
+- usagePatterns: 1-3 common usage patterns with actual code examples extracted from the codebase. Each example should be realistic and show the import + usage.
+- invariants: hard rules that must ALWAYS hold. NOT suggestions \u2014 things that break the system if violated. (e.g. "All DB operations must use await", "Only one Gateway process per host"). Only include if you find real ones.
+- configKeys: configuration entries relevant to this module. Include the config key path, type, default value, and what it controls. Only include if the module has meaningful configuration.
+- relatedModules: modules that frequently interact with this one, or that a developer would need to understand alongside this one.
+- gotchas: only NON-OBVIOUS pitfalls. severity: "warning" = will cause bugs/data loss, "caution" = subtle behavior that wastes debugging time, "note" = non-obvious but harmless. Do NOT include generic advice.
+- Be specific to THIS codebase. Reference actual function names, file paths, and behavior.
+
+AST Analysis:
+{{astData}}
+
+Dependency Graph:
+{{depData}}
+
+Respond with JSON only.`;
+    IMPACT_ANALYSIS_PROMPT = `You are analyzing the impact of a planned code change. Based on the dependency graph and module analysis below, assess what would be affected.
+
+Rules:
+- directlyAffected: Modules whose code would need to change
+- potentiallyAffected: Modules that might break if not updated
+- suggestedTests: Specific test files that should be run
+- Be conservative \u2014 only flag real risks, not hypothetical ones
+- Output valid JSON matching the ImpactResult type
+
+Planned Change:
+{{changeDescription}}
+
+Target Files:
+{{targetFiles}}
+
+Dependency Graph:
+{{depGraph}}
+
+Module Analysis:
+{{moduleData}}
+
+Respond with JSON only.`;
+    PROJECT_OVERVIEW_PROMPT = `You are analyzing a codebase to produce a high-level project overview. Based on the module analysis and dependency data below, generate a structured project description.
+
+Output JSON matching this shape:
+{
+  "summary": "1-2 sentence elevator pitch \u2014 what this project IS and what it DOES",
+  "businessContext": "2-3 sentences describing the domain, problem space, or business purpose",
+  "coreCapabilities": [
+    "Capability 1 \u2014 specific to THIS codebase",
+    "Capability 2",
+    "..."
+  ],
+  "targetUsers": "Who uses this project \u2014 developers, end users, other systems?"
+}
+
+Rules:
+- summary: concise, specific to this codebase. NOT generic. Reference actual features.
+- businessContext: explain the WHY \u2014 what problem does this solve? What domain is it in?
+- coreCapabilities: 3-6 concrete capabilities. Each should be a single sentence with specific details from the code.
+- targetUsers: brief description of who interacts with this system
+- Be specific to THIS codebase. Reference actual module names, entry points, and functionality.
+
+Module Analysis:
+{{moduleData}}
+
+Dependency Data:
+{{depData}}
+
+Entry Points:
+{{entryPoints}}
+
+Respond with JSON only.`;
+    MODULE_DETECTION_PROMPT = `You are analyzing a project's directory structure to divide its files into meaningful business-domain modules.
+
+PRINCIPLES:
+- Group by business domain, not technical layer
+- A domain's router/service/model/schema/repository belong together in ONE module
+- Shared infrastructure (core, utils, config, middleware) stays as separate infrastructure modules
+- Aim for 5-30 files per module. If a domain has <5 files, consider merging with a related domain
+- Module names: lowercase English, hyphen-separated, concise (e.g. "sales", "user-auth", "game-engine")
+
+PROJECT INFO:
+- Language: {{language}}
+- Framework: {{framework}}
+
+FILE TREE:
+{{fileTree}}
+
+IMPORT GRAPH (module-level dependencies):
+{{importGraph}}
+
+Respond with JSON matching this shape:
+{
+  "modules": [
+    {
+      "name": "module-name",
+      "files": ["relative/path/to/file1.py", "relative/path/to/file2.py"],
+      "reason": "Brief explanation of what this module covers"
+    }
+  ]
+}
+
+Rules:
+- Every source file must appear in exactly one module
+- "files" must use relative paths from the project root
+- "reason" should be 1-2 sentences describing the module's business purpose
+- If the project is too small for meaningful decomposition (<10 files), use a single module
+- Do NOT create modules with only 1-2 files unless they are genuinely isolated infrastructure`;
+  }
 });
 
-// node_modules/zod/v3/helpers/util.js
-var util;
-(function(util2) {
-  util2.assertEqual = (_2) => {
-  };
-  function assertIs2(_arg) {
-  }
-  util2.assertIs = assertIs2;
-  function assertNever2(_x) {
-    throw new Error();
-  }
-  util2.assertNever = assertNever2;
-  util2.arrayToEnum = (items) => {
-    const obj = {};
-    for (const item of items) {
-      obj[item] = item;
-    }
-    return obj;
-  };
-  util2.getValidEnumValues = (obj) => {
-    const validKeys = util2.objectKeys(obj).filter((k2) => typeof obj[obj[k2]] !== "number");
-    const filtered = {};
-    for (const k2 of validKeys) {
-      filtered[k2] = obj[k2];
-    }
-    return util2.objectValues(filtered);
-  };
-  util2.objectValues = (obj) => {
-    return util2.objectKeys(obj).map(function(e) {
-      return obj[e];
-    });
-  };
-  util2.objectKeys = typeof Object.keys === "function" ? (obj) => Object.keys(obj) : (object3) => {
-    const keys = [];
-    for (const key in object3) {
-      if (Object.prototype.hasOwnProperty.call(object3, key)) {
-        keys.push(key);
+// src/engine/language-registry.ts
+var language_registry_exports = {};
+__export(language_registry_exports, {
+  LanguageRegistry: () => LanguageRegistry,
+  registry: () => registry2
+});
+var LanguageRegistry, registry2;
+var init_language_registry = __esm({
+  "src/engine/language-registry.ts"() {
+    "use strict";
+    init_constants();
+    LanguageRegistry = class {
+      analyzers = /* @__PURE__ */ new Map();
+      register(analyzer) {
+        this.analyzers.set(analyzer.language, analyzer);
       }
-    }
-    return keys;
-  };
-  util2.find = (arr, checker) => {
-    for (const item of arr) {
-      if (checker(item))
-        return item;
-    }
-    return void 0;
-  };
-  util2.isInteger = typeof Number.isInteger === "function" ? (val) => Number.isInteger(val) : (val) => typeof val === "number" && Number.isFinite(val) && Math.floor(val) === val;
-  function joinValues2(array2, separator = " | ") {
-    return array2.map((val) => typeof val === "string" ? `'${val}'` : val).join(separator);
-  }
-  util2.joinValues = joinValues2;
-  util2.jsonStringifyReplacer = (_2, value) => {
-    if (typeof value === "bigint") {
-      return value.toString();
-    }
-    return value;
-  };
-})(util || (util = {}));
-var objectUtil;
-(function(objectUtil2) {
-  objectUtil2.mergeShapes = (first2, second) => {
-    return {
-      ...first2,
-      ...second
-      // second overwrites first
+      get(language) {
+        return this.analyzers.get(language);
+      }
+      getByFile(filePath) {
+        const ext2 = filePath.substring(filePath.lastIndexOf("."));
+        const lang = LANGUAGE_EXTENSIONS[ext2];
+        if (!lang) return void 0;
+        return this.analyzers.get(lang);
+      }
+      getRegisteredLanguages() {
+        return Array.from(this.analyzers.keys());
+      }
     };
-  };
-})(objectUtil || (objectUtil = {}));
-var ZodParsedType = util.arrayToEnum([
-  "string",
-  "nan",
-  "number",
-  "integer",
-  "float",
-  "boolean",
-  "date",
-  "bigint",
-  "symbol",
-  "function",
-  "undefined",
-  "null",
-  "array",
-  "object",
-  "unknown",
-  "promise",
-  "void",
-  "never",
-  "map",
-  "set"
-]);
-var getParsedType = (data) => {
-  const t2 = typeof data;
-  switch (t2) {
-    case "undefined":
-      return ZodParsedType.undefined;
-    case "string":
-      return ZodParsedType.string;
-    case "number":
-      return Number.isNaN(data) ? ZodParsedType.nan : ZodParsedType.number;
-    case "boolean":
-      return ZodParsedType.boolean;
-    case "function":
-      return ZodParsedType.function;
-    case "bigint":
-      return ZodParsedType.bigint;
-    case "symbol":
-      return ZodParsedType.symbol;
-    case "object":
-      if (Array.isArray(data)) {
-        return ZodParsedType.array;
-      }
-      if (data === null) {
-        return ZodParsedType.null;
-      }
-      if (data.then && typeof data.then === "function" && data.catch && typeof data.catch === "function") {
-        return ZodParsedType.promise;
-      }
-      if (typeof Map !== "undefined" && data instanceof Map) {
-        return ZodParsedType.map;
-      }
-      if (typeof Set !== "undefined" && data instanceof Set) {
-        return ZodParsedType.set;
-      }
-      if (typeof Date !== "undefined" && data instanceof Date) {
-        return ZodParsedType.date;
-      }
-      return ZodParsedType.object;
-    default:
-      return ZodParsedType.unknown;
+    registry2 = new LanguageRegistry();
   }
-};
+});
 
-// node_modules/zod/v3/ZodError.js
-var ZodIssueCode = util.arrayToEnum([
-  "invalid_type",
-  "invalid_literal",
-  "custom",
-  "invalid_union",
-  "invalid_union_discriminator",
-  "invalid_enum_value",
-  "unrecognized_keys",
-  "invalid_arguments",
-  "invalid_return_type",
-  "invalid_date",
-  "invalid_string",
-  "too_small",
-  "too_big",
-  "invalid_intersection_types",
-  "not_multiple_of",
-  "not_finite"
-]);
-var quotelessJson = (obj) => {
-  const json = JSON.stringify(obj, null, 2);
-  return json.replace(/"([^"]+)":/g, "$1:");
-};
-var ZodError = class _ZodError extends Error {
-  get errors() {
-    return this.issues;
+// src/engine/module-detector.ts
+var module_detector_exports = {};
+__export(module_detector_exports, {
+  buildModuleDefs: () => buildModuleDefs,
+  detectModules: () => detectModules
+});
+async function detectModules(repoRoot, framework, language) {
+  const detection = await detectFramework(repoRoot);
+  if (detection.isMonorepo && detection.subProjects.length > 0) {
+    return detectMonorepoModules(repoRoot, detection.subProjects);
   }
-  constructor(issues) {
-    super();
-    this.issues = [];
-    this.addIssue = (sub) => {
-      this.issues = [...this.issues, sub];
-    };
-    this.addIssues = (subs = []) => {
-      this.issues = [...this.issues, ...subs];
-    };
-    const actualProto = new.target.prototype;
-    if (Object.setPrototypeOf) {
-      Object.setPrototypeOf(this, actualProto);
-    } else {
-      this.__proto__ = actualProto;
-    }
-    this.name = "ZodError";
-    this.issues = issues;
-  }
-  format(_mapper) {
-    const mapper = _mapper || function(issue2) {
-      return issue2.message;
-    };
-    const fieldErrors = { _errors: [] };
-    const processError = (error2) => {
-      for (const issue2 of error2.issues) {
-        if (issue2.code === "invalid_union") {
-          issue2.unionErrors.map(processError);
-        } else if (issue2.code === "invalid_return_type") {
-          processError(issue2.returnTypeError);
-        } else if (issue2.code === "invalid_arguments") {
-          processError(issue2.argumentsError);
-        } else if (issue2.path.length === 0) {
-          fieldErrors._errors.push(mapper(issue2));
-        } else {
-          let curr = fieldErrors;
-          let i2 = 0;
-          while (i2 < issue2.path.length) {
-            const el = issue2.path[i2];
-            const terminal = i2 === issue2.path.length - 1;
-            if (!terminal) {
-              curr[el] = curr[el] || { _errors: [] };
-            } else {
-              curr[el] = curr[el] || { _errors: [] };
-              curr[el]._errors.push(mapper(issue2));
-            }
-            curr = curr[el];
-            i2++;
-          }
-        }
-      }
-    };
-    processError(this);
-    return fieldErrors;
-  }
-  static assert(value) {
-    if (!(value instanceof _ZodError)) {
-      throw new Error(`Not a ZodError: ${value}`);
-    }
-  }
-  toString() {
-    return this.message;
-  }
-  get message() {
-    return JSON.stringify(this.issues, util.jsonStringifyReplacer, 2);
-  }
-  get isEmpty() {
-    return this.issues.length === 0;
-  }
-  flatten(mapper = (issue2) => issue2.message) {
-    const fieldErrors = {};
-    const formErrors = [];
-    for (const sub of this.issues) {
-      if (sub.path.length > 0) {
-        const firstEl = sub.path[0];
-        fieldErrors[firstEl] = fieldErrors[firstEl] || [];
-        fieldErrors[firstEl].push(mapper(sub));
-      } else {
-        formErrors.push(mapper(sub));
-      }
-    }
-    return { formErrors, fieldErrors };
-  }
-  get formErrors() {
-    return this.flatten();
-  }
-};
-ZodError.create = (issues) => {
-  const error2 = new ZodError(issues);
-  return error2;
-};
-
-// node_modules/zod/v3/locales/en.js
-var errorMap = (issue2, _ctx) => {
-  let message;
-  switch (issue2.code) {
-    case ZodIssueCode.invalid_type:
-      if (issue2.received === ZodParsedType.undefined) {
-        message = "Required";
-      } else {
-        message = `Expected ${issue2.expected}, received ${issue2.received}`;
-      }
-      break;
-    case ZodIssueCode.invalid_literal:
-      message = `Invalid literal value, expected ${JSON.stringify(issue2.expected, util.jsonStringifyReplacer)}`;
-      break;
-    case ZodIssueCode.unrecognized_keys:
-      message = `Unrecognized key(s) in object: ${util.joinValues(issue2.keys, ", ")}`;
-      break;
-    case ZodIssueCode.invalid_union:
-      message = `Invalid input`;
-      break;
-    case ZodIssueCode.invalid_union_discriminator:
-      message = `Invalid discriminator value. Expected ${util.joinValues(issue2.options)}`;
-      break;
-    case ZodIssueCode.invalid_enum_value:
-      message = `Invalid enum value. Expected ${util.joinValues(issue2.options)}, received '${issue2.received}'`;
-      break;
-    case ZodIssueCode.invalid_arguments:
-      message = `Invalid function arguments`;
-      break;
-    case ZodIssueCode.invalid_return_type:
-      message = `Invalid function return type`;
-      break;
-    case ZodIssueCode.invalid_date:
-      message = `Invalid date`;
-      break;
-    case ZodIssueCode.invalid_string:
-      if (typeof issue2.validation === "object") {
-        if ("includes" in issue2.validation) {
-          message = `Invalid input: must include "${issue2.validation.includes}"`;
-          if (typeof issue2.validation.position === "number") {
-            message = `${message} at one or more positions greater than or equal to ${issue2.validation.position}`;
-          }
-        } else if ("startsWith" in issue2.validation) {
-          message = `Invalid input: must start with "${issue2.validation.startsWith}"`;
-        } else if ("endsWith" in issue2.validation) {
-          message = `Invalid input: must end with "${issue2.validation.endsWith}"`;
-        } else {
-          util.assertNever(issue2.validation);
-        }
-      } else if (issue2.validation !== "regex") {
-        message = `Invalid ${issue2.validation}`;
-      } else {
-        message = "Invalid";
-      }
-      break;
-    case ZodIssueCode.too_small:
-      if (issue2.type === "array")
-        message = `Array must contain ${issue2.exact ? "exactly" : issue2.inclusive ? `at least` : `more than`} ${issue2.minimum} element(s)`;
-      else if (issue2.type === "string")
-        message = `String must contain ${issue2.exact ? "exactly" : issue2.inclusive ? `at least` : `over`} ${issue2.minimum} character(s)`;
-      else if (issue2.type === "number")
-        message = `Number must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${issue2.minimum}`;
-      else if (issue2.type === "bigint")
-        message = `Number must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${issue2.minimum}`;
-      else if (issue2.type === "date")
-        message = `Date must be ${issue2.exact ? `exactly equal to ` : issue2.inclusive ? `greater than or equal to ` : `greater than `}${new Date(Number(issue2.minimum))}`;
-      else
-        message = "Invalid input";
-      break;
-    case ZodIssueCode.too_big:
-      if (issue2.type === "array")
-        message = `Array must contain ${issue2.exact ? `exactly` : issue2.inclusive ? `at most` : `less than`} ${issue2.maximum} element(s)`;
-      else if (issue2.type === "string")
-        message = `String must contain ${issue2.exact ? `exactly` : issue2.inclusive ? `at most` : `under`} ${issue2.maximum} character(s)`;
-      else if (issue2.type === "number")
-        message = `Number must be ${issue2.exact ? `exactly` : issue2.inclusive ? `less than or equal to` : `less than`} ${issue2.maximum}`;
-      else if (issue2.type === "bigint")
-        message = `BigInt must be ${issue2.exact ? `exactly` : issue2.inclusive ? `less than or equal to` : `less than`} ${issue2.maximum}`;
-      else if (issue2.type === "date")
-        message = `Date must be ${issue2.exact ? `exactly` : issue2.inclusive ? `smaller than or equal to` : `smaller than`} ${new Date(Number(issue2.maximum))}`;
-      else
-        message = "Invalid input";
-      break;
-    case ZodIssueCode.custom:
-      message = `Invalid input`;
-      break;
-    case ZodIssueCode.invalid_intersection_types:
-      message = `Intersection results could not be merged`;
-      break;
-    case ZodIssueCode.not_multiple_of:
-      message = `Number must be a multiple of ${issue2.multipleOf}`;
-      break;
-    case ZodIssueCode.not_finite:
-      message = "Number must be finite";
-      break;
-    default:
-      message = _ctx.defaultError;
-      util.assertNever(issue2);
-  }
-  return { message };
-};
-var en_default = errorMap;
-
-// node_modules/zod/v3/errors.js
-var overrideErrorMap = en_default;
-function setErrorMap(map) {
-  overrideErrorMap = map;
+  const sourceFiles = await findSourceFiles(repoRoot);
+  log.info(`Found ${sourceFiles.length} source files`);
+  const moduleMap = await groupFilesIntoModules(repoRoot, sourceFiles, framework, language);
+  return buildModuleDefs(repoRoot, moduleMap, language);
 }
-function getErrorMap() {
-  return overrideErrorMap;
-}
-
-// node_modules/zod/v3/helpers/parseUtil.js
-var makeIssue = (params) => {
-  const { data, path: path12, errorMaps, issueData } = params;
-  const fullPath = [...path12, ...issueData.path || []];
-  const fullIssue = {
-    ...issueData,
-    path: fullPath
-  };
-  if (issueData.message !== void 0) {
-    return {
-      ...issueData,
-      path: fullPath,
-      message: issueData.message
-    };
+async function detectMonorepoModules(repoRoot, subProjects) {
+  const modules = [];
+  for (const sub of subProjects) {
+    const sourceFiles = await findSourceFiles(sub.path);
+    if (sourceFiles.length === 0) continue;
+    log.info(`Sub-project ${sub.name}: ${sourceFiles.length} source files`);
+    const moduleMap = await groupFilesIntoModules(sub.path, sourceFiles, sub.framework, sub.language);
+    for (const [name, files] of moduleMap.entries()) {
+      const moduleName = moduleMap.size > 1 ? `${sub.name}-${name}` : sub.name;
+      const modDefs = await buildModuleDefs(sub.path, /* @__PURE__ */ new Map([[moduleName, files]]), sub.language);
+      modules.push(...modDefs);
+    }
   }
-  let errorMessage = "";
-  const maps = errorMaps.filter((m) => !!m).slice().reverse();
-  for (const map of maps) {
-    errorMessage = map(fullIssue, { data, defaultError: errorMessage }).message;
-  }
-  return {
-    ...issueData,
-    path: fullPath,
-    message: errorMessage
-  };
-};
-var EMPTY_PATH = [];
-function addIssueToContext(ctx, issueData) {
-  const overrideMap = getErrorMap();
-  const issue2 = makeIssue({
-    issueData,
-    data: ctx.data,
-    path: ctx.path,
-    errorMaps: [
-      ctx.common.contextualErrorMap,
-      // contextual error map is first priority
-      ctx.schemaErrorMap,
-      // then schema-bound map if available
-      overrideMap,
-      // then global override map
-      overrideMap === en_default ? void 0 : en_default
-      // then global default map
-    ].filter((x2) => !!x2)
+  const topLevelFiles = await findSourceFiles(repoRoot);
+  const coveredPaths = subProjects.map((s) => s.path);
+  const standaloneFiles = topLevelFiles.filter((f) => {
+    const abs = import_node_path9.default.resolve(repoRoot, f);
+    return !coveredPaths.some((cp) => abs.startsWith(cp));
   });
-  ctx.common.issues.push(issue2);
+  if (standaloneFiles.length > 0) {
+    const standaloneMap = groupGeneric(standaloneFiles);
+    const standaloneDefs = await buildModuleDefs(repoRoot, standaloneMap, "typescript");
+    modules.push(...standaloneDefs);
+  }
+  log.info(`Detected ${modules.length} modules in monorepo: ${modules.map((m) => m.name).join(", ")}`);
+  return modules;
 }
-var ParseStatus = class _ParseStatus {
-  constructor() {
-    this.value = "valid";
+async function groupFilesIntoModules(projectRoot, files, framework, language) {
+  if (framework === "nextjs") {
+    return groupNextjsModules(projectRoot, files);
   }
-  dirty() {
-    if (this.value === "valid")
-      this.value = "dirty";
+  if (framework === "fastapi" || language === "python") {
+    const fastApiGrouping = await groupFastApiModules(projectRoot, files);
+    if (fastApiGrouping) return fastApiGrouping;
   }
-  abort() {
-    if (this.value !== "aborted")
-      this.value = "aborted";
+  if (language === "typescript") {
+    const reactGrouping = await groupReactModules(projectRoot, files);
+    if (reactGrouping) return reactGrouping;
   }
-  static mergeArray(status, results) {
-    const arrayValue = [];
-    for (const s of results) {
-      if (s.status === "aborted")
-        return INVALID;
-      if (s.status === "dirty")
-        status.dirty();
-      arrayValue.push(s.value);
-    }
-    return { status: status.value, value: arrayValue };
-  }
-  static async mergeObjectAsync(status, pairs) {
-    const syncPairs = [];
-    for (const pair of pairs) {
-      const key = await pair.key;
-      const value = await pair.value;
-      syncPairs.push({
-        key,
-        value
-      });
-    }
-    return _ParseStatus.mergeObjectSync(status, syncPairs);
-  }
-  static mergeObjectSync(status, pairs) {
-    const finalObject = {};
-    for (const pair of pairs) {
-      const { key, value } = pair;
-      if (key.status === "aborted")
-        return INVALID;
-      if (value.status === "aborted")
-        return INVALID;
-      if (key.status === "dirty")
-        status.dirty();
-      if (value.status === "dirty")
-        status.dirty();
-      if (key.value !== "__proto__" && (typeof value.value !== "undefined" || pair.alwaysSet)) {
-        finalObject[key.value] = value.value;
-      }
-    }
-    return { status: status.value, value: finalObject };
-  }
-};
-var INVALID = Object.freeze({
-  status: "aborted"
-});
-var DIRTY = (value) => ({ status: "dirty", value });
-var OK = (value) => ({ status: "valid", value });
-var isAborted = (x2) => x2.status === "aborted";
-var isDirty = (x2) => x2.status === "dirty";
-var isValid = (x2) => x2.status === "valid";
-var isAsync = (x2) => typeof Promise !== "undefined" && x2 instanceof Promise;
-
-// node_modules/zod/v3/helpers/errorUtil.js
-var errorUtil;
-(function(errorUtil2) {
-  errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
-  errorUtil2.toString = (message) => typeof message === "string" ? message : message?.message;
-})(errorUtil || (errorUtil = {}));
-
-// node_modules/zod/v3/types.js
-var ParseInputLazyPath = class {
-  constructor(parent, value, path12, key) {
-    this._cachedPath = [];
-    this.parent = parent;
-    this.data = value;
-    this._path = path12;
-    this._key = key;
-  }
-  get path() {
-    if (!this._cachedPath.length) {
-      if (Array.isArray(this._key)) {
-        this._cachedPath.push(...this._path, ...this._key);
-      } else {
-        this._cachedPath.push(...this._path, this._key);
-      }
-    }
-    return this._cachedPath;
-  }
-};
-var handleResult = (ctx, result) => {
-  if (isValid(result)) {
-    return { success: true, data: result.value };
-  } else {
-    if (!ctx.common.issues.length) {
-      throw new Error("Validation failed but no issues detected.");
-    }
-    return {
-      success: false,
-      get error() {
-        if (this._error)
-          return this._error;
-        const error2 = new ZodError(ctx.common.issues);
-        this._error = error2;
-        return this._error;
-      }
-    };
-  }
-};
-function processCreateParams(params) {
-  if (!params)
-    return {};
-  const { errorMap: errorMap2, invalid_type_error, required_error, description } = params;
-  if (errorMap2 && (invalid_type_error || required_error)) {
-    throw new Error(`Can't use "invalid_type_error" or "required_error" in conjunction with custom error map.`);
-  }
-  if (errorMap2)
-    return { errorMap: errorMap2, description };
-  const customMap = (iss, ctx) => {
-    const { message } = params;
-    if (iss.code === "invalid_enum_value") {
-      return { message: message ?? ctx.defaultError };
-    }
-    if (typeof ctx.data === "undefined") {
-      return { message: message ?? required_error ?? ctx.defaultError };
-    }
-    if (iss.code !== "invalid_type")
-      return { message: ctx.defaultError };
-    return { message: message ?? invalid_type_error ?? ctx.defaultError };
-  };
-  return { errorMap: customMap, description };
+  return groupGeneric(files);
 }
-var ZodType = class {
-  get description() {
-    return this._def.description;
-  }
-  _getType(input) {
-    return getParsedType(input.data);
-  }
-  _getOrReturnCtx(input, ctx) {
-    return ctx || {
-      common: input.parent.common,
-      data: input.data,
-      parsedType: getParsedType(input.data),
-      schemaErrorMap: this._def.errorMap,
-      path: input.path,
-      parent: input.parent
-    };
-  }
-  _processInputParams(input) {
-    return {
-      status: new ParseStatus(),
-      ctx: {
-        common: input.parent.common,
-        data: input.data,
-        parsedType: getParsedType(input.data),
-        schemaErrorMap: this._def.errorMap,
-        path: input.path,
-        parent: input.parent
-      }
-    };
-  }
-  _parseSync(input) {
-    const result = this._parse(input);
-    if (isAsync(result)) {
-      throw new Error("Synchronous parse encountered promise.");
+async function groupFastApiModules(projectRoot, files) {
+  const prefixes = ["app/", "src/app/", "src/"];
+  let matchedPrefix = null;
+  for (const prefix of prefixes) {
+    const matching = files.filter((f) => f.startsWith(prefix));
+    if (matching.length >= 3) {
+      matchedPrefix = prefix;
+      break;
     }
-    return result;
   }
-  _parseAsync(input) {
-    const result = this._parse(input);
-    return Promise.resolve(result);
-  }
-  parse(data, params) {
-    const result = this.safeParse(data, params);
-    if (result.success)
-      return result.data;
-    throw result.error;
-  }
-  safeParse(data, params) {
-    const ctx = {
-      common: {
-        issues: [],
-        async: params?.async ?? false,
-        contextualErrorMap: params?.errorMap
-      },
-      path: params?.path || [],
-      schemaErrorMap: this._def.errorMap,
-      parent: null,
-      data,
-      parsedType: getParsedType(data)
-    };
-    const result = this._parseSync({ data, path: ctx.path, parent: ctx });
-    return handleResult(ctx, result);
-  }
-  "~validate"(data) {
-    const ctx = {
-      common: {
-        issues: [],
-        async: !!this["~standard"].async
-      },
-      path: [],
-      schemaErrorMap: this._def.errorMap,
-      parent: null,
-      data,
-      parsedType: getParsedType(data)
-    };
-    if (!this["~standard"].async) {
-      try {
-        const result = this._parseSync({ data, path: [], parent: ctx });
-        return isValid(result) ? {
-          value: result.value
-        } : {
-          issues: ctx.common.issues
-        };
-      } catch (err) {
-        if (err?.message?.toLowerCase()?.includes("encountered")) {
-          this["~standard"].async = true;
-        }
-        ctx.common = {
-          issues: [],
-          async: true
-        };
-      }
-    }
-    return this._parseAsync({ data, path: [], parent: ctx }).then((result) => isValid(result) ? {
-      value: result.value
-    } : {
-      issues: ctx.common.issues
-    });
-  }
-  async parseAsync(data, params) {
-    const result = await this.safeParseAsync(data, params);
-    if (result.success)
-      return result.data;
-    throw result.error;
-  }
-  async safeParseAsync(data, params) {
-    const ctx = {
-      common: {
-        issues: [],
-        contextualErrorMap: params?.errorMap,
-        async: true
-      },
-      path: params?.path || [],
-      schemaErrorMap: this._def.errorMap,
-      parent: null,
-      data,
-      parsedType: getParsedType(data)
-    };
-    const maybeAsyncResult = this._parse({ data, path: ctx.path, parent: ctx });
-    const result = await (isAsync(maybeAsyncResult) ? maybeAsyncResult : Promise.resolve(maybeAsyncResult));
-    return handleResult(ctx, result);
-  }
-  refine(check2, message) {
-    const getIssueProperties = (val) => {
-      if (typeof message === "string" || typeof message === "undefined") {
-        return { message };
-      } else if (typeof message === "function") {
-        return message(val);
-      } else {
-        return message;
-      }
-    };
-    return this._refinement((val, ctx) => {
-      const result = check2(val);
-      const setError = () => ctx.addIssue({
-        code: ZodIssueCode.custom,
-        ...getIssueProperties(val)
-      });
-      if (typeof Promise !== "undefined" && result instanceof Promise) {
-        return result.then((data) => {
-          if (!data) {
-            setError();
-            return false;
+  if (!matchedPrefix) return null;
+  const moduleMap = /* @__PURE__ */ new Map();
+  const knownDirs = /* @__PURE__ */ new Set([
+    "core",
+    "modules",
+    "module",
+    "api",
+    "routers",
+    "routes",
+    "models",
+    "schemas",
+    "services",
+    "algorithm",
+    "algorithms",
+    "agents",
+    "utils",
+    "lib",
+    "middleware",
+    "config",
+    "repositories",
+    "tests",
+    "test",
+    "migrations"
+  ]);
+  for (const file of files) {
+    if (file.startsWith(matchedPrefix)) {
+      const afterPrefix = file.slice(matchedPrefix.length);
+      const parts = afterPrefix.split(import_node_path9.default.sep);
+      if (parts.length > 1 && parts[0]) {
+        const firstDir = parts[0];
+        if (knownDirs.has(firstDir)) {
+          if ((firstDir === "modules" || firstDir === "module") && parts.length > 2 && parts[1]) {
+            const moduleName = parts[1];
+            const existing = moduleMap.get(moduleName) ?? [];
+            existing.push(file);
+            moduleMap.set(moduleName, existing);
           } else {
-            return true;
+            const existing = moduleMap.get(firstDir) ?? [];
+            existing.push(file);
+            moduleMap.set(firstDir, existing);
           }
-        });
-      }
-      if (!result) {
-        setError();
-        return false;
-      } else {
-        return true;
-      }
-    });
-  }
-  refinement(check2, refinementData) {
-    return this._refinement((val, ctx) => {
-      if (!check2(val)) {
-        ctx.addIssue(typeof refinementData === "function" ? refinementData(val, ctx) : refinementData);
-        return false;
-      } else {
-        return true;
-      }
-    });
-  }
-  _refinement(refinement) {
-    return new ZodEffects({
-      schema: this,
-      typeName: ZodFirstPartyTypeKind.ZodEffects,
-      effect: { type: "refinement", refinement }
-    });
-  }
-  superRefine(refinement) {
-    return this._refinement(refinement);
-  }
-  constructor(def) {
-    this.spa = this.safeParseAsync;
-    this._def = def;
-    this.parse = this.parse.bind(this);
-    this.safeParse = this.safeParse.bind(this);
-    this.parseAsync = this.parseAsync.bind(this);
-    this.safeParseAsync = this.safeParseAsync.bind(this);
-    this.spa = this.spa.bind(this);
-    this.refine = this.refine.bind(this);
-    this.refinement = this.refinement.bind(this);
-    this.superRefine = this.superRefine.bind(this);
-    this.optional = this.optional.bind(this);
-    this.nullable = this.nullable.bind(this);
-    this.nullish = this.nullish.bind(this);
-    this.array = this.array.bind(this);
-    this.promise = this.promise.bind(this);
-    this.or = this.or.bind(this);
-    this.and = this.and.bind(this);
-    this.transform = this.transform.bind(this);
-    this.brand = this.brand.bind(this);
-    this.default = this.default.bind(this);
-    this.catch = this.catch.bind(this);
-    this.describe = this.describe.bind(this);
-    this.pipe = this.pipe.bind(this);
-    this.readonly = this.readonly.bind(this);
-    this.isNullable = this.isNullable.bind(this);
-    this.isOptional = this.isOptional.bind(this);
-    this["~standard"] = {
-      version: 1,
-      vendor: "zod",
-      validate: (data) => this["~validate"](data)
-    };
-  }
-  optional() {
-    return ZodOptional.create(this, this._def);
-  }
-  nullable() {
-    return ZodNullable.create(this, this._def);
-  }
-  nullish() {
-    return this.nullable().optional();
-  }
-  array() {
-    return ZodArray.create(this);
-  }
-  promise() {
-    return ZodPromise.create(this, this._def);
-  }
-  or(option) {
-    return ZodUnion.create([this, option], this._def);
-  }
-  and(incoming) {
-    return ZodIntersection.create(this, incoming, this._def);
-  }
-  transform(transform2) {
-    return new ZodEffects({
-      ...processCreateParams(this._def),
-      schema: this,
-      typeName: ZodFirstPartyTypeKind.ZodEffects,
-      effect: { type: "transform", transform: transform2 }
-    });
-  }
-  default(def) {
-    const defaultValueFunc = typeof def === "function" ? def : () => def;
-    return new ZodDefault({
-      ...processCreateParams(this._def),
-      innerType: this,
-      defaultValue: defaultValueFunc,
-      typeName: ZodFirstPartyTypeKind.ZodDefault
-    });
-  }
-  brand() {
-    return new ZodBranded({
-      typeName: ZodFirstPartyTypeKind.ZodBranded,
-      type: this,
-      ...processCreateParams(this._def)
-    });
-  }
-  catch(def) {
-    const catchValueFunc = typeof def === "function" ? def : () => def;
-    return new ZodCatch({
-      ...processCreateParams(this._def),
-      innerType: this,
-      catchValue: catchValueFunc,
-      typeName: ZodFirstPartyTypeKind.ZodCatch
-    });
-  }
-  describe(description) {
-    const This = this.constructor;
-    return new This({
-      ...this._def,
-      description
-    });
-  }
-  pipe(target) {
-    return ZodPipeline.create(this, target);
-  }
-  readonly() {
-    return ZodReadonly.create(this);
-  }
-  isOptional() {
-    return this.safeParse(void 0).success;
-  }
-  isNullable() {
-    return this.safeParse(null).success;
-  }
-};
-var cuidRegex = /^c[^\s-]{8,}$/i;
-var cuid2Regex = /^[0-9a-z]+$/;
-var ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
-var uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
-var nanoidRegex = /^[a-z0-9_-]{21}$/i;
-var jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/;
-var durationRegex = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
-var emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
-var _emojiRegex = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`;
-var emojiRegex;
-var ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-var ipv4CidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
-var ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
-var ipv6CidrRegex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
-var base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
-var base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/;
-var dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
-var dateRegex = new RegExp(`^${dateRegexSource}$`);
-function timeRegexSource(args) {
-  let secondsRegexSource = `[0-5]\\d`;
-  if (args.precision) {
-    secondsRegexSource = `${secondsRegexSource}\\.\\d{${args.precision}}`;
-  } else if (args.precision == null) {
-    secondsRegexSource = `${secondsRegexSource}(\\.\\d+)?`;
-  }
-  const secondsQuantifier = args.precision ? "+" : "?";
-  return `([01]\\d|2[0-3]):[0-5]\\d(:${secondsRegexSource})${secondsQuantifier}`;
-}
-function timeRegex(args) {
-  return new RegExp(`^${timeRegexSource(args)}$`);
-}
-function datetimeRegex(args) {
-  let regex = `${dateRegexSource}T${timeRegexSource(args)}`;
-  const opts = [];
-  opts.push(args.local ? `Z?` : `Z`);
-  if (args.offset)
-    opts.push(`([+-]\\d{2}:?\\d{2})`);
-  regex = `${regex}(${opts.join("|")})`;
-  return new RegExp(`^${regex}$`);
-}
-function isValidIP(ip, version2) {
-  if ((version2 === "v4" || !version2) && ipv4Regex.test(ip)) {
-    return true;
-  }
-  if ((version2 === "v6" || !version2) && ipv6Regex.test(ip)) {
-    return true;
-  }
-  return false;
-}
-function isValidJWT(jwt, alg) {
-  if (!jwtRegex.test(jwt))
-    return false;
-  try {
-    const [header] = jwt.split(".");
-    if (!header)
-      return false;
-    const base642 = header.replace(/-/g, "+").replace(/_/g, "/").padEnd(header.length + (4 - header.length % 4) % 4, "=");
-    const decoded = JSON.parse(atob(base642));
-    if (typeof decoded !== "object" || decoded === null)
-      return false;
-    if ("typ" in decoded && decoded?.typ !== "JWT")
-      return false;
-    if (!decoded.alg)
-      return false;
-    if (alg && decoded.alg !== alg)
-      return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
-function isValidCidr(ip, version2) {
-  if ((version2 === "v4" || !version2) && ipv4CidrRegex.test(ip)) {
-    return true;
-  }
-  if ((version2 === "v6" || !version2) && ipv6CidrRegex.test(ip)) {
-    return true;
-  }
-  return false;
-}
-var ZodString = class _ZodString2 extends ZodType {
-  _parse(input) {
-    if (this._def.coerce) {
-      input.data = String(input.data);
-    }
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.string) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.string,
-        received: ctx2.parsedType
-      });
-      return INVALID;
-    }
-    const status = new ParseStatus();
-    let ctx = void 0;
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "min") {
-        if (input.data.length < check2.value) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_small,
-            minimum: check2.value,
-            type: "string",
-            inclusive: true,
-            exact: false,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "max") {
-        if (input.data.length > check2.value) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_big,
-            maximum: check2.value,
-            type: "string",
-            inclusive: true,
-            exact: false,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "length") {
-        const tooBig = input.data.length > check2.value;
-        const tooSmall = input.data.length < check2.value;
-        if (tooBig || tooSmall) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          if (tooBig) {
-            addIssueToContext(ctx, {
-              code: ZodIssueCode.too_big,
-              maximum: check2.value,
-              type: "string",
-              inclusive: true,
-              exact: true,
-              message: check2.message
-            });
-          } else if (tooSmall) {
-            addIssueToContext(ctx, {
-              code: ZodIssueCode.too_small,
-              minimum: check2.value,
-              type: "string",
-              inclusive: true,
-              exact: true,
-              message: check2.message
-            });
-          }
-          status.dirty();
-        }
-      } else if (check2.kind === "email") {
-        if (!emailRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "email",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "emoji") {
-        if (!emojiRegex) {
-          emojiRegex = new RegExp(_emojiRegex, "u");
-        }
-        if (!emojiRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "emoji",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "uuid") {
-        if (!uuidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "uuid",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "nanoid") {
-        if (!nanoidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "nanoid",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "cuid") {
-        if (!cuidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "cuid",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "cuid2") {
-        if (!cuid2Regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "cuid2",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "ulid") {
-        if (!ulidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "ulid",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "url") {
-        try {
-          new URL(input.data);
-        } catch {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "url",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "regex") {
-        check2.regex.lastIndex = 0;
-        const testResult = check2.regex.test(input.data);
-        if (!testResult) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "regex",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "trim") {
-        input.data = input.data.trim();
-      } else if (check2.kind === "includes") {
-        if (!input.data.includes(check2.value, check2.position)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: { includes: check2.value, position: check2.position },
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "toLowerCase") {
-        input.data = input.data.toLowerCase();
-      } else if (check2.kind === "toUpperCase") {
-        input.data = input.data.toUpperCase();
-      } else if (check2.kind === "startsWith") {
-        if (!input.data.startsWith(check2.value)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: { startsWith: check2.value },
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "endsWith") {
-        if (!input.data.endsWith(check2.value)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: { endsWith: check2.value },
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "datetime") {
-        const regex = datetimeRegex(check2);
-        if (!regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "datetime",
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "date") {
-        const regex = dateRegex;
-        if (!regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "date",
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "time") {
-        const regex = timeRegex(check2);
-        if (!regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "time",
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "duration") {
-        if (!durationRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "duration",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "ip") {
-        if (!isValidIP(input.data, check2.version)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "ip",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "jwt") {
-        if (!isValidJWT(input.data, check2.alg)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "jwt",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "cidr") {
-        if (!isValidCidr(input.data, check2.version)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "cidr",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "base64") {
-        if (!base64Regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "base64",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "base64url") {
-        if (!base64urlRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "base64url",
-            code: ZodIssueCode.invalid_string,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else {
-        util.assertNever(check2);
-      }
-    }
-    return { status: status.value, value: input.data };
-  }
-  _regex(regex, validation, message) {
-    return this.refinement((data) => regex.test(data), {
-      validation,
-      code: ZodIssueCode.invalid_string,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  _addCheck(check2) {
-    return new _ZodString2({
-      ...this._def,
-      checks: [...this._def.checks, check2]
-    });
-  }
-  email(message) {
-    return this._addCheck({ kind: "email", ...errorUtil.errToObj(message) });
-  }
-  url(message) {
-    return this._addCheck({ kind: "url", ...errorUtil.errToObj(message) });
-  }
-  emoji(message) {
-    return this._addCheck({ kind: "emoji", ...errorUtil.errToObj(message) });
-  }
-  uuid(message) {
-    return this._addCheck({ kind: "uuid", ...errorUtil.errToObj(message) });
-  }
-  nanoid(message) {
-    return this._addCheck({ kind: "nanoid", ...errorUtil.errToObj(message) });
-  }
-  cuid(message) {
-    return this._addCheck({ kind: "cuid", ...errorUtil.errToObj(message) });
-  }
-  cuid2(message) {
-    return this._addCheck({ kind: "cuid2", ...errorUtil.errToObj(message) });
-  }
-  ulid(message) {
-    return this._addCheck({ kind: "ulid", ...errorUtil.errToObj(message) });
-  }
-  base64(message) {
-    return this._addCheck({ kind: "base64", ...errorUtil.errToObj(message) });
-  }
-  base64url(message) {
-    return this._addCheck({
-      kind: "base64url",
-      ...errorUtil.errToObj(message)
-    });
-  }
-  jwt(options) {
-    return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options) });
-  }
-  ip(options) {
-    return this._addCheck({ kind: "ip", ...errorUtil.errToObj(options) });
-  }
-  cidr(options) {
-    return this._addCheck({ kind: "cidr", ...errorUtil.errToObj(options) });
-  }
-  datetime(options) {
-    if (typeof options === "string") {
-      return this._addCheck({
-        kind: "datetime",
-        precision: null,
-        offset: false,
-        local: false,
-        message: options
-      });
-    }
-    return this._addCheck({
-      kind: "datetime",
-      precision: typeof options?.precision === "undefined" ? null : options?.precision,
-      offset: options?.offset ?? false,
-      local: options?.local ?? false,
-      ...errorUtil.errToObj(options?.message)
-    });
-  }
-  date(message) {
-    return this._addCheck({ kind: "date", message });
-  }
-  time(options) {
-    if (typeof options === "string") {
-      return this._addCheck({
-        kind: "time",
-        precision: null,
-        message: options
-      });
-    }
-    return this._addCheck({
-      kind: "time",
-      precision: typeof options?.precision === "undefined" ? null : options?.precision,
-      ...errorUtil.errToObj(options?.message)
-    });
-  }
-  duration(message) {
-    return this._addCheck({ kind: "duration", ...errorUtil.errToObj(message) });
-  }
-  regex(regex, message) {
-    return this._addCheck({
-      kind: "regex",
-      regex,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  includes(value, options) {
-    return this._addCheck({
-      kind: "includes",
-      value,
-      position: options?.position,
-      ...errorUtil.errToObj(options?.message)
-    });
-  }
-  startsWith(value, message) {
-    return this._addCheck({
-      kind: "startsWith",
-      value,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  endsWith(value, message) {
-    return this._addCheck({
-      kind: "endsWith",
-      value,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  min(minLength, message) {
-    return this._addCheck({
-      kind: "min",
-      value: minLength,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  max(maxLength, message) {
-    return this._addCheck({
-      kind: "max",
-      value: maxLength,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  length(len, message) {
-    return this._addCheck({
-      kind: "length",
-      value: len,
-      ...errorUtil.errToObj(message)
-    });
-  }
-  /**
-   * Equivalent to `.min(1)`
-   */
-  nonempty(message) {
-    return this.min(1, errorUtil.errToObj(message));
-  }
-  trim() {
-    return new _ZodString2({
-      ...this._def,
-      checks: [...this._def.checks, { kind: "trim" }]
-    });
-  }
-  toLowerCase() {
-    return new _ZodString2({
-      ...this._def,
-      checks: [...this._def.checks, { kind: "toLowerCase" }]
-    });
-  }
-  toUpperCase() {
-    return new _ZodString2({
-      ...this._def,
-      checks: [...this._def.checks, { kind: "toUpperCase" }]
-    });
-  }
-  get isDatetime() {
-    return !!this._def.checks.find((ch) => ch.kind === "datetime");
-  }
-  get isDate() {
-    return !!this._def.checks.find((ch) => ch.kind === "date");
-  }
-  get isTime() {
-    return !!this._def.checks.find((ch) => ch.kind === "time");
-  }
-  get isDuration() {
-    return !!this._def.checks.find((ch) => ch.kind === "duration");
-  }
-  get isEmail() {
-    return !!this._def.checks.find((ch) => ch.kind === "email");
-  }
-  get isURL() {
-    return !!this._def.checks.find((ch) => ch.kind === "url");
-  }
-  get isEmoji() {
-    return !!this._def.checks.find((ch) => ch.kind === "emoji");
-  }
-  get isUUID() {
-    return !!this._def.checks.find((ch) => ch.kind === "uuid");
-  }
-  get isNANOID() {
-    return !!this._def.checks.find((ch) => ch.kind === "nanoid");
-  }
-  get isCUID() {
-    return !!this._def.checks.find((ch) => ch.kind === "cuid");
-  }
-  get isCUID2() {
-    return !!this._def.checks.find((ch) => ch.kind === "cuid2");
-  }
-  get isULID() {
-    return !!this._def.checks.find((ch) => ch.kind === "ulid");
-  }
-  get isIP() {
-    return !!this._def.checks.find((ch) => ch.kind === "ip");
-  }
-  get isCIDR() {
-    return !!this._def.checks.find((ch) => ch.kind === "cidr");
-  }
-  get isBase64() {
-    return !!this._def.checks.find((ch) => ch.kind === "base64");
-  }
-  get isBase64url() {
-    return !!this._def.checks.find((ch) => ch.kind === "base64url");
-  }
-  get minLength() {
-    let min = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "min") {
-        if (min === null || ch.value > min)
-          min = ch.value;
-      }
-    }
-    return min;
-  }
-  get maxLength() {
-    let max = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "max") {
-        if (max === null || ch.value < max)
-          max = ch.value;
-      }
-    }
-    return max;
-  }
-};
-ZodString.create = (params) => {
-  return new ZodString({
-    checks: [],
-    typeName: ZodFirstPartyTypeKind.ZodString,
-    coerce: params?.coerce ?? false,
-    ...processCreateParams(params)
-  });
-};
-function floatSafeRemainder(val, step) {
-  const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
-  const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
-  const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
-  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
-  return valInt % stepInt / 10 ** decCount;
-}
-var ZodNumber = class _ZodNumber extends ZodType {
-  constructor() {
-    super(...arguments);
-    this.min = this.gte;
-    this.max = this.lte;
-    this.step = this.multipleOf;
-  }
-  _parse(input) {
-    if (this._def.coerce) {
-      input.data = Number(input.data);
-    }
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.number) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.number,
-        received: ctx2.parsedType
-      });
-      return INVALID;
-    }
-    let ctx = void 0;
-    const status = new ParseStatus();
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "int") {
-        if (!util.isInteger(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_type,
-            expected: "integer",
-            received: "float",
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "min") {
-        const tooSmall = check2.inclusive ? input.data < check2.value : input.data <= check2.value;
-        if (tooSmall) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_small,
-            minimum: check2.value,
-            type: "number",
-            inclusive: check2.inclusive,
-            exact: false,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "max") {
-        const tooBig = check2.inclusive ? input.data > check2.value : input.data >= check2.value;
-        if (tooBig) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_big,
-            maximum: check2.value,
-            type: "number",
-            inclusive: check2.inclusive,
-            exact: false,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "multipleOf") {
-        if (floatSafeRemainder(input.data, check2.value) !== 0) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.not_multiple_of,
-            multipleOf: check2.value,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "finite") {
-        if (!Number.isFinite(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.not_finite,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else {
-        util.assertNever(check2);
-      }
-    }
-    return { status: status.value, value: input.data };
-  }
-  gte(value, message) {
-    return this.setLimit("min", value, true, errorUtil.toString(message));
-  }
-  gt(value, message) {
-    return this.setLimit("min", value, false, errorUtil.toString(message));
-  }
-  lte(value, message) {
-    return this.setLimit("max", value, true, errorUtil.toString(message));
-  }
-  lt(value, message) {
-    return this.setLimit("max", value, false, errorUtil.toString(message));
-  }
-  setLimit(kind, value, inclusive, message) {
-    return new _ZodNumber({
-      ...this._def,
-      checks: [
-        ...this._def.checks,
-        {
-          kind,
-          value,
-          inclusive,
-          message: errorUtil.toString(message)
-        }
-      ]
-    });
-  }
-  _addCheck(check2) {
-    return new _ZodNumber({
-      ...this._def,
-      checks: [...this._def.checks, check2]
-    });
-  }
-  int(message) {
-    return this._addCheck({
-      kind: "int",
-      message: errorUtil.toString(message)
-    });
-  }
-  positive(message) {
-    return this._addCheck({
-      kind: "min",
-      value: 0,
-      inclusive: false,
-      message: errorUtil.toString(message)
-    });
-  }
-  negative(message) {
-    return this._addCheck({
-      kind: "max",
-      value: 0,
-      inclusive: false,
-      message: errorUtil.toString(message)
-    });
-  }
-  nonpositive(message) {
-    return this._addCheck({
-      kind: "max",
-      value: 0,
-      inclusive: true,
-      message: errorUtil.toString(message)
-    });
-  }
-  nonnegative(message) {
-    return this._addCheck({
-      kind: "min",
-      value: 0,
-      inclusive: true,
-      message: errorUtil.toString(message)
-    });
-  }
-  multipleOf(value, message) {
-    return this._addCheck({
-      kind: "multipleOf",
-      value,
-      message: errorUtil.toString(message)
-    });
-  }
-  finite(message) {
-    return this._addCheck({
-      kind: "finite",
-      message: errorUtil.toString(message)
-    });
-  }
-  safe(message) {
-    return this._addCheck({
-      kind: "min",
-      inclusive: true,
-      value: Number.MIN_SAFE_INTEGER,
-      message: errorUtil.toString(message)
-    })._addCheck({
-      kind: "max",
-      inclusive: true,
-      value: Number.MAX_SAFE_INTEGER,
-      message: errorUtil.toString(message)
-    });
-  }
-  get minValue() {
-    let min = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "min") {
-        if (min === null || ch.value > min)
-          min = ch.value;
-      }
-    }
-    return min;
-  }
-  get maxValue() {
-    let max = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "max") {
-        if (max === null || ch.value < max)
-          max = ch.value;
-      }
-    }
-    return max;
-  }
-  get isInt() {
-    return !!this._def.checks.find((ch) => ch.kind === "int" || ch.kind === "multipleOf" && util.isInteger(ch.value));
-  }
-  get isFinite() {
-    let max = null;
-    let min = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "finite" || ch.kind === "int" || ch.kind === "multipleOf") {
-        return true;
-      } else if (ch.kind === "min") {
-        if (min === null || ch.value > min)
-          min = ch.value;
-      } else if (ch.kind === "max") {
-        if (max === null || ch.value < max)
-          max = ch.value;
-      }
-    }
-    return Number.isFinite(min) && Number.isFinite(max);
-  }
-};
-ZodNumber.create = (params) => {
-  return new ZodNumber({
-    checks: [],
-    typeName: ZodFirstPartyTypeKind.ZodNumber,
-    coerce: params?.coerce || false,
-    ...processCreateParams(params)
-  });
-};
-var ZodBigInt = class _ZodBigInt extends ZodType {
-  constructor() {
-    super(...arguments);
-    this.min = this.gte;
-    this.max = this.lte;
-  }
-  _parse(input) {
-    if (this._def.coerce) {
-      try {
-        input.data = BigInt(input.data);
-      } catch {
-        return this._getInvalidInput(input);
-      }
-    }
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.bigint) {
-      return this._getInvalidInput(input);
-    }
-    let ctx = void 0;
-    const status = new ParseStatus();
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "min") {
-        const tooSmall = check2.inclusive ? input.data < check2.value : input.data <= check2.value;
-        if (tooSmall) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_small,
-            type: "bigint",
-            minimum: check2.value,
-            inclusive: check2.inclusive,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "max") {
-        const tooBig = check2.inclusive ? input.data > check2.value : input.data >= check2.value;
-        if (tooBig) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_big,
-            type: "bigint",
-            maximum: check2.value,
-            inclusive: check2.inclusive,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "multipleOf") {
-        if (input.data % check2.value !== BigInt(0)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.not_multiple_of,
-            multipleOf: check2.value,
-            message: check2.message
-          });
-          status.dirty();
-        }
-      } else {
-        util.assertNever(check2);
-      }
-    }
-    return { status: status.value, value: input.data };
-  }
-  _getInvalidInput(input) {
-    const ctx = this._getOrReturnCtx(input);
-    addIssueToContext(ctx, {
-      code: ZodIssueCode.invalid_type,
-      expected: ZodParsedType.bigint,
-      received: ctx.parsedType
-    });
-    return INVALID;
-  }
-  gte(value, message) {
-    return this.setLimit("min", value, true, errorUtil.toString(message));
-  }
-  gt(value, message) {
-    return this.setLimit("min", value, false, errorUtil.toString(message));
-  }
-  lte(value, message) {
-    return this.setLimit("max", value, true, errorUtil.toString(message));
-  }
-  lt(value, message) {
-    return this.setLimit("max", value, false, errorUtil.toString(message));
-  }
-  setLimit(kind, value, inclusive, message) {
-    return new _ZodBigInt({
-      ...this._def,
-      checks: [
-        ...this._def.checks,
-        {
-          kind,
-          value,
-          inclusive,
-          message: errorUtil.toString(message)
-        }
-      ]
-    });
-  }
-  _addCheck(check2) {
-    return new _ZodBigInt({
-      ...this._def,
-      checks: [...this._def.checks, check2]
-    });
-  }
-  positive(message) {
-    return this._addCheck({
-      kind: "min",
-      value: BigInt(0),
-      inclusive: false,
-      message: errorUtil.toString(message)
-    });
-  }
-  negative(message) {
-    return this._addCheck({
-      kind: "max",
-      value: BigInt(0),
-      inclusive: false,
-      message: errorUtil.toString(message)
-    });
-  }
-  nonpositive(message) {
-    return this._addCheck({
-      kind: "max",
-      value: BigInt(0),
-      inclusive: true,
-      message: errorUtil.toString(message)
-    });
-  }
-  nonnegative(message) {
-    return this._addCheck({
-      kind: "min",
-      value: BigInt(0),
-      inclusive: true,
-      message: errorUtil.toString(message)
-    });
-  }
-  multipleOf(value, message) {
-    return this._addCheck({
-      kind: "multipleOf",
-      value,
-      message: errorUtil.toString(message)
-    });
-  }
-  get minValue() {
-    let min = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "min") {
-        if (min === null || ch.value > min)
-          min = ch.value;
-      }
-    }
-    return min;
-  }
-  get maxValue() {
-    let max = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "max") {
-        if (max === null || ch.value < max)
-          max = ch.value;
-      }
-    }
-    return max;
-  }
-};
-ZodBigInt.create = (params) => {
-  return new ZodBigInt({
-    checks: [],
-    typeName: ZodFirstPartyTypeKind.ZodBigInt,
-    coerce: params?.coerce ?? false,
-    ...processCreateParams(params)
-  });
-};
-var ZodBoolean = class extends ZodType {
-  _parse(input) {
-    if (this._def.coerce) {
-      input.data = Boolean(input.data);
-    }
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.boolean) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.boolean,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-};
-ZodBoolean.create = (params) => {
-  return new ZodBoolean({
-    typeName: ZodFirstPartyTypeKind.ZodBoolean,
-    coerce: params?.coerce || false,
-    ...processCreateParams(params)
-  });
-};
-var ZodDate = class _ZodDate extends ZodType {
-  _parse(input) {
-    if (this._def.coerce) {
-      input.data = new Date(input.data);
-    }
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.date) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.date,
-        received: ctx2.parsedType
-      });
-      return INVALID;
-    }
-    if (Number.isNaN(input.data.getTime())) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_date
-      });
-      return INVALID;
-    }
-    const status = new ParseStatus();
-    let ctx = void 0;
-    for (const check2 of this._def.checks) {
-      if (check2.kind === "min") {
-        if (input.data.getTime() < check2.value) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_small,
-            message: check2.message,
-            inclusive: true,
-            exact: false,
-            minimum: check2.value,
-            type: "date"
-          });
-          status.dirty();
-        }
-      } else if (check2.kind === "max") {
-        if (input.data.getTime() > check2.value) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_big,
-            message: check2.message,
-            inclusive: true,
-            exact: false,
-            maximum: check2.value,
-            type: "date"
-          });
-          status.dirty();
-        }
-      } else {
-        util.assertNever(check2);
-      }
-    }
-    return {
-      status: status.value,
-      value: new Date(input.data.getTime())
-    };
-  }
-  _addCheck(check2) {
-    return new _ZodDate({
-      ...this._def,
-      checks: [...this._def.checks, check2]
-    });
-  }
-  min(minDate, message) {
-    return this._addCheck({
-      kind: "min",
-      value: minDate.getTime(),
-      message: errorUtil.toString(message)
-    });
-  }
-  max(maxDate, message) {
-    return this._addCheck({
-      kind: "max",
-      value: maxDate.getTime(),
-      message: errorUtil.toString(message)
-    });
-  }
-  get minDate() {
-    let min = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "min") {
-        if (min === null || ch.value > min)
-          min = ch.value;
-      }
-    }
-    return min != null ? new Date(min) : null;
-  }
-  get maxDate() {
-    let max = null;
-    for (const ch of this._def.checks) {
-      if (ch.kind === "max") {
-        if (max === null || ch.value < max)
-          max = ch.value;
-      }
-    }
-    return max != null ? new Date(max) : null;
-  }
-};
-ZodDate.create = (params) => {
-  return new ZodDate({
-    checks: [],
-    coerce: params?.coerce || false,
-    typeName: ZodFirstPartyTypeKind.ZodDate,
-    ...processCreateParams(params)
-  });
-};
-var ZodSymbol = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.symbol) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.symbol,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-};
-ZodSymbol.create = (params) => {
-  return new ZodSymbol({
-    typeName: ZodFirstPartyTypeKind.ZodSymbol,
-    ...processCreateParams(params)
-  });
-};
-var ZodUndefined = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.undefined) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.undefined,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-};
-ZodUndefined.create = (params) => {
-  return new ZodUndefined({
-    typeName: ZodFirstPartyTypeKind.ZodUndefined,
-    ...processCreateParams(params)
-  });
-};
-var ZodNull = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.null) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.null,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-};
-ZodNull.create = (params) => {
-  return new ZodNull({
-    typeName: ZodFirstPartyTypeKind.ZodNull,
-    ...processCreateParams(params)
-  });
-};
-var ZodAny = class extends ZodType {
-  constructor() {
-    super(...arguments);
-    this._any = true;
-  }
-  _parse(input) {
-    return OK(input.data);
-  }
-};
-ZodAny.create = (params) => {
-  return new ZodAny({
-    typeName: ZodFirstPartyTypeKind.ZodAny,
-    ...processCreateParams(params)
-  });
-};
-var ZodUnknown = class extends ZodType {
-  constructor() {
-    super(...arguments);
-    this._unknown = true;
-  }
-  _parse(input) {
-    return OK(input.data);
-  }
-};
-ZodUnknown.create = (params) => {
-  return new ZodUnknown({
-    typeName: ZodFirstPartyTypeKind.ZodUnknown,
-    ...processCreateParams(params)
-  });
-};
-var ZodNever = class extends ZodType {
-  _parse(input) {
-    const ctx = this._getOrReturnCtx(input);
-    addIssueToContext(ctx, {
-      code: ZodIssueCode.invalid_type,
-      expected: ZodParsedType.never,
-      received: ctx.parsedType
-    });
-    return INVALID;
-  }
-};
-ZodNever.create = (params) => {
-  return new ZodNever({
-    typeName: ZodFirstPartyTypeKind.ZodNever,
-    ...processCreateParams(params)
-  });
-};
-var ZodVoid = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.undefined) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.void,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-};
-ZodVoid.create = (params) => {
-  return new ZodVoid({
-    typeName: ZodFirstPartyTypeKind.ZodVoid,
-    ...processCreateParams(params)
-  });
-};
-var ZodArray = class _ZodArray extends ZodType {
-  _parse(input) {
-    const { ctx, status } = this._processInputParams(input);
-    const def = this._def;
-    if (ctx.parsedType !== ZodParsedType.array) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.array,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    if (def.exactLength !== null) {
-      const tooBig = ctx.data.length > def.exactLength.value;
-      const tooSmall = ctx.data.length < def.exactLength.value;
-      if (tooBig || tooSmall) {
-        addIssueToContext(ctx, {
-          code: tooBig ? ZodIssueCode.too_big : ZodIssueCode.too_small,
-          minimum: tooSmall ? def.exactLength.value : void 0,
-          maximum: tooBig ? def.exactLength.value : void 0,
-          type: "array",
-          inclusive: true,
-          exact: true,
-          message: def.exactLength.message
-        });
-        status.dirty();
-      }
-    }
-    if (def.minLength !== null) {
-      if (ctx.data.length < def.minLength.value) {
-        addIssueToContext(ctx, {
-          code: ZodIssueCode.too_small,
-          minimum: def.minLength.value,
-          type: "array",
-          inclusive: true,
-          exact: false,
-          message: def.minLength.message
-        });
-        status.dirty();
-      }
-    }
-    if (def.maxLength !== null) {
-      if (ctx.data.length > def.maxLength.value) {
-        addIssueToContext(ctx, {
-          code: ZodIssueCode.too_big,
-          maximum: def.maxLength.value,
-          type: "array",
-          inclusive: true,
-          exact: false,
-          message: def.maxLength.message
-        });
-        status.dirty();
-      }
-    }
-    if (ctx.common.async) {
-      return Promise.all([...ctx.data].map((item, i2) => {
-        return def.type._parseAsync(new ParseInputLazyPath(ctx, item, ctx.path, i2));
-      })).then((result2) => {
-        return ParseStatus.mergeArray(status, result2);
-      });
-    }
-    const result = [...ctx.data].map((item, i2) => {
-      return def.type._parseSync(new ParseInputLazyPath(ctx, item, ctx.path, i2));
-    });
-    return ParseStatus.mergeArray(status, result);
-  }
-  get element() {
-    return this._def.type;
-  }
-  min(minLength, message) {
-    return new _ZodArray({
-      ...this._def,
-      minLength: { value: minLength, message: errorUtil.toString(message) }
-    });
-  }
-  max(maxLength, message) {
-    return new _ZodArray({
-      ...this._def,
-      maxLength: { value: maxLength, message: errorUtil.toString(message) }
-    });
-  }
-  length(len, message) {
-    return new _ZodArray({
-      ...this._def,
-      exactLength: { value: len, message: errorUtil.toString(message) }
-    });
-  }
-  nonempty(message) {
-    return this.min(1, message);
-  }
-};
-ZodArray.create = (schema, params) => {
-  return new ZodArray({
-    type: schema,
-    minLength: null,
-    maxLength: null,
-    exactLength: null,
-    typeName: ZodFirstPartyTypeKind.ZodArray,
-    ...processCreateParams(params)
-  });
-};
-function deepPartialify(schema) {
-  if (schema instanceof ZodObject) {
-    const newShape = {};
-    for (const key in schema.shape) {
-      const fieldSchema = schema.shape[key];
-      newShape[key] = ZodOptional.create(deepPartialify(fieldSchema));
-    }
-    return new ZodObject({
-      ...schema._def,
-      shape: () => newShape
-    });
-  } else if (schema instanceof ZodArray) {
-    return new ZodArray({
-      ...schema._def,
-      type: deepPartialify(schema.element)
-    });
-  } else if (schema instanceof ZodOptional) {
-    return ZodOptional.create(deepPartialify(schema.unwrap()));
-  } else if (schema instanceof ZodNullable) {
-    return ZodNullable.create(deepPartialify(schema.unwrap()));
-  } else if (schema instanceof ZodTuple) {
-    return ZodTuple.create(schema.items.map((item) => deepPartialify(item)));
-  } else {
-    return schema;
-  }
-}
-var ZodObject = class _ZodObject extends ZodType {
-  constructor() {
-    super(...arguments);
-    this._cached = null;
-    this.nonstrict = this.passthrough;
-    this.augment = this.extend;
-  }
-  _getCached() {
-    if (this._cached !== null)
-      return this._cached;
-    const shape = this._def.shape();
-    const keys = util.objectKeys(shape);
-    this._cached = { shape, keys };
-    return this._cached;
-  }
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.object) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.object,
-        received: ctx2.parsedType
-      });
-      return INVALID;
-    }
-    const { status, ctx } = this._processInputParams(input);
-    const { shape, keys: shapeKeys } = this._getCached();
-    const extraKeys = [];
-    if (!(this._def.catchall instanceof ZodNever && this._def.unknownKeys === "strip")) {
-      for (const key in ctx.data) {
-        if (!shapeKeys.includes(key)) {
-          extraKeys.push(key);
-        }
-      }
-    }
-    const pairs = [];
-    for (const key of shapeKeys) {
-      const keyValidator = shape[key];
-      const value = ctx.data[key];
-      pairs.push({
-        key: { status: "valid", value: key },
-        value: keyValidator._parse(new ParseInputLazyPath(ctx, value, ctx.path, key)),
-        alwaysSet: key in ctx.data
-      });
-    }
-    if (this._def.catchall instanceof ZodNever) {
-      const unknownKeys = this._def.unknownKeys;
-      if (unknownKeys === "passthrough") {
-        for (const key of extraKeys) {
-          pairs.push({
-            key: { status: "valid", value: key },
-            value: { status: "valid", value: ctx.data[key] }
-          });
-        }
-      } else if (unknownKeys === "strict") {
-        if (extraKeys.length > 0) {
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.unrecognized_keys,
-            keys: extraKeys
-          });
-          status.dirty();
-        }
-      } else if (unknownKeys === "strip") {
-      } else {
-        throw new Error(`Internal ZodObject error: invalid unknownKeys value.`);
-      }
-    } else {
-      const catchall = this._def.catchall;
-      for (const key of extraKeys) {
-        const value = ctx.data[key];
-        pairs.push({
-          key: { status: "valid", value: key },
-          value: catchall._parse(
-            new ParseInputLazyPath(ctx, value, ctx.path, key)
-            //, ctx.child(key), value, getParsedType(value)
-          ),
-          alwaysSet: key in ctx.data
-        });
-      }
-    }
-    if (ctx.common.async) {
-      return Promise.resolve().then(async () => {
-        const syncPairs = [];
-        for (const pair of pairs) {
-          const key = await pair.key;
-          const value = await pair.value;
-          syncPairs.push({
-            key,
-            value,
-            alwaysSet: pair.alwaysSet
-          });
-        }
-        return syncPairs;
-      }).then((syncPairs) => {
-        return ParseStatus.mergeObjectSync(status, syncPairs);
-      });
-    } else {
-      return ParseStatus.mergeObjectSync(status, pairs);
-    }
-  }
-  get shape() {
-    return this._def.shape();
-  }
-  strict(message) {
-    errorUtil.errToObj;
-    return new _ZodObject({
-      ...this._def,
-      unknownKeys: "strict",
-      ...message !== void 0 ? {
-        errorMap: (issue2, ctx) => {
-          const defaultError = this._def.errorMap?.(issue2, ctx).message ?? ctx.defaultError;
-          if (issue2.code === "unrecognized_keys")
-            return {
-              message: errorUtil.errToObj(message).message ?? defaultError
-            };
-          return {
-            message: defaultError
-          };
-        }
-      } : {}
-    });
-  }
-  strip() {
-    return new _ZodObject({
-      ...this._def,
-      unknownKeys: "strip"
-    });
-  }
-  passthrough() {
-    return new _ZodObject({
-      ...this._def,
-      unknownKeys: "passthrough"
-    });
-  }
-  // const AugmentFactory =
-  //   <Def extends ZodObjectDef>(def: Def) =>
-  //   <Augmentation extends ZodRawShape>(
-  //     augmentation: Augmentation
-  //   ): ZodObject<
-  //     extendShape<ReturnType<Def["shape"]>, Augmentation>,
-  //     Def["unknownKeys"],
-  //     Def["catchall"]
-  //   > => {
-  //     return new ZodObject({
-  //       ...def,
-  //       shape: () => ({
-  //         ...def.shape(),
-  //         ...augmentation,
-  //       }),
-  //     }) as any;
-  //   };
-  extend(augmentation) {
-    return new _ZodObject({
-      ...this._def,
-      shape: () => ({
-        ...this._def.shape(),
-        ...augmentation
-      })
-    });
-  }
-  /**
-   * Prior to zod@1.0.12 there was a bug in the
-   * inferred type of merged objects. Please
-   * upgrade if you are experiencing issues.
-   */
-  merge(merging) {
-    const merged = new _ZodObject({
-      unknownKeys: merging._def.unknownKeys,
-      catchall: merging._def.catchall,
-      shape: () => ({
-        ...this._def.shape(),
-        ...merging._def.shape()
-      }),
-      typeName: ZodFirstPartyTypeKind.ZodObject
-    });
-    return merged;
-  }
-  // merge<
-  //   Incoming extends AnyZodObject,
-  //   Augmentation extends Incoming["shape"],
-  //   NewOutput extends {
-  //     [k in keyof Augmentation | keyof Output]: k extends keyof Augmentation
-  //       ? Augmentation[k]["_output"]
-  //       : k extends keyof Output
-  //       ? Output[k]
-  //       : never;
-  //   },
-  //   NewInput extends {
-  //     [k in keyof Augmentation | keyof Input]: k extends keyof Augmentation
-  //       ? Augmentation[k]["_input"]
-  //       : k extends keyof Input
-  //       ? Input[k]
-  //       : never;
-  //   }
-  // >(
-  //   merging: Incoming
-  // ): ZodObject<
-  //   extendShape<T, ReturnType<Incoming["_def"]["shape"]>>,
-  //   Incoming["_def"]["unknownKeys"],
-  //   Incoming["_def"]["catchall"],
-  //   NewOutput,
-  //   NewInput
-  // > {
-  //   const merged: any = new ZodObject({
-  //     unknownKeys: merging._def.unknownKeys,
-  //     catchall: merging._def.catchall,
-  //     shape: () =>
-  //       objectUtil.mergeShapes(this._def.shape(), merging._def.shape()),
-  //     typeName: ZodFirstPartyTypeKind.ZodObject,
-  //   }) as any;
-  //   return merged;
-  // }
-  setKey(key, schema) {
-    return this.augment({ [key]: schema });
-  }
-  // merge<Incoming extends AnyZodObject>(
-  //   merging: Incoming
-  // ): //ZodObject<T & Incoming["_shape"], UnknownKeys, Catchall> = (merging) => {
-  // ZodObject<
-  //   extendShape<T, ReturnType<Incoming["_def"]["shape"]>>,
-  //   Incoming["_def"]["unknownKeys"],
-  //   Incoming["_def"]["catchall"]
-  // > {
-  //   // const mergedShape = objectUtil.mergeShapes(
-  //   //   this._def.shape(),
-  //   //   merging._def.shape()
-  //   // );
-  //   const merged: any = new ZodObject({
-  //     unknownKeys: merging._def.unknownKeys,
-  //     catchall: merging._def.catchall,
-  //     shape: () =>
-  //       objectUtil.mergeShapes(this._def.shape(), merging._def.shape()),
-  //     typeName: ZodFirstPartyTypeKind.ZodObject,
-  //   }) as any;
-  //   return merged;
-  // }
-  catchall(index) {
-    return new _ZodObject({
-      ...this._def,
-      catchall: index
-    });
-  }
-  pick(mask) {
-    const shape = {};
-    for (const key of util.objectKeys(mask)) {
-      if (mask[key] && this.shape[key]) {
-        shape[key] = this.shape[key];
-      }
-    }
-    return new _ZodObject({
-      ...this._def,
-      shape: () => shape
-    });
-  }
-  omit(mask) {
-    const shape = {};
-    for (const key of util.objectKeys(this.shape)) {
-      if (!mask[key]) {
-        shape[key] = this.shape[key];
-      }
-    }
-    return new _ZodObject({
-      ...this._def,
-      shape: () => shape
-    });
-  }
-  /**
-   * @deprecated
-   */
-  deepPartial() {
-    return deepPartialify(this);
-  }
-  partial(mask) {
-    const newShape = {};
-    for (const key of util.objectKeys(this.shape)) {
-      const fieldSchema = this.shape[key];
-      if (mask && !mask[key]) {
-        newShape[key] = fieldSchema;
-      } else {
-        newShape[key] = fieldSchema.optional();
-      }
-    }
-    return new _ZodObject({
-      ...this._def,
-      shape: () => newShape
-    });
-  }
-  required(mask) {
-    const newShape = {};
-    for (const key of util.objectKeys(this.shape)) {
-      if (mask && !mask[key]) {
-        newShape[key] = this.shape[key];
-      } else {
-        const fieldSchema = this.shape[key];
-        let newField = fieldSchema;
-        while (newField instanceof ZodOptional) {
-          newField = newField._def.innerType;
-        }
-        newShape[key] = newField;
-      }
-    }
-    return new _ZodObject({
-      ...this._def,
-      shape: () => newShape
-    });
-  }
-  keyof() {
-    return createZodEnum(util.objectKeys(this.shape));
-  }
-};
-ZodObject.create = (shape, params) => {
-  return new ZodObject({
-    shape: () => shape,
-    unknownKeys: "strip",
-    catchall: ZodNever.create(),
-    typeName: ZodFirstPartyTypeKind.ZodObject,
-    ...processCreateParams(params)
-  });
-};
-ZodObject.strictCreate = (shape, params) => {
-  return new ZodObject({
-    shape: () => shape,
-    unknownKeys: "strict",
-    catchall: ZodNever.create(),
-    typeName: ZodFirstPartyTypeKind.ZodObject,
-    ...processCreateParams(params)
-  });
-};
-ZodObject.lazycreate = (shape, params) => {
-  return new ZodObject({
-    shape,
-    unknownKeys: "strip",
-    catchall: ZodNever.create(),
-    typeName: ZodFirstPartyTypeKind.ZodObject,
-    ...processCreateParams(params)
-  });
-};
-var ZodUnion = class extends ZodType {
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    const options = this._def.options;
-    function handleResults(results) {
-      for (const result of results) {
-        if (result.result.status === "valid") {
-          return result.result;
-        }
-      }
-      for (const result of results) {
-        if (result.result.status === "dirty") {
-          ctx.common.issues.push(...result.ctx.common.issues);
-          return result.result;
-        }
-      }
-      const unionErrors = results.map((result) => new ZodError(result.ctx.common.issues));
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_union,
-        unionErrors
-      });
-      return INVALID;
-    }
-    if (ctx.common.async) {
-      return Promise.all(options.map(async (option) => {
-        const childCtx = {
-          ...ctx,
-          common: {
-            ...ctx.common,
-            issues: []
-          },
-          parent: null
-        };
-        return {
-          result: await option._parseAsync({
-            data: ctx.data,
-            path: ctx.path,
-            parent: childCtx
-          }),
-          ctx: childCtx
-        };
-      })).then(handleResults);
-    } else {
-      let dirty = void 0;
-      const issues = [];
-      for (const option of options) {
-        const childCtx = {
-          ...ctx,
-          common: {
-            ...ctx.common,
-            issues: []
-          },
-          parent: null
-        };
-        const result = option._parseSync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: childCtx
-        });
-        if (result.status === "valid") {
-          return result;
-        } else if (result.status === "dirty" && !dirty) {
-          dirty = { result, ctx: childCtx };
-        }
-        if (childCtx.common.issues.length) {
-          issues.push(childCtx.common.issues);
-        }
-      }
-      if (dirty) {
-        ctx.common.issues.push(...dirty.ctx.common.issues);
-        return dirty.result;
-      }
-      const unionErrors = issues.map((issues2) => new ZodError(issues2));
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_union,
-        unionErrors
-      });
-      return INVALID;
-    }
-  }
-  get options() {
-    return this._def.options;
-  }
-};
-ZodUnion.create = (types2, params) => {
-  return new ZodUnion({
-    options: types2,
-    typeName: ZodFirstPartyTypeKind.ZodUnion,
-    ...processCreateParams(params)
-  });
-};
-var getDiscriminator = (type) => {
-  if (type instanceof ZodLazy) {
-    return getDiscriminator(type.schema);
-  } else if (type instanceof ZodEffects) {
-    return getDiscriminator(type.innerType());
-  } else if (type instanceof ZodLiteral) {
-    return [type.value];
-  } else if (type instanceof ZodEnum) {
-    return type.options;
-  } else if (type instanceof ZodNativeEnum) {
-    return util.objectValues(type.enum);
-  } else if (type instanceof ZodDefault) {
-    return getDiscriminator(type._def.innerType);
-  } else if (type instanceof ZodUndefined) {
-    return [void 0];
-  } else if (type instanceof ZodNull) {
-    return [null];
-  } else if (type instanceof ZodOptional) {
-    return [void 0, ...getDiscriminator(type.unwrap())];
-  } else if (type instanceof ZodNullable) {
-    return [null, ...getDiscriminator(type.unwrap())];
-  } else if (type instanceof ZodBranded) {
-    return getDiscriminator(type.unwrap());
-  } else if (type instanceof ZodReadonly) {
-    return getDiscriminator(type.unwrap());
-  } else if (type instanceof ZodCatch) {
-    return getDiscriminator(type._def.innerType);
-  } else {
-    return [];
-  }
-};
-var ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.object) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.object,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    const discriminator = this.discriminator;
-    const discriminatorValue = ctx.data[discriminator];
-    const option = this.optionsMap.get(discriminatorValue);
-    if (!option) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_union_discriminator,
-        options: Array.from(this.optionsMap.keys()),
-        path: [discriminator]
-      });
-      return INVALID;
-    }
-    if (ctx.common.async) {
-      return option._parseAsync({
-        data: ctx.data,
-        path: ctx.path,
-        parent: ctx
-      });
-    } else {
-      return option._parseSync({
-        data: ctx.data,
-        path: ctx.path,
-        parent: ctx
-      });
-    }
-  }
-  get discriminator() {
-    return this._def.discriminator;
-  }
-  get options() {
-    return this._def.options;
-  }
-  get optionsMap() {
-    return this._def.optionsMap;
-  }
-  /**
-   * The constructor of the discriminated union schema. Its behaviour is very similar to that of the normal z.union() constructor.
-   * However, it only allows a union of objects, all of which need to share a discriminator property. This property must
-   * have a different value for each object in the union.
-   * @param discriminator the name of the discriminator property
-   * @param types an array of object schemas
-   * @param params
-   */
-  static create(discriminator, options, params) {
-    const optionsMap = /* @__PURE__ */ new Map();
-    for (const type of options) {
-      const discriminatorValues = getDiscriminator(type.shape[discriminator]);
-      if (!discriminatorValues.length) {
-        throw new Error(`A discriminator value for key \`${discriminator}\` could not be extracted from all schema options`);
-      }
-      for (const value of discriminatorValues) {
-        if (optionsMap.has(value)) {
-          throw new Error(`Discriminator property ${String(discriminator)} has duplicate value ${String(value)}`);
-        }
-        optionsMap.set(value, type);
-      }
-    }
-    return new _ZodDiscriminatedUnion({
-      typeName: ZodFirstPartyTypeKind.ZodDiscriminatedUnion,
-      discriminator,
-      options,
-      optionsMap,
-      ...processCreateParams(params)
-    });
-  }
-};
-function mergeValues(a, b2) {
-  const aType = getParsedType(a);
-  const bType = getParsedType(b2);
-  if (a === b2) {
-    return { valid: true, data: a };
-  } else if (aType === ZodParsedType.object && bType === ZodParsedType.object) {
-    const bKeys = util.objectKeys(b2);
-    const sharedKeys = util.objectKeys(a).filter((key) => bKeys.indexOf(key) !== -1);
-    const newObj = { ...a, ...b2 };
-    for (const key of sharedKeys) {
-      const sharedValue = mergeValues(a[key], b2[key]);
-      if (!sharedValue.valid) {
-        return { valid: false };
-      }
-      newObj[key] = sharedValue.data;
-    }
-    return { valid: true, data: newObj };
-  } else if (aType === ZodParsedType.array && bType === ZodParsedType.array) {
-    if (a.length !== b2.length) {
-      return { valid: false };
-    }
-    const newArray = [];
-    for (let index = 0; index < a.length; index++) {
-      const itemA = a[index];
-      const itemB = b2[index];
-      const sharedValue = mergeValues(itemA, itemB);
-      if (!sharedValue.valid) {
-        return { valid: false };
-      }
-      newArray.push(sharedValue.data);
-    }
-    return { valid: true, data: newArray };
-  } else if (aType === ZodParsedType.date && bType === ZodParsedType.date && +a === +b2) {
-    return { valid: true, data: a };
-  } else {
-    return { valid: false };
-  }
-}
-var ZodIntersection = class extends ZodType {
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    const handleParsed = (parsedLeft, parsedRight) => {
-      if (isAborted(parsedLeft) || isAborted(parsedRight)) {
-        return INVALID;
-      }
-      const merged = mergeValues(parsedLeft.value, parsedRight.value);
-      if (!merged.valid) {
-        addIssueToContext(ctx, {
-          code: ZodIssueCode.invalid_intersection_types
-        });
-        return INVALID;
-      }
-      if (isDirty(parsedLeft) || isDirty(parsedRight)) {
-        status.dirty();
-      }
-      return { status: status.value, value: merged.data };
-    };
-    if (ctx.common.async) {
-      return Promise.all([
-        this._def.left._parseAsync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        }),
-        this._def.right._parseAsync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        })
-      ]).then(([left, right]) => handleParsed(left, right));
-    } else {
-      return handleParsed(this._def.left._parseSync({
-        data: ctx.data,
-        path: ctx.path,
-        parent: ctx
-      }), this._def.right._parseSync({
-        data: ctx.data,
-        path: ctx.path,
-        parent: ctx
-      }));
-    }
-  }
-};
-ZodIntersection.create = (left, right, params) => {
-  return new ZodIntersection({
-    left,
-    right,
-    typeName: ZodFirstPartyTypeKind.ZodIntersection,
-    ...processCreateParams(params)
-  });
-};
-var ZodTuple = class _ZodTuple extends ZodType {
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.array) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.array,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    if (ctx.data.length < this._def.items.length) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.too_small,
-        minimum: this._def.items.length,
-        inclusive: true,
-        exact: false,
-        type: "array"
-      });
-      return INVALID;
-    }
-    const rest = this._def.rest;
-    if (!rest && ctx.data.length > this._def.items.length) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.too_big,
-        maximum: this._def.items.length,
-        inclusive: true,
-        exact: false,
-        type: "array"
-      });
-      status.dirty();
-    }
-    const items = [...ctx.data].map((item, itemIndex) => {
-      const schema = this._def.items[itemIndex] || this._def.rest;
-      if (!schema)
-        return null;
-      return schema._parse(new ParseInputLazyPath(ctx, item, ctx.path, itemIndex));
-    }).filter((x2) => !!x2);
-    if (ctx.common.async) {
-      return Promise.all(items).then((results) => {
-        return ParseStatus.mergeArray(status, results);
-      });
-    } else {
-      return ParseStatus.mergeArray(status, items);
-    }
-  }
-  get items() {
-    return this._def.items;
-  }
-  rest(rest) {
-    return new _ZodTuple({
-      ...this._def,
-      rest
-    });
-  }
-};
-ZodTuple.create = (schemas, params) => {
-  if (!Array.isArray(schemas)) {
-    throw new Error("You must pass an array of schemas to z.tuple([ ... ])");
-  }
-  return new ZodTuple({
-    items: schemas,
-    typeName: ZodFirstPartyTypeKind.ZodTuple,
-    rest: null,
-    ...processCreateParams(params)
-  });
-};
-var ZodRecord = class _ZodRecord extends ZodType {
-  get keySchema() {
-    return this._def.keyType;
-  }
-  get valueSchema() {
-    return this._def.valueType;
-  }
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.object) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.object,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    const pairs = [];
-    const keyType = this._def.keyType;
-    const valueType = this._def.valueType;
-    for (const key in ctx.data) {
-      pairs.push({
-        key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, key)),
-        value: valueType._parse(new ParseInputLazyPath(ctx, ctx.data[key], ctx.path, key)),
-        alwaysSet: key in ctx.data
-      });
-    }
-    if (ctx.common.async) {
-      return ParseStatus.mergeObjectAsync(status, pairs);
-    } else {
-      return ParseStatus.mergeObjectSync(status, pairs);
-    }
-  }
-  get element() {
-    return this._def.valueType;
-  }
-  static create(first2, second, third) {
-    if (second instanceof ZodType) {
-      return new _ZodRecord({
-        keyType: first2,
-        valueType: second,
-        typeName: ZodFirstPartyTypeKind.ZodRecord,
-        ...processCreateParams(third)
-      });
-    }
-    return new _ZodRecord({
-      keyType: ZodString.create(),
-      valueType: first2,
-      typeName: ZodFirstPartyTypeKind.ZodRecord,
-      ...processCreateParams(second)
-    });
-  }
-};
-var ZodMap = class extends ZodType {
-  get keySchema() {
-    return this._def.keyType;
-  }
-  get valueSchema() {
-    return this._def.valueType;
-  }
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.map) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.map,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    const keyType = this._def.keyType;
-    const valueType = this._def.valueType;
-    const pairs = [...ctx.data.entries()].map(([key, value], index) => {
-      return {
-        key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, [index, "key"])),
-        value: valueType._parse(new ParseInputLazyPath(ctx, value, ctx.path, [index, "value"]))
-      };
-    });
-    if (ctx.common.async) {
-      const finalMap = /* @__PURE__ */ new Map();
-      return Promise.resolve().then(async () => {
-        for (const pair of pairs) {
-          const key = await pair.key;
-          const value = await pair.value;
-          if (key.status === "aborted" || value.status === "aborted") {
-            return INVALID;
-          }
-          if (key.status === "dirty" || value.status === "dirty") {
-            status.dirty();
-          }
-          finalMap.set(key.value, value.value);
-        }
-        return { status: status.value, value: finalMap };
-      });
-    } else {
-      const finalMap = /* @__PURE__ */ new Map();
-      for (const pair of pairs) {
-        const key = pair.key;
-        const value = pair.value;
-        if (key.status === "aborted" || value.status === "aborted") {
-          return INVALID;
-        }
-        if (key.status === "dirty" || value.status === "dirty") {
-          status.dirty();
-        }
-        finalMap.set(key.value, value.value);
-      }
-      return { status: status.value, value: finalMap };
-    }
-  }
-};
-ZodMap.create = (keyType, valueType, params) => {
-  return new ZodMap({
-    valueType,
-    keyType,
-    typeName: ZodFirstPartyTypeKind.ZodMap,
-    ...processCreateParams(params)
-  });
-};
-var ZodSet = class _ZodSet extends ZodType {
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.set) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.set,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    const def = this._def;
-    if (def.minSize !== null) {
-      if (ctx.data.size < def.minSize.value) {
-        addIssueToContext(ctx, {
-          code: ZodIssueCode.too_small,
-          minimum: def.minSize.value,
-          type: "set",
-          inclusive: true,
-          exact: false,
-          message: def.minSize.message
-        });
-        status.dirty();
-      }
-    }
-    if (def.maxSize !== null) {
-      if (ctx.data.size > def.maxSize.value) {
-        addIssueToContext(ctx, {
-          code: ZodIssueCode.too_big,
-          maximum: def.maxSize.value,
-          type: "set",
-          inclusive: true,
-          exact: false,
-          message: def.maxSize.message
-        });
-        status.dirty();
-      }
-    }
-    const valueType = this._def.valueType;
-    function finalizeSet(elements2) {
-      const parsedSet = /* @__PURE__ */ new Set();
-      for (const element of elements2) {
-        if (element.status === "aborted")
-          return INVALID;
-        if (element.status === "dirty")
-          status.dirty();
-        parsedSet.add(element.value);
-      }
-      return { status: status.value, value: parsedSet };
-    }
-    const elements = [...ctx.data.values()].map((item, i2) => valueType._parse(new ParseInputLazyPath(ctx, item, ctx.path, i2)));
-    if (ctx.common.async) {
-      return Promise.all(elements).then((elements2) => finalizeSet(elements2));
-    } else {
-      return finalizeSet(elements);
-    }
-  }
-  min(minSize, message) {
-    return new _ZodSet({
-      ...this._def,
-      minSize: { value: minSize, message: errorUtil.toString(message) }
-    });
-  }
-  max(maxSize, message) {
-    return new _ZodSet({
-      ...this._def,
-      maxSize: { value: maxSize, message: errorUtil.toString(message) }
-    });
-  }
-  size(size, message) {
-    return this.min(size, message).max(size, message);
-  }
-  nonempty(message) {
-    return this.min(1, message);
-  }
-};
-ZodSet.create = (valueType, params) => {
-  return new ZodSet({
-    valueType,
-    minSize: null,
-    maxSize: null,
-    typeName: ZodFirstPartyTypeKind.ZodSet,
-    ...processCreateParams(params)
-  });
-};
-var ZodFunction = class _ZodFunction extends ZodType {
-  constructor() {
-    super(...arguments);
-    this.validate = this.implement;
-  }
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.function) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.function,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    function makeArgsIssue(args, error2) {
-      return makeIssue({
-        data: args,
-        path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x2) => !!x2),
-        issueData: {
-          code: ZodIssueCode.invalid_arguments,
-          argumentsError: error2
-        }
-      });
-    }
-    function makeReturnsIssue(returns, error2) {
-      return makeIssue({
-        data: returns,
-        path: ctx.path,
-        errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x2) => !!x2),
-        issueData: {
-          code: ZodIssueCode.invalid_return_type,
-          returnTypeError: error2
-        }
-      });
-    }
-    const params = { errorMap: ctx.common.contextualErrorMap };
-    const fn = ctx.data;
-    if (this._def.returns instanceof ZodPromise) {
-      const me = this;
-      return OK(async function(...args) {
-        const error2 = new ZodError([]);
-        const parsedArgs = await me._def.args.parseAsync(args, params).catch((e) => {
-          error2.addIssue(makeArgsIssue(args, e));
-          throw error2;
-        });
-        const result = await Reflect.apply(fn, this, parsedArgs);
-        const parsedReturns = await me._def.returns._def.type.parseAsync(result, params).catch((e) => {
-          error2.addIssue(makeReturnsIssue(result, e));
-          throw error2;
-        });
-        return parsedReturns;
-      });
-    } else {
-      const me = this;
-      return OK(function(...args) {
-        const parsedArgs = me._def.args.safeParse(args, params);
-        if (!parsedArgs.success) {
-          throw new ZodError([makeArgsIssue(args, parsedArgs.error)]);
-        }
-        const result = Reflect.apply(fn, this, parsedArgs.data);
-        const parsedReturns = me._def.returns.safeParse(result, params);
-        if (!parsedReturns.success) {
-          throw new ZodError([makeReturnsIssue(result, parsedReturns.error)]);
-        }
-        return parsedReturns.data;
-      });
-    }
-  }
-  parameters() {
-    return this._def.args;
-  }
-  returnType() {
-    return this._def.returns;
-  }
-  args(...items) {
-    return new _ZodFunction({
-      ...this._def,
-      args: ZodTuple.create(items).rest(ZodUnknown.create())
-    });
-  }
-  returns(returnType) {
-    return new _ZodFunction({
-      ...this._def,
-      returns: returnType
-    });
-  }
-  implement(func) {
-    const validatedFunc = this.parse(func);
-    return validatedFunc;
-  }
-  strictImplement(func) {
-    const validatedFunc = this.parse(func);
-    return validatedFunc;
-  }
-  static create(args, returns, params) {
-    return new _ZodFunction({
-      args: args ? args : ZodTuple.create([]).rest(ZodUnknown.create()),
-      returns: returns || ZodUnknown.create(),
-      typeName: ZodFirstPartyTypeKind.ZodFunction,
-      ...processCreateParams(params)
-    });
-  }
-};
-var ZodLazy = class extends ZodType {
-  get schema() {
-    return this._def.getter();
-  }
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    const lazySchema = this._def.getter();
-    return lazySchema._parse({ data: ctx.data, path: ctx.path, parent: ctx });
-  }
-};
-ZodLazy.create = (getter, params) => {
-  return new ZodLazy({
-    getter,
-    typeName: ZodFirstPartyTypeKind.ZodLazy,
-    ...processCreateParams(params)
-  });
-};
-var ZodLiteral = class extends ZodType {
-  _parse(input) {
-    if (input.data !== this._def.value) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        received: ctx.data,
-        code: ZodIssueCode.invalid_literal,
-        expected: this._def.value
-      });
-      return INVALID;
-    }
-    return { status: "valid", value: input.data };
-  }
-  get value() {
-    return this._def.value;
-  }
-};
-ZodLiteral.create = (value, params) => {
-  return new ZodLiteral({
-    value,
-    typeName: ZodFirstPartyTypeKind.ZodLiteral,
-    ...processCreateParams(params)
-  });
-};
-function createZodEnum(values, params) {
-  return new ZodEnum({
-    values,
-    typeName: ZodFirstPartyTypeKind.ZodEnum,
-    ...processCreateParams(params)
-  });
-}
-var ZodEnum = class _ZodEnum extends ZodType {
-  _parse(input) {
-    if (typeof input.data !== "string") {
-      const ctx = this._getOrReturnCtx(input);
-      const expectedValues = this._def.values;
-      addIssueToContext(ctx, {
-        expected: util.joinValues(expectedValues),
-        received: ctx.parsedType,
-        code: ZodIssueCode.invalid_type
-      });
-      return INVALID;
-    }
-    if (!this._cache) {
-      this._cache = new Set(this._def.values);
-    }
-    if (!this._cache.has(input.data)) {
-      const ctx = this._getOrReturnCtx(input);
-      const expectedValues = this._def.values;
-      addIssueToContext(ctx, {
-        received: ctx.data,
-        code: ZodIssueCode.invalid_enum_value,
-        options: expectedValues
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-  get options() {
-    return this._def.values;
-  }
-  get enum() {
-    const enumValues = {};
-    for (const val of this._def.values) {
-      enumValues[val] = val;
-    }
-    return enumValues;
-  }
-  get Values() {
-    const enumValues = {};
-    for (const val of this._def.values) {
-      enumValues[val] = val;
-    }
-    return enumValues;
-  }
-  get Enum() {
-    const enumValues = {};
-    for (const val of this._def.values) {
-      enumValues[val] = val;
-    }
-    return enumValues;
-  }
-  extract(values, newDef = this._def) {
-    return _ZodEnum.create(values, {
-      ...this._def,
-      ...newDef
-    });
-  }
-  exclude(values, newDef = this._def) {
-    return _ZodEnum.create(this.options.filter((opt) => !values.includes(opt)), {
-      ...this._def,
-      ...newDef
-    });
-  }
-};
-ZodEnum.create = createZodEnum;
-var ZodNativeEnum = class extends ZodType {
-  _parse(input) {
-    const nativeEnumValues = util.getValidEnumValues(this._def.values);
-    const ctx = this._getOrReturnCtx(input);
-    if (ctx.parsedType !== ZodParsedType.string && ctx.parsedType !== ZodParsedType.number) {
-      const expectedValues = util.objectValues(nativeEnumValues);
-      addIssueToContext(ctx, {
-        expected: util.joinValues(expectedValues),
-        received: ctx.parsedType,
-        code: ZodIssueCode.invalid_type
-      });
-      return INVALID;
-    }
-    if (!this._cache) {
-      this._cache = new Set(util.getValidEnumValues(this._def.values));
-    }
-    if (!this._cache.has(input.data)) {
-      const expectedValues = util.objectValues(nativeEnumValues);
-      addIssueToContext(ctx, {
-        received: ctx.data,
-        code: ZodIssueCode.invalid_enum_value,
-        options: expectedValues
-      });
-      return INVALID;
-    }
-    return OK(input.data);
-  }
-  get enum() {
-    return this._def.values;
-  }
-};
-ZodNativeEnum.create = (values, params) => {
-  return new ZodNativeEnum({
-    values,
-    typeName: ZodFirstPartyTypeKind.ZodNativeEnum,
-    ...processCreateParams(params)
-  });
-};
-var ZodPromise = class extends ZodType {
-  unwrap() {
-    return this._def.type;
-  }
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    if (ctx.parsedType !== ZodParsedType.promise && ctx.common.async === false) {
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.promise,
-        received: ctx.parsedType
-      });
-      return INVALID;
-    }
-    const promisified = ctx.parsedType === ZodParsedType.promise ? ctx.data : Promise.resolve(ctx.data);
-    return OK(promisified.then((data) => {
-      return this._def.type.parseAsync(data, {
-        path: ctx.path,
-        errorMap: ctx.common.contextualErrorMap
-      });
-    }));
-  }
-};
-ZodPromise.create = (schema, params) => {
-  return new ZodPromise({
-    type: schema,
-    typeName: ZodFirstPartyTypeKind.ZodPromise,
-    ...processCreateParams(params)
-  });
-};
-var ZodEffects = class extends ZodType {
-  innerType() {
-    return this._def.schema;
-  }
-  sourceType() {
-    return this._def.schema._def.typeName === ZodFirstPartyTypeKind.ZodEffects ? this._def.schema.sourceType() : this._def.schema;
-  }
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    const effect = this._def.effect || null;
-    const checkCtx = {
-      addIssue: (arg) => {
-        addIssueToContext(ctx, arg);
-        if (arg.fatal) {
-          status.abort();
         } else {
-          status.dirty();
+          const existing = moduleMap.get(firstDir) ?? [];
+          existing.push(file);
+          moduleMap.set(firstDir, existing);
         }
-      },
-      get path() {
-        return ctx.path;
-      }
-    };
-    checkCtx.addIssue = checkCtx.addIssue.bind(checkCtx);
-    if (effect.type === "preprocess") {
-      const processed = effect.transform(ctx.data, checkCtx);
-      if (ctx.common.async) {
-        return Promise.resolve(processed).then(async (processed2) => {
-          if (status.value === "aborted")
-            return INVALID;
-          const result = await this._def.schema._parseAsync({
-            data: processed2,
-            path: ctx.path,
-            parent: ctx
-          });
-          if (result.status === "aborted")
-            return INVALID;
-          if (result.status === "dirty")
-            return DIRTY(result.value);
-          if (status.value === "dirty")
-            return DIRTY(result.value);
-          return result;
-        });
       } else {
-        if (status.value === "aborted")
-          return INVALID;
-        const result = this._def.schema._parseSync({
-          data: processed,
-          path: ctx.path,
-          parent: ctx
-        });
-        if (result.status === "aborted")
-          return INVALID;
-        if (result.status === "dirty")
-          return DIRTY(result.value);
-        if (status.value === "dirty")
-          return DIRTY(result.value);
-        return result;
+        const existing = moduleMap.get("root") ?? [];
+        existing.push(file);
+        moduleMap.set("root", existing);
       }
-    }
-    if (effect.type === "refinement") {
-      const executeRefinement = (acc) => {
-        const result = effect.refinement(acc, checkCtx);
-        if (ctx.common.async) {
-          return Promise.resolve(result);
-        }
-        if (result instanceof Promise) {
-          throw new Error("Async refinement encountered during synchronous parse operation. Use .parseAsync instead.");
-        }
-        return acc;
-      };
-      if (ctx.common.async === false) {
-        const inner = this._def.schema._parseSync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        });
-        if (inner.status === "aborted")
-          return INVALID;
-        if (inner.status === "dirty")
-          status.dirty();
-        executeRefinement(inner.value);
-        return { status: status.value, value: inner.value };
-      } else {
-        return this._def.schema._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx }).then((inner) => {
-          if (inner.status === "aborted")
-            return INVALID;
-          if (inner.status === "dirty")
-            status.dirty();
-          return executeRefinement(inner.value).then(() => {
-            return { status: status.value, value: inner.value };
-          });
-        });
-      }
-    }
-    if (effect.type === "transform") {
-      if (ctx.common.async === false) {
-        const base = this._def.schema._parseSync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        });
-        if (!isValid(base))
-          return INVALID;
-        const result = effect.transform(base.value, checkCtx);
-        if (result instanceof Promise) {
-          throw new Error(`Asynchronous transform encountered during synchronous parse operation. Use .parseAsync instead.`);
-        }
-        return { status: status.value, value: result };
-      } else {
-        return this._def.schema._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx }).then((base) => {
-          if (!isValid(base))
-            return INVALID;
-          return Promise.resolve(effect.transform(base.value, checkCtx)).then((result) => ({
-            status: status.value,
-            value: result
-          }));
-        });
-      }
-    }
-    util.assertNever(effect);
-  }
-};
-ZodEffects.create = (schema, effect, params) => {
-  return new ZodEffects({
-    schema,
-    typeName: ZodFirstPartyTypeKind.ZodEffects,
-    effect,
-    ...processCreateParams(params)
-  });
-};
-ZodEffects.createWithPreprocess = (preprocess2, schema, params) => {
-  return new ZodEffects({
-    schema,
-    effect: { type: "preprocess", transform: preprocess2 },
-    typeName: ZodFirstPartyTypeKind.ZodEffects,
-    ...processCreateParams(params)
-  });
-};
-var ZodOptional = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 === ZodParsedType.undefined) {
-      return OK(void 0);
-    }
-    return this._def.innerType._parse(input);
-  }
-  unwrap() {
-    return this._def.innerType;
-  }
-};
-ZodOptional.create = (type, params) => {
-  return new ZodOptional({
-    innerType: type,
-    typeName: ZodFirstPartyTypeKind.ZodOptional,
-    ...processCreateParams(params)
-  });
-};
-var ZodNullable = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 === ZodParsedType.null) {
-      return OK(null);
-    }
-    return this._def.innerType._parse(input);
-  }
-  unwrap() {
-    return this._def.innerType;
-  }
-};
-ZodNullable.create = (type, params) => {
-  return new ZodNullable({
-    innerType: type,
-    typeName: ZodFirstPartyTypeKind.ZodNullable,
-    ...processCreateParams(params)
-  });
-};
-var ZodDefault = class extends ZodType {
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    let data = ctx.data;
-    if (ctx.parsedType === ZodParsedType.undefined) {
-      data = this._def.defaultValue();
-    }
-    return this._def.innerType._parse({
-      data,
-      path: ctx.path,
-      parent: ctx
-    });
-  }
-  removeDefault() {
-    return this._def.innerType;
-  }
-};
-ZodDefault.create = (type, params) => {
-  return new ZodDefault({
-    innerType: type,
-    typeName: ZodFirstPartyTypeKind.ZodDefault,
-    defaultValue: typeof params.default === "function" ? params.default : () => params.default,
-    ...processCreateParams(params)
-  });
-};
-var ZodCatch = class extends ZodType {
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    const newCtx = {
-      ...ctx,
-      common: {
-        ...ctx.common,
-        issues: []
-      }
-    };
-    const result = this._def.innerType._parse({
-      data: newCtx.data,
-      path: newCtx.path,
-      parent: {
-        ...newCtx
-      }
-    });
-    if (isAsync(result)) {
-      return result.then((result2) => {
-        return {
-          status: "valid",
-          value: result2.status === "valid" ? result2.value : this._def.catchValue({
-            get error() {
-              return new ZodError(newCtx.common.issues);
-            },
-            input: newCtx.data
-          })
-        };
-      });
     } else {
-      return {
-        status: "valid",
-        value: result.status === "valid" ? result.value : this._def.catchValue({
-          get error() {
-            return new ZodError(newCtx.common.issues);
-          },
-          input: newCtx.data
-        })
-      };
+      const parts = file.split(import_node_path9.default.sep);
+      const moduleName = parts.length > 1 ? parts[0] : "root";
+      const existing = moduleMap.get(moduleName) ?? [];
+      existing.push(file);
+      moduleMap.set(moduleName, existing);
     }
   }
-  removeCatch() {
-    return this._def.innerType;
-  }
-};
-ZodCatch.create = (type, params) => {
-  return new ZodCatch({
-    innerType: type,
-    typeName: ZodFirstPartyTypeKind.ZodCatch,
-    catchValue: typeof params.catch === "function" ? params.catch : () => params.catch,
-    ...processCreateParams(params)
-  });
-};
-var ZodNaN = class extends ZodType {
-  _parse(input) {
-    const parsedType2 = this._getType(input);
-    if (parsedType2 !== ZodParsedType.nan) {
-      const ctx = this._getOrReturnCtx(input);
-      addIssueToContext(ctx, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.nan,
-        received: ctx.parsedType
-      });
-      return INVALID;
+  return moduleMap.size > 0 ? moduleMap : null;
+}
+async function groupReactModules(projectRoot, files) {
+  const srcFiles = files.filter((f) => f.startsWith("src/"));
+  if (srcFiles.length < 3) return null;
+  const moduleMap = /* @__PURE__ */ new Map();
+  const srcSubdirs = /* @__PURE__ */ new Set();
+  for (const file of srcFiles) {
+    const afterSrc = file.slice(4);
+    const parts = afterSrc.split(import_node_path9.default.sep);
+    if (parts.length > 1 && parts[0]) {
+      srcSubdirs.add(parts[0]);
     }
-    return { status: "valid", value: input.data };
   }
-};
-ZodNaN.create = (params) => {
-  return new ZodNaN({
-    typeName: ZodFirstPartyTypeKind.ZodNaN,
-    ...processCreateParams(params)
-  });
-};
-var BRAND = Symbol("zod_brand");
-var ZodBranded = class extends ZodType {
-  _parse(input) {
-    const { ctx } = this._processInputParams(input);
-    const data = ctx.data;
-    return this._def.type._parse({
-      data,
-      path: ctx.path,
-      parent: ctx
-    });
-  }
-  unwrap() {
-    return this._def.type;
-  }
-};
-var ZodPipeline = class _ZodPipeline extends ZodType {
-  _parse(input) {
-    const { status, ctx } = this._processInputParams(input);
-    if (ctx.common.async) {
-      const handleAsync = async () => {
-        const inResult = await this._def.in._parseAsync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        });
-        if (inResult.status === "aborted")
-          return INVALID;
-        if (inResult.status === "dirty") {
-          status.dirty();
-          return DIRTY(inResult.value);
-        } else {
-          return this._def.out._parseAsync({
-            data: inResult.value,
-            path: ctx.path,
-            parent: ctx
-          });
-        }
-      };
-      return handleAsync();
-    } else {
-      const inResult = this._def.in._parseSync({
-        data: ctx.data,
-        path: ctx.path,
-        parent: ctx
-      });
-      if (inResult.status === "aborted")
-        return INVALID;
-      if (inResult.status === "dirty") {
-        status.dirty();
-        return {
-          status: "dirty",
-          value: inResult.value
-        };
+  if (srcSubdirs.size < 2) return null;
+  for (const file of files) {
+    if (file.startsWith("src/")) {
+      const afterSrc = file.slice(4);
+      const parts = afterSrc.split(import_node_path9.default.sep);
+      if (parts.length > 1 && parts[0]) {
+        const existing = moduleMap.get(parts[0]) ?? [];
+        existing.push(file);
+        moduleMap.set(parts[0], existing);
       } else {
-        return this._def.out._parseSync({
-          data: inResult.value,
-          path: ctx.path,
-          parent: ctx
-        });
+        const existing = moduleMap.get("src-root") ?? [];
+        existing.push(file);
+        moduleMap.set("src-root", existing);
+      }
+    } else {
+      const existing = moduleMap.get("config") ?? [];
+      existing.push(file);
+      moduleMap.set("config", existing);
+    }
+  }
+  return moduleMap.size > 0 ? moduleMap : null;
+}
+function groupGeneric(files) {
+  const moduleMap = /* @__PURE__ */ new Map();
+  for (const file of files) {
+    const parts = file.split(import_node_path9.default.sep);
+    const moduleName = parts.length > 1 ? parts[0] : "root";
+    const existing = moduleMap.get(moduleName) ?? [];
+    existing.push(file);
+    moduleMap.set(moduleName, existing);
+  }
+  return moduleMap;
+}
+async function groupNextjsModules(repoRoot, files) {
+  const moduleMap = /* @__PURE__ */ new Map();
+  for (const file of files) {
+    const parts = file.split(import_node_path9.default.sep);
+    if (parts[0] === "app" || parts[0] === "pages") {
+      const routeGroup = parts.slice(0, 2).join("/");
+      const existing = moduleMap.get(routeGroup) ?? [];
+      existing.push(file);
+      moduleMap.set(routeGroup, existing);
+    } else if (parts[0] === "api") {
+      const existing = moduleMap.get("api") ?? [];
+      existing.push(file);
+      moduleMap.set("api", existing);
+    } else {
+      const existing = moduleMap.get(parts[0]) ?? [];
+      existing.push(file);
+      moduleMap.set(parts[0], existing);
+    }
+  }
+  return moduleMap;
+}
+async function buildModuleDefs(repoRoot, moduleMap, language) {
+  const modules = [];
+  for (const [name, files] of moduleMap.entries()) {
+    const absoluteFiles = files.map((f) => import_node_path9.default.resolve(repoRoot, f));
+    const modulePath = absoluteFiles[0] ? import_node_path9.default.dirname(absoluteFiles[0]) : name;
+    const analyzedFiles = await analyzeModuleFiles(repoRoot, absoluteFiles);
+    const fileLang = detectLanguage(absoluteFiles[0] ?? "") ?? language;
+    modules.push({
+      name,
+      path: modulePath,
+      language: fileLang,
+      files: absoluteFiles,
+      entryFile: findEntryFile(absoluteFiles),
+      exports: analyzedFiles.exports,
+      imports: analyzedFiles.imports,
+      types: analyzedFiles.types,
+      functions: analyzedFiles.functions
+    });
+  }
+  log.info(`Detected ${modules.length} modules: ${modules.map((m) => m.name).join(", ")}`);
+  return modules;
+}
+function findEntryFile(files) {
+  const entryNames = [
+    "main.ts",
+    "main.tsx",
+    "main.js",
+    "main.jsx",
+    "main.py",
+    "main.go",
+    "app.ts",
+    "app.tsx",
+    "app.js",
+    "app.jsx",
+    "app.py",
+    "index.ts",
+    "index.tsx",
+    "index.js",
+    "index.jsx",
+    "manage.py",
+    "server.ts",
+    "server.js",
+    "server.py",
+    "__init__.py",
+    "__main__.py",
+    "mod.rs",
+    "index.rb"
+  ];
+  const entrySet = new Set(entryNames);
+  return files.find((f) => entrySet.has(import_node_path9.default.basename(f)));
+}
+async function analyzeModuleFiles(repoRoot, files) {
+  const { readFile: readFile2 } = await Promise.resolve().then(() => (init_file_utils(), file_utils_exports));
+  const exports2 = [];
+  const imports = [];
+  const types2 = [];
+  const functions = [];
+  for (const file of files) {
+    const content = await readFile2(file);
+    if (!content) continue;
+    const analyzer = registry2.getByFile(file);
+    if (analyzer) {
+      const analysis = analyzer.analyzeFile(file, content);
+      exports2.push(...analysis.exports);
+      imports.push(...analysis.imports);
+      types2.push(...analysis.types);
+      functions.push(...analysis.functions);
+    }
+  }
+  return { exports: exports2, imports, types: types2, functions };
+}
+var import_node_path9;
+var init_module_detector = __esm({
+  "src/engine/module-detector.ts"() {
+    "use strict";
+    import_node_path9 = __toESM(require("node:path"), 1);
+    init_file_utils();
+    init_logger();
+    init_language_registry();
+    init_framework_detector();
+  }
+});
+
+// src/tools/wiki-init.ts
+var wiki_init_exports = {};
+__export(wiki_init_exports, {
+  buildDirectoryTree: () => buildDirectoryTree,
+  buildSimpleImportGraph: () => buildSimpleImportGraph,
+  createWikiInitTool: () => createWikiInitTool
+});
+function createWikiInitTool(repoRoot) {
+  return {
+    name: "wiki_init",
+    description: "Initialize Code Wiki for the current project. Detects language, framework, modules, and generates the .code-wiki/ directory structure. IMPORTANT: Use this MCP tool instead of `npx code-wiki init` or any Bash/CLI command.",
+    schema: {
+      force: external_exports.boolean().optional().default(false).describe("Force re-initialization even if .code-wiki/ exists"),
+      module_grouping: external_exports.string().optional().describe("JSON string from LLM module detection: { modules: [{ name, files, reason }] }")
+    },
+    handler: async (params) => {
+      const start = Date.now();
+      const cache = new CacheManager(repoRoot);
+      await cache.init();
+      if (params.module_grouping) {
+        const { framework, language } = await detectFramework(repoRoot);
+        const parsedGrouping = JSON.parse(params.module_grouping);
+        const grouping = {
+          ...parsedGrouping,
+          detectedAt: (/* @__PURE__ */ new Date()).toISOString(),
+          language,
+          framework,
+          fileCount: parsedGrouping.modules.reduce((sum, m) => sum + m.files.length, 0)
+        };
+        await cache.cacheGrouping(grouping);
+        return await initWithModules(repoRoot, cache, grouping.modules.map((m) => [m.name, m.files]), language, framework, "llm", start);
+      }
+      const cachedGrouping = await cache.getCachedGrouping();
+      if (cachedGrouping) {
+        return await initWithModules(repoRoot, cache, cachedGrouping.modules.map((m) => [m.name, m.files]), cachedGrouping.language, cachedGrouping.framework, "cached", start);
+      }
+      return await returnDetectionPrompt(repoRoot, start);
+    }
+  };
+}
+async function initWithModules(repoRoot, cache, moduleEntries, language, framework, groupingSource, start) {
+  const { buildModuleDefs: buildModuleDefs2 } = await Promise.resolve().then(() => (init_module_detector(), module_detector_exports));
+  const moduleMap = new Map(moduleEntries);
+  const modules = await buildModuleDefs2(repoRoot, moduleMap, language);
+  const graph = buildDependencyGraph(modules);
+  await cache.cacheGraph(graph);
+  const commit = await getCurrentCommit(repoRoot);
+  const cachedOverview = await cache.getCachedOverview();
+  const cachedTechStack = await cache.getCachedTechStack();
+  const overview = {
+    name: repoRoot.split("/").pop() ?? "project",
+    language,
+    framework,
+    architecture: modules.length > 1 ? "multi-module" : "single-module",
+    modules: modules.map((m) => ({
+      name: m.name,
+      path: m.path,
+      responsibility: `${m.exports.length} exports`,
+      keyFiles: m.files.length,
+      deps: getDependencies(graph, m.name).internal
+    })),
+    entryPoints: modules.filter((m) => m.entryFile).map((m) => m.entryFile),
+    sharedLibs: [],
+    lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+    overview: cachedOverview ?? void 0,
+    techStack: cachedTechStack ?? void 0
+  };
+  const moduleWikis = modules.map((m) => ({
+    name: m.name,
+    summary: `Run /wiki-update to generate detailed analysis`,
+    readWhen: [`Working with ${m.name}`, `Understanding ${m.name} module`],
+    responsibility: `Run /wiki-update to generate detailed analysis`,
+    boundary: "Pending LLM analysis",
+    keyAbstractions: [],
+    usagePatterns: [],
+    invariants: [],
+    configKeys: [],
+    keyTypes: m.types.map((t2) => t2.name),
+    exports: m.exports.map((e) => e.name),
+    dependencies: getDependencies(graph, m.name),
+    dependents: [],
+    relatedModules: [],
+    gotchas: []
+  }));
+  const written = await writeTeamWiki(repoRoot, overview, moduleWikis, []);
+  log.info(`wiki_init (${groupingSource} grouping) completed in ${Date.now() - start}ms`);
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        status: "initialized",
+        groupingSource,
+        framework,
+        language,
+        moduleCount: modules.length,
+        filesWritten: written.length,
+        modules: modules.map((m) => ({
+          name: m.name,
+          path: m.path,
+          exports: m.exports.length,
+          types: m.types.length
+        })),
+        nextStep: "Run /wiki-update to generate detailed content for each module"
+      }, null, 2)
+    }]
+  };
+}
+async function returnDetectionPrompt(repoRoot, start) {
+  const { framework, language } = await detectFramework(repoRoot);
+  const { findSourceFiles: findSourceFiles2 } = await Promise.resolve().then(() => (init_file_utils(), file_utils_exports));
+  const sourceFiles = await findSourceFiles2(repoRoot);
+  const dirTree = buildDirectoryTree(sourceFiles);
+  const importGraph = await buildSimpleImportGraph(repoRoot, sourceFiles);
+  const prompt = MODULE_DETECTION_PROMPT.replace("{{language}}", language).replace("{{framework}}", framework).replace("{{fileTree}}", dirTree).replace("{{importGraph}}", JSON.stringify(importGraph, null, 2));
+  log.info(`wiki_init returning detection prompt (${sourceFiles.length} files)`);
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        status: "detection_required",
+        fileCount: sourceFiles.length,
+        language,
+        framework,
+        instruction: 'Review the file tree and determine module grouping. Then call wiki_init again with { module_grouping: "<JSON>" } where JSON has: { modules: [{ name: "module-name", files: ["relative/path/..."], reason: "..." }] }',
+        prompt
+      }, null, 2)
+    }]
+  };
+}
+function buildDirectoryTree(files) {
+  const tree = {};
+  for (const f of files) {
+    const parts = f.split("/");
+    if (parts.length <= 1) {
+      tree["."] = tree["."] ?? [];
+      tree["."].push(f);
+    } else {
+      const dir = parts.slice(0, -1).join("/");
+      tree[dir] = tree[dir] ?? [];
+      tree[dir].push(parts[parts.length - 1]);
+    }
+  }
+  const lines = [];
+  for (const [dir, fileNames] of Object.entries(tree).sort()) {
+    if (dir === ".") {
+      lines.push(fileNames.sort().join(", "));
+    } else {
+      lines.push(`${dir}/`);
+      for (const name of fileNames.sort()) {
+        lines.push(`  ${name}`);
       }
     }
   }
-  static create(a, b2) {
-    return new _ZodPipeline({
-      in: a,
-      out: b2,
-      typeName: ZodFirstPartyTypeKind.ZodPipeline
-    });
-  }
-};
-var ZodReadonly = class extends ZodType {
-  _parse(input) {
-    const result = this._def.innerType._parse(input);
-    const freeze = (data) => {
-      if (isValid(data)) {
-        data.value = Object.freeze(data.value);
-      }
-      return data;
-    };
-    return isAsync(result) ? result.then((data) => freeze(data)) : freeze(result);
-  }
-  unwrap() {
-    return this._def.innerType;
-  }
-};
-ZodReadonly.create = (type, params) => {
-  return new ZodReadonly({
-    innerType: type,
-    typeName: ZodFirstPartyTypeKind.ZodReadonly,
-    ...processCreateParams(params)
-  });
-};
-function cleanParams(params, data) {
-  const p2 = typeof params === "function" ? params(data) : typeof params === "string" ? { message: params } : params;
-  const p22 = typeof p2 === "string" ? { message: p2 } : p2;
-  return p22;
+  return lines.join("\n");
 }
-function custom(check2, _params = {}, fatal) {
-  if (check2)
-    return ZodAny.create().superRefine((data, ctx) => {
-      const r2 = check2(data);
-      if (r2 instanceof Promise) {
-        return r2.then((r3) => {
-          if (!r3) {
-            const params = cleanParams(_params, data);
-            const _fatal = params.fatal ?? fatal ?? true;
-            ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
-          }
-        });
+async function buildSimpleImportGraph(repoRoot, files) {
+  const { readFile: readFile2 } = await Promise.resolve().then(() => (init_file_utils(), file_utils_exports));
+  const { registry: registry3 } = await Promise.resolve().then(() => (init_language_registry(), language_registry_exports));
+  const graph = {};
+  for (const file of files.slice(0, 200)) {
+    const absPath = file.startsWith("/") ? file : `${repoRoot}/${file}`;
+    const content = await readFile2(absPath);
+    if (!content) continue;
+    const analyzer = registry3.getByFile(absPath);
+    if (analyzer) {
+      const analysis = analyzer.analyzeFile(absPath, content);
+      const internalImports = analysis.imports.filter((i2) => !i2.isExternal).map((i2) => i2.source);
+      if (internalImports.length > 0) {
+        graph[file] = internalImports;
       }
-      if (!r2) {
-        const params = cleanParams(_params, data);
-        const _fatal = params.fatal ?? fatal ?? true;
-        ctx.addIssue({ code: "custom", ...params, fatal: _fatal });
-      }
-      return;
-    });
-  return ZodAny.create();
+    }
+  }
+  return graph;
 }
-var late = {
-  object: ZodObject.lazycreate
-};
-var ZodFirstPartyTypeKind;
-(function(ZodFirstPartyTypeKind2) {
-  ZodFirstPartyTypeKind2["ZodString"] = "ZodString";
-  ZodFirstPartyTypeKind2["ZodNumber"] = "ZodNumber";
-  ZodFirstPartyTypeKind2["ZodNaN"] = "ZodNaN";
-  ZodFirstPartyTypeKind2["ZodBigInt"] = "ZodBigInt";
-  ZodFirstPartyTypeKind2["ZodBoolean"] = "ZodBoolean";
-  ZodFirstPartyTypeKind2["ZodDate"] = "ZodDate";
-  ZodFirstPartyTypeKind2["ZodSymbol"] = "ZodSymbol";
-  ZodFirstPartyTypeKind2["ZodUndefined"] = "ZodUndefined";
-  ZodFirstPartyTypeKind2["ZodNull"] = "ZodNull";
-  ZodFirstPartyTypeKind2["ZodAny"] = "ZodAny";
-  ZodFirstPartyTypeKind2["ZodUnknown"] = "ZodUnknown";
-  ZodFirstPartyTypeKind2["ZodNever"] = "ZodNever";
-  ZodFirstPartyTypeKind2["ZodVoid"] = "ZodVoid";
-  ZodFirstPartyTypeKind2["ZodArray"] = "ZodArray";
-  ZodFirstPartyTypeKind2["ZodObject"] = "ZodObject";
-  ZodFirstPartyTypeKind2["ZodUnion"] = "ZodUnion";
-  ZodFirstPartyTypeKind2["ZodDiscriminatedUnion"] = "ZodDiscriminatedUnion";
-  ZodFirstPartyTypeKind2["ZodIntersection"] = "ZodIntersection";
-  ZodFirstPartyTypeKind2["ZodTuple"] = "ZodTuple";
-  ZodFirstPartyTypeKind2["ZodRecord"] = "ZodRecord";
-  ZodFirstPartyTypeKind2["ZodMap"] = "ZodMap";
-  ZodFirstPartyTypeKind2["ZodSet"] = "ZodSet";
-  ZodFirstPartyTypeKind2["ZodFunction"] = "ZodFunction";
-  ZodFirstPartyTypeKind2["ZodLazy"] = "ZodLazy";
-  ZodFirstPartyTypeKind2["ZodLiteral"] = "ZodLiteral";
-  ZodFirstPartyTypeKind2["ZodEnum"] = "ZodEnum";
-  ZodFirstPartyTypeKind2["ZodEffects"] = "ZodEffects";
-  ZodFirstPartyTypeKind2["ZodNativeEnum"] = "ZodNativeEnum";
-  ZodFirstPartyTypeKind2["ZodOptional"] = "ZodOptional";
-  ZodFirstPartyTypeKind2["ZodNullable"] = "ZodNullable";
-  ZodFirstPartyTypeKind2["ZodDefault"] = "ZodDefault";
-  ZodFirstPartyTypeKind2["ZodCatch"] = "ZodCatch";
-  ZodFirstPartyTypeKind2["ZodPromise"] = "ZodPromise";
-  ZodFirstPartyTypeKind2["ZodBranded"] = "ZodBranded";
-  ZodFirstPartyTypeKind2["ZodPipeline"] = "ZodPipeline";
-  ZodFirstPartyTypeKind2["ZodReadonly"] = "ZodReadonly";
-})(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
-var instanceOfType = (cls, params = {
-  message: `Input not instance of ${cls.name}`
-}) => custom((data) => data instanceof cls, params);
-var stringType = ZodString.create;
-var numberType = ZodNumber.create;
-var nanType = ZodNaN.create;
-var bigIntType = ZodBigInt.create;
-var booleanType = ZodBoolean.create;
-var dateType = ZodDate.create;
-var symbolType = ZodSymbol.create;
-var undefinedType = ZodUndefined.create;
-var nullType = ZodNull.create;
-var anyType = ZodAny.create;
-var unknownType = ZodUnknown.create;
-var neverType = ZodNever.create;
-var voidType = ZodVoid.create;
-var arrayType = ZodArray.create;
-var objectType = ZodObject.create;
-var strictObjectType = ZodObject.strictCreate;
-var unionType = ZodUnion.create;
-var discriminatedUnionType = ZodDiscriminatedUnion.create;
-var intersectionType = ZodIntersection.create;
-var tupleType = ZodTuple.create;
-var recordType = ZodRecord.create;
-var mapType = ZodMap.create;
-var setType = ZodSet.create;
-var functionType = ZodFunction.create;
-var lazyType = ZodLazy.create;
-var literalType = ZodLiteral.create;
-var enumType = ZodEnum.create;
-var nativeEnumType = ZodNativeEnum.create;
-var promiseType = ZodPromise.create;
-var effectsType = ZodEffects.create;
-var optionalType = ZodOptional.create;
-var nullableType = ZodNullable.create;
-var preprocessType = ZodEffects.createWithPreprocess;
-var pipelineType = ZodPipeline.create;
-var ostring = () => stringType().optional();
-var onumber = () => numberType().optional();
-var oboolean = () => booleanType().optional();
-var coerce = {
-  string: ((arg) => ZodString.create({ ...arg, coerce: true })),
-  number: ((arg) => ZodNumber.create({ ...arg, coerce: true })),
-  boolean: ((arg) => ZodBoolean.create({
-    ...arg,
-    coerce: true
-  })),
-  bigint: ((arg) => ZodBigInt.create({ ...arg, coerce: true })),
-  date: ((arg) => ZodDate.create({ ...arg, coerce: true }))
-};
-var NEVER = INVALID;
+var init_wiki_init = __esm({
+  "src/tools/wiki-init.ts"() {
+    "use strict";
+    init_zod();
+    init_framework_detector();
+    init_graph_builder();
+    init_cache_manager();
+    init_team_writer();
+    init_git_utils();
+    init_templates();
+    init_logger();
+  }
+});
 
 // node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
@@ -27653,6 +33755,7 @@ var ExperimentalMcpServerTasks = class {
 };
 
 // node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
+init_zod();
 var McpServer = class {
   constructor(serverInfo, options) {
     this._registeredResources = {};
@@ -28543,5794 +34646,16 @@ function registerTools(server, tools) {
   }
 }
 
-// src/engine/framework-detector.ts
-var import_promises2 = __toESM(require("node:fs/promises"), 1);
-var import_node_path2 = __toESM(require("node:path"), 1);
-
-// src/utils/logger.ts
-var LEVEL_ORDER = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3
-};
-var currentLevel = process.env.CODE_WIKI_LOG || "info";
-function shouldLog(level) {
-  return LEVEL_ORDER[level] >= LEVEL_ORDER[currentLevel];
-}
-function formatMsg(level, msg, data) {
-  const ts = (/* @__PURE__ */ new Date()).toISOString();
-  const base = `[code-wiki] ${ts} ${level.toUpperCase()}: ${msg}`;
-  return data !== void 0 ? `${base} ${JSON.stringify(data)}` : base;
-}
-var log = {
-  debug: (msg, data) => shouldLog("debug") && console.error(formatMsg("debug", msg, data)),
-  info: (msg, data) => shouldLog("info") && console.error(formatMsg("info", msg, data)),
-  warn: (msg, data) => shouldLog("warn") && console.error(formatMsg("warn", msg, data)),
-  error: (msg, data) => shouldLog("error") && console.error(formatMsg("error", msg, data))
-};
-
-// src/engine/framework-detector.ts
-function computeMonorepoLanguage(subProjects) {
-  const counts = {};
-  for (const sub of subProjects) {
-    counts[sub.language] = (counts[sub.language] ?? 0) + 1;
-  }
-  const sorted2 = Object.entries(counts).sort(([, a], [, b2]) => b2 - a);
-  return sorted2[0]?.[0] ?? "typescript";
-}
-var detectors = [
-  {
-    framework: "fastapi",
-    language: "python",
-    detect: async (root) => {
-      try {
-        const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "pyproject.toml"), "utf-8");
-        return content.includes("fastapi") || content.includes("uvicorn");
-      } catch {
-        try {
-          const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "requirements.txt"), "utf-8");
-          return content.includes("fastapi") || content.includes("uvicorn");
-        } catch {
-          return false;
-        }
-      }
-    }
-  },
-  {
-    framework: "nextjs",
-    language: "typescript",
-    detect: async (root) => {
-      try {
-        const pkg = JSON.parse(await import_promises2.default.readFile(import_node_path2.default.join(root, "package.json"), "utf-8"));
-        return !!(pkg.dependencies?.next || pkg.devDependencies?.next);
-      } catch {
-        return false;
-      }
-    }
-  },
-  {
-    framework: "django",
-    language: "python",
-    detect: async (root) => {
-      try {
-        await import_promises2.default.access(import_node_path2.default.join(root, "manage.py"));
-        return true;
-      } catch {
-        return false;
-      }
-    }
-  },
-  {
-    framework: "spring-boot",
-    language: "java",
-    detect: async (root) => {
-      try {
-        const pom = await import_promises2.default.readFile(import_node_path2.default.join(root, "pom.xml"), "utf-8");
-        return pom.includes("spring-boot-starter");
-      } catch {
-        try {
-          const gradle = await import_promises2.default.readFile(import_node_path2.default.join(root, "build.gradle"), "utf-8");
-          return gradle.includes("spring-boot-starter");
-        } catch {
-          return false;
-        }
-      }
-    }
-  },
-  {
-    framework: "rails",
-    language: "ruby",
-    detect: async (root) => {
-      try {
-        await import_promises2.default.access(import_node_path2.default.join(root, "config", "routes.rb"));
-        return true;
-      } catch {
-        return false;
-      }
-    }
-  },
-  {
-    framework: "go-standard",
-    language: "go",
-    detect: async (root) => {
-      try {
-        await import_promises2.default.access(import_node_path2.default.join(root, "go.mod"));
-        return true;
-      } catch {
-        return false;
-      }
-    }
-  },
-  {
-    framework: "rust-workspace",
-    language: "rust",
-    detect: async (root) => {
-      try {
-        const cargo = await import_promises2.default.readFile(import_node_path2.default.join(root, "Cargo.toml"), "utf-8");
-        return cargo.includes("[workspace]");
-      } catch {
-        return false;
-      }
-    }
-  }
-];
-async function detectFastAPI(root) {
-  try {
-    const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "requirements.txt"), "utf-8");
-    return content.includes("fastapi") || content.includes("uvicorn");
-  } catch {
-    try {
-      const content = await import_promises2.default.readFile(import_node_path2.default.join(root, "pyproject.toml"), "utf-8");
-      return content.includes("fastapi");
-    } catch {
-      return false;
-    }
-  }
-}
-async function detectReactVite(root) {
-  try {
-    const pkg = JSON.parse(await import_promises2.default.readFile(import_node_path2.default.join(root, "package.json"), "utf-8"));
-    return !!(pkg.dependencies?.react || pkg.devDependencies?.react);
-  } catch {
-    return false;
-  }
-}
-async function detectFramework(repoRoot) {
-  const subProjects = await detectMonorepoSubProjects(repoRoot).catch(() => []);
-  if (subProjects.length > 0) {
-    const language2 = computeMonorepoLanguage(subProjects);
-    log.info(`Detected monorepo with ${subProjects.length} sub-projects: ${subProjects.map((s) => s.name).join(", ")}, primary language: ${language2}`);
-    return { framework: "generic", language: language2, configFiles: [], isMonorepo: true, subProjects };
-  }
-  for (const detector of detectors) {
-    try {
-      if (await detector.detect(repoRoot)) {
-        log.info(`Detected framework: ${detector.framework}`);
-        return { framework: detector.framework, language: detector.language, configFiles: [], isMonorepo: false, subProjects: [] };
-      }
-    } catch (e) {
-      log.debug(`Detector ${detector.framework} failed`, e);
-    }
-  }
-  if (await detectFastAPI(repoRoot)) {
-    log.info("Detected FastAPI project");
-    return { framework: "fastapi", language: "python", configFiles: [], isMonorepo: false, subProjects: [] };
-  }
-  const language = await detectPrimaryLanguage(repoRoot);
-  log.info(`No framework detected, primary language: ${language}`);
-  return { framework: "generic", language, configFiles: [], isMonorepo: false, subProjects: [] };
-}
-async function detectMonorepoSubProjects(repoRoot) {
-  const results = [];
-  const entries = await import_promises2.default.readdir(repoRoot, { withFileTypes: true });
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const subPath = import_node_path2.default.join(repoRoot, entry.name);
-    const hasPackageJson = await fileExists(import_node_path2.default.join(subPath, "package.json"));
-    const hasRequirements = await fileExists(import_node_path2.default.join(subPath, "requirements.txt"));
-    const hasPyproject = await fileExists(import_node_path2.default.join(subPath, "pyproject.toml"));
-    if (hasPackageJson) {
-      const isFastifyOrExpress = await detectReactVite(subPath);
-      results.push({
-        name: entry.name,
-        path: subPath,
-        framework: isFastifyOrExpress ? "generic" : "generic",
-        language: "typescript"
-      });
-    } else if (hasRequirements || hasPyproject) {
-      const isFastAPI = await detectFastAPI(subPath);
-      results.push({
-        name: entry.name,
-        path: subPath,
-        framework: isFastAPI ? "fastapi" : "generic",
-        language: "python"
-      });
-    }
-  }
-  return results;
-}
-async function fileExists(filePath) {
-  try {
-    await import_promises2.default.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-async function detectPrimaryLanguage(repoRoot) {
-  const { glob: glob2 } = await Promise.resolve().then(() => (init_esm6(), esm_exports));
-  const counts = { typescript: 0, python: 0, go: 0, java: 0, rust: 0, ruby: 0 };
-  const extMap = {
-    ".ts": "typescript",
-    ".tsx": "typescript",
-    ".js": "typescript",
-    ".py": "python",
-    ".go": "go",
-    ".java": "java",
-    ".rs": "rust",
-    ".rb": "ruby"
-  };
-  const files = await glob2("**/*", { cwd: repoRoot, nodir: true, ignore: "**/node_modules/**" });
-  for (const f of files) {
-    const ext2 = import_node_path2.default.extname(f);
-    const lang = extMap[ext2];
-    if (lang) counts[lang]++;
-  }
-  const sorted2 = Object.entries(counts).sort(([, a], [, b2]) => b2 - a);
-  return (sorted2[0]?.[1] ?? 0) > 0 ? sorted2[0][0] : "typescript";
-}
-
-// src/engine/module-detector.ts
-var import_node_path5 = __toESM(require("node:path"), 1);
-init_file_utils();
-
-// src/engine/language-registry.ts
-init_constants();
-var LanguageRegistry = class {
-  analyzers = /* @__PURE__ */ new Map();
-  register(analyzer) {
-    this.analyzers.set(analyzer.language, analyzer);
-  }
-  get(language) {
-    return this.analyzers.get(language);
-  }
-  getByFile(filePath) {
-    const ext2 = filePath.substring(filePath.lastIndexOf("."));
-    const lang = LANGUAGE_EXTENSIONS[ext2];
-    if (!lang) return void 0;
-    return this.analyzers.get(lang);
-  }
-  getRegisteredLanguages() {
-    return Array.from(this.analyzers.keys());
-  }
-};
-var registry2 = new LanguageRegistry();
-
-// src/engine/module-detector.ts
-async function detectModules(repoRoot, framework, language) {
-  const detection = await detectFramework(repoRoot);
-  if (detection.isMonorepo && detection.subProjects.length > 0) {
-    return detectMonorepoModules(repoRoot, detection.subProjects);
-  }
-  const sourceFiles = await findSourceFiles(repoRoot);
-  log.info(`Found ${sourceFiles.length} source files`);
-  const moduleMap = await groupFilesIntoModules(repoRoot, sourceFiles, framework, language);
-  return buildModuleDefs(repoRoot, moduleMap, language);
-}
-async function detectMonorepoModules(repoRoot, subProjects) {
-  const modules = [];
-  for (const sub of subProjects) {
-    const sourceFiles = await findSourceFiles(sub.path);
-    if (sourceFiles.length === 0) continue;
-    log.info(`Sub-project ${sub.name}: ${sourceFiles.length} source files`);
-    const moduleMap = await groupFilesIntoModules(sub.path, sourceFiles, sub.framework, sub.language);
-    for (const [name, files] of moduleMap.entries()) {
-      const moduleName = moduleMap.size > 1 ? `${sub.name}-${name}` : sub.name;
-      const modDefs = await buildModuleDefs(sub.path, /* @__PURE__ */ new Map([[moduleName, files]]), sub.language);
-      modules.push(...modDefs);
-    }
-  }
-  const topLevelFiles = await findSourceFiles(repoRoot);
-  const coveredPaths = subProjects.map((s) => s.path);
-  const standaloneFiles = topLevelFiles.filter((f) => {
-    const abs = import_node_path5.default.resolve(repoRoot, f);
-    return !coveredPaths.some((cp) => abs.startsWith(cp));
-  });
-  if (standaloneFiles.length > 0) {
-    const standaloneMap = groupGeneric(standaloneFiles);
-    const standaloneDefs = await buildModuleDefs(repoRoot, standaloneMap, "typescript");
-    modules.push(...standaloneDefs);
-  }
-  log.info(`Detected ${modules.length} modules in monorepo: ${modules.map((m) => m.name).join(", ")}`);
-  return modules;
-}
-async function groupFilesIntoModules(projectRoot, files, framework, language) {
-  if (framework === "nextjs") {
-    return groupNextjsModules(projectRoot, files);
-  }
-  if (framework === "fastapi" || language === "python") {
-    const fastApiGrouping = await groupFastApiModules(projectRoot, files);
-    if (fastApiGrouping) return fastApiGrouping;
-  }
-  if (language === "typescript") {
-    const reactGrouping = await groupReactModules(projectRoot, files);
-    if (reactGrouping) return reactGrouping;
-  }
-  return groupGeneric(files);
-}
-async function groupFastApiModules(projectRoot, files) {
-  const prefixes = ["app/", "src/app/", "src/"];
-  let matchedPrefix = null;
-  for (const prefix of prefixes) {
-    const matching = files.filter((f) => f.startsWith(prefix));
-    if (matching.length >= 3) {
-      matchedPrefix = prefix;
-      break;
-    }
-  }
-  if (!matchedPrefix) return null;
-  const moduleMap = /* @__PURE__ */ new Map();
-  const knownDirs = /* @__PURE__ */ new Set([
-    "core",
-    "modules",
-    "module",
-    "api",
-    "routers",
-    "routes",
-    "models",
-    "schemas",
-    "services",
-    "algorithm",
-    "algorithms",
-    "agents",
-    "utils",
-    "lib",
-    "middleware",
-    "config",
-    "repositories",
-    "tests",
-    "test",
-    "migrations"
-  ]);
-  for (const file of files) {
-    if (file.startsWith(matchedPrefix)) {
-      const afterPrefix = file.slice(matchedPrefix.length);
-      const parts = afterPrefix.split(import_node_path5.default.sep);
-      if (parts.length > 1 && parts[0]) {
-        const firstDir = parts[0];
-        if (knownDirs.has(firstDir)) {
-          if ((firstDir === "modules" || firstDir === "module") && parts.length > 2 && parts[1]) {
-            const moduleName = parts[1];
-            const existing = moduleMap.get(moduleName) ?? [];
-            existing.push(file);
-            moduleMap.set(moduleName, existing);
-          } else {
-            const existing = moduleMap.get(firstDir) ?? [];
-            existing.push(file);
-            moduleMap.set(firstDir, existing);
-          }
-        } else {
-          const existing = moduleMap.get(firstDir) ?? [];
-          existing.push(file);
-          moduleMap.set(firstDir, existing);
-        }
-      } else {
-        const existing = moduleMap.get("root") ?? [];
-        existing.push(file);
-        moduleMap.set("root", existing);
-      }
-    } else {
-      const parts = file.split(import_node_path5.default.sep);
-      const moduleName = parts.length > 1 ? parts[0] : "root";
-      const existing = moduleMap.get(moduleName) ?? [];
-      existing.push(file);
-      moduleMap.set(moduleName, existing);
-    }
-  }
-  return moduleMap.size > 0 ? moduleMap : null;
-}
-async function groupReactModules(projectRoot, files) {
-  const srcFiles = files.filter((f) => f.startsWith("src/"));
-  if (srcFiles.length < 3) return null;
-  const moduleMap = /* @__PURE__ */ new Map();
-  const srcSubdirs = /* @__PURE__ */ new Set();
-  for (const file of srcFiles) {
-    const afterSrc = file.slice(4);
-    const parts = afterSrc.split(import_node_path5.default.sep);
-    if (parts.length > 1 && parts[0]) {
-      srcSubdirs.add(parts[0]);
-    }
-  }
-  if (srcSubdirs.size < 2) return null;
-  for (const file of files) {
-    if (file.startsWith("src/")) {
-      const afterSrc = file.slice(4);
-      const parts = afterSrc.split(import_node_path5.default.sep);
-      if (parts.length > 1 && parts[0]) {
-        const existing = moduleMap.get(parts[0]) ?? [];
-        existing.push(file);
-        moduleMap.set(parts[0], existing);
-      } else {
-        const existing = moduleMap.get("src-root") ?? [];
-        existing.push(file);
-        moduleMap.set("src-root", existing);
-      }
-    } else {
-      const existing = moduleMap.get("config") ?? [];
-      existing.push(file);
-      moduleMap.set("config", existing);
-    }
-  }
-  return moduleMap.size > 0 ? moduleMap : null;
-}
-function groupGeneric(files) {
-  const moduleMap = /* @__PURE__ */ new Map();
-  for (const file of files) {
-    const parts = file.split(import_node_path5.default.sep);
-    const moduleName = parts.length > 1 ? parts[0] : "root";
-    const existing = moduleMap.get(moduleName) ?? [];
-    existing.push(file);
-    moduleMap.set(moduleName, existing);
-  }
-  return moduleMap;
-}
-async function groupNextjsModules(repoRoot, files) {
-  const moduleMap = /* @__PURE__ */ new Map();
-  for (const file of files) {
-    const parts = file.split(import_node_path5.default.sep);
-    if (parts[0] === "app" || parts[0] === "pages") {
-      const routeGroup = parts.slice(0, 2).join("/");
-      const existing = moduleMap.get(routeGroup) ?? [];
-      existing.push(file);
-      moduleMap.set(routeGroup, existing);
-    } else if (parts[0] === "api") {
-      const existing = moduleMap.get("api") ?? [];
-      existing.push(file);
-      moduleMap.set("api", existing);
-    } else {
-      const existing = moduleMap.get(parts[0]) ?? [];
-      existing.push(file);
-      moduleMap.set(parts[0], existing);
-    }
-  }
-  return moduleMap;
-}
-async function buildModuleDefs(repoRoot, moduleMap, language) {
-  const modules = [];
-  for (const [name, files] of moduleMap.entries()) {
-    const absoluteFiles = files.map((f) => import_node_path5.default.resolve(repoRoot, f));
-    const modulePath = absoluteFiles[0] ? import_node_path5.default.dirname(absoluteFiles[0]) : name;
-    const analyzedFiles = await analyzeModuleFiles(repoRoot, absoluteFiles);
-    const fileLang = detectLanguage(absoluteFiles[0] ?? "") ?? language;
-    modules.push({
-      name,
-      path: modulePath,
-      language: fileLang,
-      files: absoluteFiles,
-      entryFile: findEntryFile(absoluteFiles),
-      exports: analyzedFiles.exports,
-      imports: analyzedFiles.imports,
-      types: analyzedFiles.types,
-      functions: analyzedFiles.functions
-    });
-  }
-  log.info(`Detected ${modules.length} modules: ${modules.map((m) => m.name).join(", ")}`);
-  return modules;
-}
-function findEntryFile(files) {
-  const entryNames = [
-    "main.ts",
-    "main.tsx",
-    "main.js",
-    "main.jsx",
-    "main.py",
-    "main.go",
-    "app.ts",
-    "app.tsx",
-    "app.js",
-    "app.jsx",
-    "app.py",
-    "index.ts",
-    "index.tsx",
-    "index.js",
-    "index.jsx",
-    "manage.py",
-    "server.ts",
-    "server.js",
-    "server.py",
-    "__init__.py",
-    "__main__.py",
-    "mod.rs",
-    "index.rb"
-  ];
-  const entrySet = new Set(entryNames);
-  return files.find((f) => entrySet.has(import_node_path5.default.basename(f)));
-}
-async function analyzeModuleFiles(repoRoot, files) {
-  const { readFile: readFile2 } = await Promise.resolve().then(() => (init_file_utils(), file_utils_exports));
-  const exports2 = [];
-  const imports = [];
-  const types2 = [];
-  const functions = [];
-  for (const file of files) {
-    const content = await readFile2(file);
-    if (!content) continue;
-    const analyzer = registry2.getByFile(file);
-    if (analyzer) {
-      const analysis = analyzer.analyzeFile(file, content);
-      exports2.push(...analysis.exports);
-      imports.push(...analysis.imports);
-      types2.push(...analysis.types);
-      functions.push(...analysis.functions);
-    }
-  }
-  return { exports: exports2, imports, types: types2, functions };
-}
-
-// src/engine/graph-builder.ts
-var import_node_path6 = __toESM(require("node:path"), 1);
-function buildDependencyGraph(modules) {
-  const moduleNames = new Set(modules.map((m) => m.name));
-  const edgeMap = /* @__PURE__ */ new Map();
-  const pathToModule = /* @__PURE__ */ new Map();
-  for (const mod of modules) {
-    pathToModule.set(import_node_path6.default.normalize(mod.path), mod.name);
-    for (const file of mod.files) {
-      pathToModule.set(import_node_path6.default.normalize(import_node_path6.default.dirname(file)), mod.name);
-    }
-  }
-  for (const mod of modules) {
-    for (const imp of mod.imports) {
-      const key = `${mod.name}->${imp.source}:${imp.isExternal}`;
-      const existing = edgeMap.get(key);
-      if (existing) {
-        existing.weight++;
-        continue;
-      }
-      const resolvedModule = resolveImportToModule(imp.source, mod, modules, pathToModule);
-      const isInternal = !imp.isExternal && (moduleNames.has(imp.source) || resolvedModule !== null);
-      const targetModule = resolvedModule ?? imp.source;
-      if (isInternal && targetModule === mod.name) continue;
-      edgeMap.set(key, {
-        from: mod.name,
-        to: targetModule,
-        type: isInternal ? "internal" : "external",
-        weight: 1
-      });
-    }
-  }
-  const edges = Array.from(edgeMap.values());
-  log.debug(`Built dependency graph: ${edges.length} edges`);
-  return { modules: Array.from(moduleNames), edges };
-}
-function resolveImportToModule(importSource, fromModule, allModules, pathToModule) {
-  const moduleNames = new Set(allModules.map((m) => m.name));
-  if (moduleNames.has(importSource)) return importSource;
-  if (importSource.includes(".") && !importSource.startsWith(".")) {
-    const sourceSegments = importSource.split(".");
-    for (const mod of allModules) {
-      if (mod.language !== "python" && fromModule.language !== "python") continue;
-      for (const file of mod.files) {
-        const fileSegments = file.split(/[/\\]/).map((s) => s.replace(/\.\w+$/, ""));
-        let matchCount = 0;
-        for (const seg of sourceSegments) {
-          if (fileSegments.includes(seg)) matchCount++;
-        }
-        if (matchCount >= Math.ceil(sourceSegments.length * 0.6) && matchCount >= 2) {
-          return mod.name;
-        }
-      }
-    }
-  }
-  if (importSource.startsWith(".")) {
-    const fromDir = import_node_path6.default.dirname(fromModule.files[0] ?? fromModule.path);
-    const resolved = import_node_path6.default.normalize(import_node_path6.default.resolve(fromDir, importSource));
-    for (const [modPath, modName] of pathToModule.entries()) {
-      if (resolved.startsWith(modPath) || modPath.startsWith(resolved)) {
-        return modName;
-      }
-    }
-  }
-  return null;
-}
-function getDependents(graph, moduleName) {
-  return graph.edges.filter((e) => e.to === moduleName && e.type === "internal").map((e) => e.from);
-}
-function getDependencies(graph, moduleName) {
-  const internal = graph.edges.filter((e) => e.from === moduleName && e.type === "internal").map((e) => e.to);
-  const external = graph.edges.filter((e) => e.from === moduleName && e.type === "external").map((e) => e.to);
-  return { internal: [...new Set(internal)], external: [...new Set(external)] };
-}
-
-// src/storage/cache-manager.ts
-init_constants();
-init_file_utils();
-
-// node_modules/simple-git/dist/esm/index.js
-var import_file_exists = __toESM(require_dist2(), 1);
-
-// node_modules/@simple-git/args-pathspec/dist/index.mjs
-var t = /* @__PURE__ */ new WeakMap();
-function c(...n) {
-  const e = new String(n);
-  return t.set(e, n), e;
-}
-function r(n) {
-  return n instanceof String && t.has(n);
-}
-function o(n) {
-  return t.get(n) ?? [];
-}
-
-// node_modules/simple-git/dist/esm/index.js
-var import_debug = __toESM(require_src(), 1);
-var import_child_process = require("child_process");
-var import_promise_deferred = __toESM(require_dist3(), 1);
-var import_node_path7 = require("node:path");
-
-// node_modules/@simple-git/argv-parser/dist/index.mjs
-function* U2(e, t2) {
-  const n = t2 === "global";
-  for (const o2 of e)
-    o2.isGlobal === n && (yield o2);
-}
-var k = /* @__PURE__ */ new Set([
-  "--add",
-  "--edit",
-  "--remove-section",
-  "--rename-section",
-  "--replace-all",
-  "--unset",
-  "--unset-all",
-  "-e"
-]);
-var S2 = /* @__PURE__ */ new Set([
-  "--get",
-  "--get-all",
-  "--get-color",
-  "--get-colorbool",
-  "--get-regexp",
-  "--get-urlmatch",
-  "--list",
-  "-l"
-]);
-var P2 = /* @__PURE__ */ new Set([
-  "edit",
-  "remove-section",
-  "rename-section",
-  "set",
-  "unset"
-]);
-var E = /* @__PURE__ */ new Set(["get", "get-color", "get-colorbool", "list"]);
-function F2(e, t2) {
-  for (const { name: o2 } of U2(e, "task")) {
-    if (k.has(o2))
-      return p(true, t2);
-    if (S2.has(o2))
-      return p(false, t2);
-  }
-  const n = t2.at(0)?.toLowerCase();
-  return n === void 0 ? null : P2.has(n) ? p(true, t2.slice(1)) : E.has(n) ? p(false, t2.slice(1)) : t2.length === 1 ? p(false, t2) : p(true, t2);
-}
-function p(e = false, t2 = []) {
-  const n = t2.at(0)?.toLowerCase();
-  return n === void 0 ? null : {
-    isWrite: e,
-    isRead: !e,
-    key: n,
-    value: t2.at(1)
-  };
-}
-function A(e, t2) {
-  return t2.isWrite && t2.value !== void 0 ? { key: t2.key, value: t2.value, scope: e } : { key: t2.key, scope: e };
-}
-function M2(e) {
-  const t2 = e?.indexOf("=") || -1;
-  return !e || t2 < 0 ? null : {
-    key: e.slice(0, t2).trim().toLowerCase(),
-    value: e.slice(t2 + 1)
-  };
-}
-function N(e) {
-  for (const { name: t2 } of U2(e, "task"))
-    switch (t2) {
-      case "--global":
-        return "global";
-      case "--system":
-        return "system";
-      case "--worktree":
-        return "worktree";
-      case "--local":
-        return "local";
-      case "--file":
-      case "-f":
-        return "file";
-    }
-  return "local";
-}
-function G2({ name: e }) {
-  if (e === "-c" || e === "--config")
-    return "inline";
-  if (e === "--config-env")
-    return "env";
-}
-function* O2(e) {
-  for (const t2 of e) {
-    const n = G2(t2), o2 = n && M2(t2.value);
-    o2 && (yield {
-      ...o2,
-      scope: n
-    });
-  }
-}
-function L2(e, t2, n) {
-  const o2 = {
-    read: [],
-    write: [...O2(t2)]
-  };
-  return e === "config" && $2(
-    o2,
-    N(t2),
-    F2(t2, n)
-  ), o2;
-}
-function $2(e, t2, n) {
-  if (n === null)
-    return;
-  const o2 = A(t2, n);
-  n.isWrite ? e.write.push(o2) : e.read.push(o2);
-}
-var x = {
-  short: /* @__PURE__ */ new Map([
-    ["c", true]
-    //  -c <k=v>    set config key for this invocation
-  ])
-};
-var D2 = {
-  short: new Map([
-    ["C", true],
-    //  -C <path>   change working directory
-    ["P", false],
-    // -P          no pager (alias for --no-pager)
-    ["h", false],
-    // -h          help
-    ["p", false],
-    // -p          paginate
-    ["v", false],
-    // -v          version
-    ...x.short.entries()
-  ]),
-  long: /* @__PURE__ */ new Set([
-    "attr-source",
-    "config-env",
-    "exec-path",
-    "git-dir",
-    "list-cmds",
-    "namespace",
-    "super-prefix",
-    "work-tree"
-  ])
-};
-var R2 = {
-  clone: {
-    short: /* @__PURE__ */ new Map([
-      ["b", true],
-      // -b <branch>
-      ["j", true],
-      // -j <n>          parallel jobs
-      ["l", false],
-      // -l local
-      ["n", false],
-      // -n no-checkout
-      ["o", true],
-      // -o <name>       remote name
-      ["q", false],
-      // -q quiet
-      ["s", false],
-      // -s shared
-      ["u", true]
-      // -u <upload-pack>
-    ]),
-    long: /* @__PURE__ */ new Set(["branch", "config", "jobs", "origin", "upload-pack", "u", "template"])
-  },
-  commit: {
-    short: /* @__PURE__ */ new Map([
-      ["C", true],
-      // -C <commit>  reuse message
-      ["F", true],
-      // -F <file>    read message from file
-      ["c", true],
-      // -c <commit>  reedit message
-      ["m", true],
-      // -m <msg>
-      ["t", true]
-      // -t <template>
-    ]),
-    long: /* @__PURE__ */ new Set(["file", "message", "reedit-message", "reuse-message", "template"])
-  },
-  config: {
-    short: /* @__PURE__ */ new Map([
-      ["e", false],
-      // -e  open editor
-      ["f", true],
-      //  -f <file>
-      ["l", false]
-      // -l  list
-    ]),
-    long: /* @__PURE__ */ new Set(["blob", "comment", "default", "file", "type", "value"])
-  },
-  fetch: {
-    short: /* @__PURE__ */ new Map(),
-    long: /* @__PURE__ */ new Set(["upload-pack"])
-  },
-  init: {
-    short: /* @__PURE__ */ new Map(),
-    long: /* @__PURE__ */ new Set(["template"])
-  },
-  pull: {
-    short: /* @__PURE__ */ new Map(),
-    long: /* @__PURE__ */ new Set(["upload-pack"])
-  },
-  push: {
-    short: /* @__PURE__ */ new Map(),
-    long: /* @__PURE__ */ new Set(["exec", "receive-pack"])
-  }
-};
-var T = { short: /* @__PURE__ */ new Map(), long: /* @__PURE__ */ new Set() };
-function I2(e) {
-  const t2 = R2[e ?? ""] ?? T;
-  return {
-    short: new Map([...x.short.entries(), ...t2.short.entries()]),
-    long: t2.long
-  };
-}
-function b(e, t2 = D2) {
-  if (e.startsWith("--")) {
-    const n = e.indexOf("=");
-    if (n > 2)
-      return [{ name: e.slice(0, n), value: e.slice(n + 1), needsNext: false }];
-    const o2 = e.slice(2);
-    return [{ name: e, needsNext: t2.long.has(o2) }];
-  }
-  if (e.length === 2) {
-    const n = e.charAt(1), o2 = t2.short.get(n);
-    return [{ name: e, needsNext: o2 === true }];
-  }
-  return W2(e, t2.short);
-}
-function W2(e, t2) {
-  const n = e.slice(1).split(""), o2 = [];
-  for (let s = 0; s < n.length; s++) {
-    const r2 = n[s], l = t2.get(r2);
-    if (l === void 0)
-      return [{ name: e, needsNext: false }];
-    if (l) {
-      const a = n.slice(s + 1).join("");
-      if (a && ![...a].every((w) => t2.has(w)))
-        return o2.push({ name: `-${r2}`, value: a, needsNext: false }), o2;
-    }
-    o2.push({ name: `-${r2}`, needsNext: l });
-  }
-  return o2;
-}
-function j2(e, t2 = []) {
-  let n = 0;
-  for (; n < e.length; ) {
-    const o2 = String(e[n]);
-    if (!o2.startsWith("-") || o2.length < 2) break;
-    const s = b(o2);
-    let r2 = n + 1;
-    for (const l of s) {
-      const a = {
-        name: l.name,
-        value: l.value,
-        absorbedNext: false,
-        isGlobal: true
-      };
-      l.needsNext && a.value === void 0 && r2 < e.length && (a.value = String(e[r2]), a.absorbedNext = true, r2++), t2.push(a);
-    }
-    n = r2;
-  }
-  return { flags: t2, taskIndex: n };
-}
-function B(e, t2, n = []) {
-  const o2 = I2(t2), s = [], r2 = [];
-  let l = 0;
-  for (; l < e.length; ) {
-    const a = e[l];
-    if (r(a)) {
-      r2.push(...o(a)), l++;
-      continue;
-    }
-    const f = String(a);
-    if (f === "--") {
-      for (let g = l + 1; g < e.length; g++) {
-        const u3 = e[g];
-        r(u3) ? r2.push(...o(u3)) : r2.push(String(u3));
-      }
-      break;
-    }
-    if (!f.startsWith("-") || f.length < 2) {
-      s.push(f), l++;
-      continue;
-    }
-    const w = b(f, o2);
-    let d = l + 1;
-    for (const g of w) {
-      const u3 = {
-        name: g.name,
-        value: g.value,
-        absorbedNext: false,
-        isGlobal: false
-      };
-      g.needsNext && u3.value === void 0 && d < e.length && !r(e[d]) && (u3.value = String(e[d]), u3.absorbedNext = true, d++), n.push(u3);
-    }
-    l = d;
-  }
-  return { flags: n, positionals: s, pathspecs: r2 };
-}
-function* V({
-  write: e
-}) {
-  for (const t2 of e)
-    for (const n of q) {
-      const o2 = n(t2.key);
-      o2 && (yield o2);
-    }
-}
-function c2(e, t2, n = String(e)) {
-  const o2 = typeof e == "string" ? new RegExp(`\\s*${e.toLowerCase()}`) : e;
-  return function(r2) {
-    if (o2.test(r2))
-      return {
-        category: t2,
-        message: `Configuring ${n} is not permitted without enabling ${t2}`
-      };
-  };
-}
-function i(e, t2) {
-  const n = new RegExp(`\\s*${e.toLowerCase().replace(/\./g, "(..+)?.")}`);
-  return c2(n, t2, e);
-}
-var q = [
-  c2("alias", "allowUnsafeAlias"),
-  c2("core.askPass", "allowUnsafeAskPass"),
-  c2("core.editor", "allowUnsafeEditor"),
-  c2("core.fsmonitor", "allowUnsafeFsMonitor"),
-  c2("core.gitProxy", "allowUnsafeGitProxy"),
-  c2("core.hooksPath", "allowUnsafeHooksPath"),
-  c2("core.pager", "allowUnsafePager"),
-  c2("core.sshCommand", "allowUnsafeSshCommand"),
-  i("credential.helper", "allowUnsafeCredentialHelper"),
-  i("diff.command", "allowUnsafeDiffExternal"),
-  c2("diff.external", "allowUnsafeDiffExternal"),
-  i("diff.textconv", "allowUnsafeDiffTextConv"),
-  i("filter.clean", "allowUnsafeFilter"),
-  i("filter.smudge", "allowUnsafeFilter"),
-  i("gpg.program", "allowUnsafeGpgProgram"),
-  c2("init.templateDir", "allowUnsafeTemplateDir"),
-  i("merge.driver", "allowUnsafeMergeDriver"),
-  i("mergetool.path", "allowUnsafeMergeDriver"),
-  i("mergetool.cmd", "allowUnsafeMergeDriver"),
-  i("protocol.allow", "allowUnsafeProtocolOverride"),
-  i("remote.receivepack", "allowUnsafePack"),
-  i("remote.uploadpack", "allowUnsafePack"),
-  c2("sequence.editor", "allowUnsafeEditor")
-];
-function* K(e, t2) {
-  for (const n of t2)
-    for (const o2 of H2) {
-      const s = o2(e, n.name);
-      s && (yield s);
-    }
-}
-function h(e, t2, n, o2 = String(t2)) {
-  const s = typeof t2 == "string" ? new RegExp(`\\s*${t2.toLowerCase()}`) : t2, r2 = `Use of ${e ? `${e} with option ` : ""}${o2} is not permitted without enabling ${n}`;
-  return function(a, f) {
-    if ((!e || a === e) && s.test(f))
-      return {
-        category: n,
-        message: r2
-      };
-  };
-}
-var H2 = [
-  h(
-    null,
-    /--(upload|receive)-pack/,
-    "allowUnsafePack",
-    "--upload-pack or --receive-pack"
-  ),
-  h("clone", /^-\w*u/, "allowUnsafePack"),
-  h("clone", "--u", "allowUnsafePack"),
-  h("push", "--exec", "allowUnsafePack"),
-  h(null, "--template", "allowUnsafeTemplateDir")
-];
-function C2(e, t2, n) {
-  return [...K(e, t2), ...V(n)];
-}
-function Y(...e) {
-  const { flags: t2, taskIndex: n } = j2(e), o2 = n < e.length ? String(e[n]).toLowerCase() : null, s = o2 !== null ? e.slice(n + 1) : [], { positionals: r2, pathspecs: l } = B(s, o2, t2), a = L2(o2, t2, r2);
-  return {
-    task: o2,
-    flags: t2.map(J),
-    paths: l,
-    config: a,
-    vulnerabilities: z(C2(o2, t2, a))
-  };
-}
-function z(e) {
-  return Object.defineProperty(e, "vulnerabilities", {
-    value: e
-  });
-}
-function J({ value: e, name: t2 }) {
-  return e !== void 0 ? { name: t2, value: e } : { name: t2 };
-}
-var y = {
-  editor: "allowUnsafeEditor",
-  git_askpass: "allowUnsafeAskPass",
-  git_config_global: "allowUnsafeConfigPaths",
-  git_config_system: "allowUnsafeConfigPaths",
-  git_config_count: "allowUnsafeConfigEnvCount",
-  git_config: "allowUnsafeConfigPaths",
-  git_editor: "allowUnsafeEditor",
-  git_exec_path: "allowUnsafeConfigPaths",
-  git_external_diff: "allowUnsafeDiffExternal",
-  git_pager: "allowUnsafePager",
-  git_proxy_command: "allowUnsafeGitProxy",
-  git_template_dir: "allowUnsafeTemplateDir",
-  git_sequence_editor: "allowUnsafeEditor",
-  git_ssh: "allowUnsafeSshCommand",
-  git_ssh_command: "allowUnsafeSshCommand",
-  pager: "allowUnsafePager",
-  prefix: "allowUnsafeConfigPaths",
-  ssh_askpass: "allowUnsafeAskPass"
-};
-function* Q(e) {
-  const t2 = parseInt(e.git_config_count ?? "0", 10);
-  for (let n = 0; n < t2; n++) {
-    const o2 = e[`git_config_key_${n}`], s = e[`git_config_value_${n}`];
-    o2 !== void 0 && (yield { key: o2.toLowerCase().trim(), value: s, scope: "env" });
-  }
-}
-function* X(e) {
-  for (const t2 of Object.keys(e))
-    if (_(t2)) {
-      const n = y[t2];
-      yield {
-        category: n,
-        message: `Use of "${t2.toUpperCase()}" is not permitted without enabling ${n}`
-      };
-    }
-}
-function _(e) {
-  return Object.hasOwn(y, e);
-}
-function Z(e) {
-  const t2 = {};
-  for (const [n, o2] of Object.entries(e)) {
-    const s = n.toLowerCase().trim();
-    (_(s) || s.startsWith("git")) && (t2[s] = String(o2));
-  }
-  return t2;
-}
-function ee(e) {
-  const t2 = Z(e), n = {
-    read: [],
-    write: [...Q(t2)]
-  }, o2 = [
-    ...X(t2),
-    ...C2(null, [], n)
-  ];
-  return {
-    config: n,
-    vulnerabilities: o2
-  };
-}
-function ne(e, t2) {
-  return [...Y(...e).vulnerabilities, ...ee(t2).vulnerabilities];
-}
-
-// node_modules/simple-git/dist/esm/index.js
-var import_promise_deferred2 = __toESM(require_dist3(), 1);
-var import_node_events2 = require("node:events");
-var __defProp2 = Object.defineProperty;
-var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames2 = Object.getOwnPropertyNames;
-var __hasOwnProp2 = Object.prototype.hasOwnProperty;
-var __esm2 = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames2(fn)[0]])(fn = 0)), res;
-};
-var __commonJS2 = (cb, mod) => function __require() {
-  return mod || (0, cb[__getOwnPropNames2(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
-var __export2 = (target, all) => {
-  for (var name in all)
-    __defProp2(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps2 = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames2(from))
-      if (!__hasOwnProp2.call(to, key) && key !== except)
-        __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
-var GitError;
-var init_git_error = __esm2({
-  "src/lib/errors/git-error.ts"() {
-    "use strict";
-    GitError = class extends Error {
-      constructor(task, message) {
-        super(message);
-        this.task = task;
-        Object.setPrototypeOf(this, new.target.prototype);
-      }
-    };
-  }
-});
-var GitResponseError;
-var init_git_response_error = __esm2({
-  "src/lib/errors/git-response-error.ts"() {
-    "use strict";
-    init_git_error();
-    GitResponseError = class extends GitError {
-      constructor(git, message) {
-        super(void 0, message || String(git));
-        this.git = git;
-      }
-    };
-  }
-});
-var TaskConfigurationError;
-var init_task_configuration_error = __esm2({
-  "src/lib/errors/task-configuration-error.ts"() {
-    "use strict";
-    init_git_error();
-    TaskConfigurationError = class extends GitError {
-      constructor(message) {
-        super(void 0, message);
-      }
-    };
-  }
-});
-function asFunction(source) {
-  if (typeof source !== "function") {
-    return NOOP;
-  }
-  return source;
-}
-function isUserFunction(source) {
-  return typeof source === "function" && source !== NOOP;
-}
-function splitOn(input, char) {
-  const index = input.indexOf(char);
-  if (index <= 0) {
-    return [input, ""];
-  }
-  return [input.substr(0, index), input.substr(index + 1)];
-}
-function first(input, offset = 0) {
-  return isArrayLike(input) && input.length > offset ? input[offset] : void 0;
-}
-function last(input, offset = 0) {
-  if (isArrayLike(input) && input.length > offset) {
-    return input[input.length - 1 - offset];
-  }
-}
-function isArrayLike(input) {
-  return filterHasLength(input);
-}
-function toLinesWithContent(input = "", trimmed2 = true, separator = "\n") {
-  return input.split(separator).reduce((output, line) => {
-    const lineContent = trimmed2 ? line.trim() : line;
-    if (lineContent) {
-      output.push(lineContent);
-    }
-    return output;
-  }, []);
-}
-function forEachLineWithContent(input, callback) {
-  return toLinesWithContent(input, true).map((line) => callback(line));
-}
-function folderExists(path12) {
-  return (0, import_file_exists.exists)(path12, import_file_exists.FOLDER);
-}
-function append(target, item) {
-  if (Array.isArray(target)) {
-    if (!target.includes(item)) {
-      target.push(item);
-    }
-  } else {
-    target.add(item);
-  }
-  return item;
-}
-function including(target, item) {
-  if (Array.isArray(target) && !target.includes(item)) {
-    target.push(item);
-  }
-  return target;
-}
-function remove(target, item) {
-  if (Array.isArray(target)) {
-    const index = target.indexOf(item);
-    if (index >= 0) {
-      target.splice(index, 1);
-    }
-  } else {
-    target.delete(item);
-  }
-  return item;
-}
-function asArray(source) {
-  return Array.isArray(source) ? source : [source];
-}
-function asCamelCase(str) {
-  return str.replace(/[\s-]+(.)/g, (_all, chr) => {
-    return chr.toUpperCase();
-  });
-}
-function asStringArray(source) {
-  return asArray(source).map((item) => {
-    return item instanceof String ? item : String(item);
-  });
-}
-function asNumber(source, onNaN = 0) {
-  if (source == null) {
-    return onNaN;
-  }
-  const num = parseInt(source, 10);
-  return Number.isNaN(num) ? onNaN : num;
-}
-function prefixedArray(input, prefix) {
-  const output = [];
-  for (let i2 = 0, max = input.length; i2 < max; i2++) {
-    output.push(prefix, input[i2]);
-  }
-  return output;
-}
-function bufferToString(input) {
-  return (Array.isArray(input) ? Buffer.concat(input) : input).toString("utf-8");
-}
-function pick2(source, properties) {
-  const out = {};
-  properties.forEach((key) => {
-    if (source[key] !== void 0) {
-      out[key] = source[key];
-    }
-  });
-  return out;
-}
-function delay(duration3 = 0) {
-  return new Promise((done) => setTimeout(done, duration3));
-}
-function orVoid(input) {
-  if (input === false) {
-    return void 0;
-  }
-  return input;
-}
-var NULL;
-var NOOP;
-var objectToString;
-var init_util = __esm2({
-  "src/lib/utils/util.ts"() {
-    "use strict";
-    init_argument_filters();
-    NULL = "\0";
-    NOOP = () => {
-    };
-    objectToString = Object.prototype.toString.call.bind(Object.prototype.toString);
-  }
-});
-function filterType(input, filter2, def) {
-  if (filter2(input)) {
-    return input;
-  }
-  return arguments.length > 2 ? def : void 0;
-}
-function filterPrimitives(input, omit2) {
-  const type = r(input) ? "string" : typeof input;
-  return /number|string|boolean/.test(type) && (!omit2 || !omit2.includes(type));
-}
-function filterPlainObject(input) {
-  return !!input && objectToString(input) === "[object Object]";
-}
-function filterFunction(input) {
-  return typeof input === "function";
-}
-var filterArray;
-var filterNumber;
-var filterString;
-var filterStringOrStringArray;
-var filterHasLength;
-var init_argument_filters = __esm2({
-  "src/lib/utils/argument-filters.ts"() {
-    "use strict";
-    init_util();
-    filterArray = (input) => {
-      return Array.isArray(input);
-    };
-    filterNumber = (input) => {
-      return typeof input === "number";
-    };
-    filterString = (input) => {
-      return typeof input === "string" || r(input);
-    };
-    filterStringOrStringArray = (input) => {
-      return filterString(input) || Array.isArray(input) && input.every(filterString);
-    };
-    filterHasLength = (input) => {
-      if (input == null || "number|boolean|function".includes(typeof input)) {
-        return false;
-      }
-      return typeof input.length === "number";
-    };
-  }
-});
-var ExitCodes;
-var init_exit_codes = __esm2({
-  "src/lib/utils/exit-codes.ts"() {
-    "use strict";
-    ExitCodes = /* @__PURE__ */ ((ExitCodes2) => {
-      ExitCodes2[ExitCodes2["SUCCESS"] = 0] = "SUCCESS";
-      ExitCodes2[ExitCodes2["ERROR"] = 1] = "ERROR";
-      ExitCodes2[ExitCodes2["NOT_FOUND"] = -2] = "NOT_FOUND";
-      ExitCodes2[ExitCodes2["UNCLEAN"] = 128] = "UNCLEAN";
-      return ExitCodes2;
-    })(ExitCodes || {});
-  }
-});
-var GitOutputStreams;
-var init_git_output_streams = __esm2({
-  "src/lib/utils/git-output-streams.ts"() {
-    "use strict";
-    GitOutputStreams = class _GitOutputStreams {
-      constructor(stdOut, stdErr) {
-        this.stdOut = stdOut;
-        this.stdErr = stdErr;
-      }
-      asStrings() {
-        return new _GitOutputStreams(this.stdOut.toString("utf8"), this.stdErr.toString("utf8"));
-      }
-    };
-  }
-});
-function useMatchesDefault() {
-  throw new Error(`LineParser:useMatches not implemented`);
-}
-var LineParser;
-var RemoteLineParser;
-var init_line_parser = __esm2({
-  "src/lib/utils/line-parser.ts"() {
-    "use strict";
-    LineParser = class {
-      constructor(regExp, useMatches) {
-        this.matches = [];
-        this.useMatches = useMatchesDefault;
-        this.parse = (line, target) => {
-          this.resetMatches();
-          if (!this._regExp.every((reg, index) => this.addMatch(reg, index, line(index)))) {
-            return false;
-          }
-          return this.useMatches(target, this.prepareMatches()) !== false;
-        };
-        this._regExp = Array.isArray(regExp) ? regExp : [regExp];
-        if (useMatches) {
-          this.useMatches = useMatches;
-        }
-      }
-      resetMatches() {
-        this.matches.length = 0;
-      }
-      prepareMatches() {
-        return this.matches;
-      }
-      addMatch(reg, index, line) {
-        const matched = line && reg.exec(line);
-        if (matched) {
-          this.pushMatch(index, matched);
-        }
-        return !!matched;
-      }
-      pushMatch(_index, matched) {
-        this.matches.push(...matched.slice(1));
-      }
-    };
-    RemoteLineParser = class extends LineParser {
-      addMatch(reg, index, line) {
-        return /^remote:\s/.test(String(line)) && super.addMatch(reg, index, line);
-      }
-      pushMatch(index, matched) {
-        if (index > 0 || matched.length > 1) {
-          super.pushMatch(index, matched);
-        }
-      }
-    };
-  }
-});
-function createInstanceConfig(...options) {
-  const baseDir = process.cwd();
-  const config2 = Object.assign(
-    { baseDir, ...defaultOptions2 },
-    ...options.filter((o2) => typeof o2 === "object" && o2)
-  );
-  config2.baseDir = config2.baseDir || baseDir;
-  config2.trimmed = config2.trimmed === true;
-  return config2;
-}
-var defaultOptions2;
-var init_simple_git_options = __esm2({
-  "src/lib/utils/simple-git-options.ts"() {
-    "use strict";
-    defaultOptions2 = {
-      binary: "git",
-      maxConcurrentProcesses: 5,
-      config: [],
-      trimmed: false
-    };
-  }
-});
-function appendTaskOptions(options, commands = []) {
-  if (!filterPlainObject(options)) {
-    return commands;
-  }
-  return Object.keys(options).reduce((commands2, key) => {
-    const value = options[key];
-    if (r(value)) {
-      commands2.push(value);
-    } else if (filterPrimitives(value, ["boolean"])) {
-      commands2.push(key + "=" + value);
-    } else if (Array.isArray(value)) {
-      for (const v of value) {
-        if (!filterPrimitives(v, ["string", "number"])) {
-          commands2.push(key + "=" + v);
-        }
-      }
-    } else {
-      commands2.push(key);
-    }
-    return commands2;
-  }, commands);
-}
-function getTrailingOptions(args, initialPrimitive = 0, objectOnly = false) {
-  const command = [];
-  for (let i2 = 0, max = initialPrimitive < 0 ? args.length : initialPrimitive; i2 < max; i2++) {
-    if ("string|number".includes(typeof args[i2])) {
-      command.push(String(args[i2]));
-    }
-  }
-  appendTaskOptions(trailingOptionsArgument(args), command);
-  if (!objectOnly) {
-    command.push(...trailingArrayArgument(args));
-  }
-  return command;
-}
-function trailingArrayArgument(args) {
-  const hasTrailingCallback = typeof last(args) === "function";
-  return asStringArray(filterType(last(args, hasTrailingCallback ? 1 : 0), filterArray, []));
-}
-function trailingOptionsArgument(args) {
-  const hasTrailingCallback = filterFunction(last(args));
-  return filterType(last(args, hasTrailingCallback ? 1 : 0), filterPlainObject);
-}
-function trailingFunctionArgument(args, includeNoop = true) {
-  const callback = asFunction(last(args));
-  return includeNoop || isUserFunction(callback) ? callback : void 0;
-}
-var init_task_options = __esm2({
-  "src/lib/utils/task-options.ts"() {
-    "use strict";
-    init_argument_filters();
-    init_util();
-  }
-});
-function callTaskParser(parser4, streams) {
-  return parser4(streams.stdOut, streams.stdErr);
-}
-function parseStringResponse(result, parsers12, texts, trim = true) {
-  asArray(texts).forEach((text) => {
-    for (let lines = toLinesWithContent(text, trim), i2 = 0, max = lines.length; i2 < max; i2++) {
-      const line = (offset = 0) => {
-        if (i2 + offset >= max) {
-          return;
-        }
-        return lines[i2 + offset];
-      };
-      parsers12.some(({ parse: parse3 }) => parse3(line, result));
-    }
-  });
-  return result;
-}
-var init_task_parser = __esm2({
-  "src/lib/utils/task-parser.ts"() {
-    "use strict";
-    init_util();
-  }
-});
-var utils_exports = {};
-__export2(utils_exports, {
-  ExitCodes: () => ExitCodes,
-  GitOutputStreams: () => GitOutputStreams,
-  LineParser: () => LineParser,
-  NOOP: () => NOOP,
-  NULL: () => NULL,
-  RemoteLineParser: () => RemoteLineParser,
-  append: () => append,
-  appendTaskOptions: () => appendTaskOptions,
-  asArray: () => asArray,
-  asCamelCase: () => asCamelCase,
-  asFunction: () => asFunction,
-  asNumber: () => asNumber,
-  asStringArray: () => asStringArray,
-  bufferToString: () => bufferToString,
-  callTaskParser: () => callTaskParser,
-  createInstanceConfig: () => createInstanceConfig,
-  delay: () => delay,
-  filterArray: () => filterArray,
-  filterFunction: () => filterFunction,
-  filterHasLength: () => filterHasLength,
-  filterNumber: () => filterNumber,
-  filterPlainObject: () => filterPlainObject,
-  filterPrimitives: () => filterPrimitives,
-  filterString: () => filterString,
-  filterStringOrStringArray: () => filterStringOrStringArray,
-  filterType: () => filterType,
-  first: () => first,
-  folderExists: () => folderExists,
-  forEachLineWithContent: () => forEachLineWithContent,
-  getTrailingOptions: () => getTrailingOptions,
-  including: () => including,
-  isUserFunction: () => isUserFunction,
-  last: () => last,
-  objectToString: () => objectToString,
-  orVoid: () => orVoid,
-  parseStringResponse: () => parseStringResponse,
-  pick: () => pick2,
-  prefixedArray: () => prefixedArray,
-  remove: () => remove,
-  splitOn: () => splitOn,
-  toLinesWithContent: () => toLinesWithContent,
-  trailingFunctionArgument: () => trailingFunctionArgument,
-  trailingOptionsArgument: () => trailingOptionsArgument
-});
-var init_utils = __esm2({
-  "src/lib/utils/index.ts"() {
-    "use strict";
-    init_argument_filters();
-    init_exit_codes();
-    init_git_output_streams();
-    init_line_parser();
-    init_simple_git_options();
-    init_task_options();
-    init_task_parser();
-    init_util();
-  }
-});
-var check_is_repo_exports = {};
-__export2(check_is_repo_exports, {
-  CheckRepoActions: () => CheckRepoActions,
-  checkIsBareRepoTask: () => checkIsBareRepoTask,
-  checkIsRepoRootTask: () => checkIsRepoRootTask,
-  checkIsRepoTask: () => checkIsRepoTask
-});
-function checkIsRepoTask(action) {
-  switch (action) {
-    case "bare":
-      return checkIsBareRepoTask();
-    case "root":
-      return checkIsRepoRootTask();
-  }
-  const commands = ["rev-parse", "--is-inside-work-tree"];
-  return {
-    commands,
-    format: "utf-8",
-    onError,
-    parser
-  };
-}
-function checkIsRepoRootTask() {
-  const commands = ["rev-parse", "--git-dir"];
-  return {
-    commands,
-    format: "utf-8",
-    onError,
-    parser(path12) {
-      return /^\.(git)?$/.test(path12.trim());
-    }
-  };
-}
-function checkIsBareRepoTask() {
-  const commands = ["rev-parse", "--is-bare-repository"];
-  return {
-    commands,
-    format: "utf-8",
-    onError,
-    parser
-  };
-}
-function isNotRepoMessage(error2) {
-  return /(Not a git repository|Kein Git-Repository)/i.test(String(error2));
-}
-var CheckRepoActions;
-var onError;
-var parser;
-var init_check_is_repo = __esm2({
-  "src/lib/tasks/check-is-repo.ts"() {
-    "use strict";
-    init_utils();
-    CheckRepoActions = /* @__PURE__ */ ((CheckRepoActions2) => {
-      CheckRepoActions2["BARE"] = "bare";
-      CheckRepoActions2["IN_TREE"] = "tree";
-      CheckRepoActions2["IS_REPO_ROOT"] = "root";
-      return CheckRepoActions2;
-    })(CheckRepoActions || {});
-    onError = ({ exitCode }, error2, done, fail) => {
-      if (exitCode === 128 && isNotRepoMessage(error2)) {
-        return done(Buffer.from("false"));
-      }
-      fail(error2);
-    };
-    parser = (text) => {
-      return text.trim() === "true";
-    };
-  }
-});
-function cleanSummaryParser(dryRun, text) {
-  const summary = new CleanResponse(dryRun);
-  const regexp = dryRun ? dryRunRemovalRegexp : removalRegexp;
-  toLinesWithContent(text).forEach((line) => {
-    const removed = line.replace(regexp, "");
-    summary.paths.push(removed);
-    (isFolderRegexp.test(removed) ? summary.folders : summary.files).push(removed);
-  });
-  return summary;
-}
-var CleanResponse;
-var removalRegexp;
-var dryRunRemovalRegexp;
-var isFolderRegexp;
-var init_CleanSummary = __esm2({
-  "src/lib/responses/CleanSummary.ts"() {
-    "use strict";
-    init_utils();
-    CleanResponse = class {
-      constructor(dryRun) {
-        this.dryRun = dryRun;
-        this.paths = [];
-        this.files = [];
-        this.folders = [];
-      }
-    };
-    removalRegexp = /^[a-z]+\s*/i;
-    dryRunRemovalRegexp = /^[a-z]+\s+[a-z]+\s*/i;
-    isFolderRegexp = /\/$/;
-  }
-});
-var task_exports = {};
-__export2(task_exports, {
-  EMPTY_COMMANDS: () => EMPTY_COMMANDS,
-  adhocExecTask: () => adhocExecTask,
-  configurationErrorTask: () => configurationErrorTask,
-  isBufferTask: () => isBufferTask,
-  isEmptyTask: () => isEmptyTask,
-  straightThroughBufferTask: () => straightThroughBufferTask,
-  straightThroughStringTask: () => straightThroughStringTask
-});
-function adhocExecTask(parser4) {
-  return {
-    commands: EMPTY_COMMANDS,
-    format: "empty",
-    parser: parser4
-  };
-}
-function configurationErrorTask(error2) {
-  return {
-    commands: EMPTY_COMMANDS,
-    format: "empty",
-    parser() {
-      throw typeof error2 === "string" ? new TaskConfigurationError(error2) : error2;
-    }
-  };
-}
-function straightThroughStringTask(commands, trimmed2 = false) {
-  return {
-    commands,
-    format: "utf-8",
-    parser(text) {
-      return trimmed2 ? String(text).trim() : text;
-    }
-  };
-}
-function straightThroughBufferTask(commands) {
-  return {
-    commands,
-    format: "buffer",
-    parser(buffer) {
-      return buffer;
-    }
-  };
-}
-function isBufferTask(task) {
-  return task.format === "buffer";
-}
-function isEmptyTask(task) {
-  return task.format === "empty" || !task.commands.length;
-}
-var EMPTY_COMMANDS;
-var init_task = __esm2({
-  "src/lib/tasks/task.ts"() {
-    "use strict";
-    init_task_configuration_error();
-    EMPTY_COMMANDS = [];
-  }
-});
-var clean_exports = {};
-__export2(clean_exports, {
-  CONFIG_ERROR_INTERACTIVE_MODE: () => CONFIG_ERROR_INTERACTIVE_MODE,
-  CONFIG_ERROR_MODE_REQUIRED: () => CONFIG_ERROR_MODE_REQUIRED,
-  CONFIG_ERROR_UNKNOWN_OPTION: () => CONFIG_ERROR_UNKNOWN_OPTION,
-  CleanOptions: () => CleanOptions,
-  cleanTask: () => cleanTask,
-  cleanWithOptionsTask: () => cleanWithOptionsTask,
-  isCleanOptionsArray: () => isCleanOptionsArray
-});
-function cleanWithOptionsTask(mode, customArgs) {
-  const { cleanMode, options, valid } = getCleanOptions(mode);
-  if (!cleanMode) {
-    return configurationErrorTask(CONFIG_ERROR_MODE_REQUIRED);
-  }
-  if (!valid.options) {
-    return configurationErrorTask(CONFIG_ERROR_UNKNOWN_OPTION + JSON.stringify(mode));
-  }
-  options.push(...customArgs);
-  if (options.some(isInteractiveMode)) {
-    return configurationErrorTask(CONFIG_ERROR_INTERACTIVE_MODE);
-  }
-  return cleanTask(cleanMode, options);
-}
-function cleanTask(mode, customArgs) {
-  const commands = ["clean", `-${mode}`, ...customArgs];
-  return {
-    commands,
-    format: "utf-8",
-    parser(text) {
-      return cleanSummaryParser(mode === "n", text);
-    }
-  };
-}
-function isCleanOptionsArray(input) {
-  return Array.isArray(input) && input.every((test) => CleanOptionValues.has(test));
-}
-function getCleanOptions(input) {
-  let cleanMode;
-  let options = [];
-  let valid = { cleanMode: false, options: true };
-  input.replace(/[^a-z]i/g, "").split("").forEach((char) => {
-    if (isCleanMode(char)) {
-      cleanMode = char;
-      valid.cleanMode = true;
-    } else {
-      valid.options = valid.options && isKnownOption(options[options.length] = `-${char}`);
-    }
-  });
-  return {
-    cleanMode,
-    options,
-    valid
-  };
-}
-function isCleanMode(cleanMode) {
-  return cleanMode === "f" || cleanMode === "n";
-}
-function isKnownOption(option) {
-  return /^-[a-z]$/i.test(option) && CleanOptionValues.has(option.charAt(1));
-}
-function isInteractiveMode(option) {
-  if (/^-[^\-]/.test(option)) {
-    return option.indexOf("i") > 0;
-  }
-  return option === "--interactive";
-}
-var CONFIG_ERROR_INTERACTIVE_MODE;
-var CONFIG_ERROR_MODE_REQUIRED;
-var CONFIG_ERROR_UNKNOWN_OPTION;
-var CleanOptions;
-var CleanOptionValues;
-var init_clean = __esm2({
-  "src/lib/tasks/clean.ts"() {
-    "use strict";
-    init_CleanSummary();
-    init_utils();
-    init_task();
-    CONFIG_ERROR_INTERACTIVE_MODE = "Git clean interactive mode is not supported";
-    CONFIG_ERROR_MODE_REQUIRED = 'Git clean mode parameter ("n" or "f") is required';
-    CONFIG_ERROR_UNKNOWN_OPTION = "Git clean unknown option found in: ";
-    CleanOptions = /* @__PURE__ */ ((CleanOptions2) => {
-      CleanOptions2["DRY_RUN"] = "n";
-      CleanOptions2["FORCE"] = "f";
-      CleanOptions2["IGNORED_INCLUDED"] = "x";
-      CleanOptions2["IGNORED_ONLY"] = "X";
-      CleanOptions2["EXCLUDING"] = "e";
-      CleanOptions2["QUIET"] = "q";
-      CleanOptions2["RECURSIVE"] = "d";
-      return CleanOptions2;
-    })(CleanOptions || {});
-    CleanOptionValues = /* @__PURE__ */ new Set([
-      "i",
-      ...asStringArray(Object.values(CleanOptions))
-    ]);
-  }
-});
-function configListParser(text) {
-  const config2 = new ConfigList();
-  for (const item of configParser(text)) {
-    config2.addValue(item.file, String(item.key), item.value);
-  }
-  return config2;
-}
-function configGetParser(text, key) {
-  let value = null;
-  const values = [];
-  const scopes = /* @__PURE__ */ new Map();
-  for (const item of configParser(text, key)) {
-    if (item.key !== key) {
-      continue;
-    }
-    values.push(value = item.value);
-    if (!scopes.has(item.file)) {
-      scopes.set(item.file, []);
-    }
-    scopes.get(item.file).push(value);
-  }
-  return {
-    key,
-    paths: Array.from(scopes.keys()),
-    scopes,
-    value,
-    values
-  };
-}
-function configFilePath(filePath) {
-  return filePath.replace(/^(file):/, "");
-}
-function* configParser(text, requestedKey = null) {
-  const lines = text.split("\0");
-  for (let i2 = 0, max = lines.length - 1; i2 < max; ) {
-    const file = configFilePath(lines[i2++]);
-    let value = lines[i2++];
-    let key = requestedKey;
-    if (value.includes("\n")) {
-      const line = splitOn(value, "\n");
-      key = line[0];
-      value = line[1];
-    }
-    yield { file, key, value };
-  }
-}
-var ConfigList;
-var init_ConfigList = __esm2({
-  "src/lib/responses/ConfigList.ts"() {
-    "use strict";
-    init_utils();
-    ConfigList = class {
-      constructor() {
-        this.files = [];
-        this.values = /* @__PURE__ */ Object.create(null);
-      }
-      get all() {
-        if (!this._all) {
-          this._all = this.files.reduce((all, file) => {
-            return Object.assign(all, this.values[file]);
-          }, {});
-        }
-        return this._all;
-      }
-      addFile(file) {
-        if (!(file in this.values)) {
-          const latest = last(this.files);
-          this.values[file] = latest ? Object.create(this.values[latest]) : {};
-          this.files.push(file);
-        }
-        return this.values[file];
-      }
-      addValue(file, key, value) {
-        const values = this.addFile(file);
-        if (!Object.hasOwn(values, key)) {
-          values[key] = value;
-        } else if (Array.isArray(values[key])) {
-          values[key].push(value);
-        } else {
-          values[key] = [values[key], value];
-        }
-        this._all = void 0;
-      }
-    };
-  }
-});
-function asConfigScope(scope, fallback) {
-  if (typeof scope === "string" && Object.hasOwn(GitConfigScope, scope)) {
-    return scope;
-  }
-  return fallback;
-}
-function addConfigTask(key, value, append2, scope) {
-  const commands = ["config", `--${scope}`];
-  if (append2) {
-    commands.push("--add");
-  }
-  commands.push(key, value);
-  return {
-    commands,
-    format: "utf-8",
-    parser(text) {
-      return text;
-    }
-  };
-}
-function getConfigTask(key, scope) {
-  const commands = ["config", "--null", "--show-origin", "--get-all", key];
-  if (scope) {
-    commands.splice(1, 0, `--${scope}`);
-  }
-  return {
-    commands,
-    format: "utf-8",
-    parser(text) {
-      return configGetParser(text, key);
-    }
-  };
-}
-function listConfigTask(scope) {
-  const commands = ["config", "--list", "--show-origin", "--null"];
-  if (scope) {
-    commands.push(`--${scope}`);
-  }
-  return {
-    commands,
-    format: "utf-8",
-    parser(text) {
-      return configListParser(text);
-    }
-  };
-}
-function config_default() {
-  return {
-    addConfig(key, value, ...rest) {
-      return this._runTask(
-        addConfigTask(
-          key,
-          value,
-          rest[0] === true,
-          asConfigScope(
-            rest[1],
-            "local"
-            /* local */
-          )
-        ),
-        trailingFunctionArgument(arguments)
-      );
-    },
-    getConfig(key, scope) {
-      return this._runTask(
-        getConfigTask(key, asConfigScope(scope, void 0)),
-        trailingFunctionArgument(arguments)
-      );
-    },
-    listConfig(...rest) {
-      return this._runTask(
-        listConfigTask(asConfigScope(rest[0], void 0)),
-        trailingFunctionArgument(arguments)
-      );
-    }
-  };
-}
-var GitConfigScope;
-var init_config = __esm2({
-  "src/lib/tasks/config.ts"() {
-    "use strict";
-    init_ConfigList();
-    init_utils();
-    GitConfigScope = /* @__PURE__ */ ((GitConfigScope2) => {
-      GitConfigScope2["system"] = "system";
-      GitConfigScope2["global"] = "global";
-      GitConfigScope2["local"] = "local";
-      GitConfigScope2["worktree"] = "worktree";
-      return GitConfigScope2;
-    })(GitConfigScope || {});
-  }
-});
-function isDiffNameStatus(input) {
-  return diffNameStatus.has(input);
-}
-var DiffNameStatus;
-var diffNameStatus;
-var init_diff_name_status = __esm2({
-  "src/lib/tasks/diff-name-status.ts"() {
-    "use strict";
-    DiffNameStatus = /* @__PURE__ */ ((DiffNameStatus2) => {
-      DiffNameStatus2["ADDED"] = "A";
-      DiffNameStatus2["COPIED"] = "C";
-      DiffNameStatus2["DELETED"] = "D";
-      DiffNameStatus2["MODIFIED"] = "M";
-      DiffNameStatus2["RENAMED"] = "R";
-      DiffNameStatus2["CHANGED"] = "T";
-      DiffNameStatus2["UNMERGED"] = "U";
-      DiffNameStatus2["UNKNOWN"] = "X";
-      DiffNameStatus2["BROKEN"] = "B";
-      return DiffNameStatus2;
-    })(DiffNameStatus || {});
-    diffNameStatus = new Set(Object.values(DiffNameStatus));
-  }
-});
-function grepQueryBuilder(...params) {
-  return new GrepQuery().param(...params);
-}
-function parseGrep(grep) {
-  const paths = /* @__PURE__ */ new Set();
-  const results = {};
-  forEachLineWithContent(grep, (input) => {
-    const [path12, line, preview] = input.split(NULL);
-    paths.add(path12);
-    (results[path12] = results[path12] || []).push({
-      line: asNumber(line),
-      path: path12,
-      preview
-    });
-  });
-  return {
-    paths,
-    results
-  };
-}
-function grep_default() {
-  return {
-    grep(searchTerm) {
-      const then = trailingFunctionArgument(arguments);
-      const options = getTrailingOptions(arguments);
-      for (const option of disallowedOptions) {
-        if (options.includes(option)) {
-          return this._runTask(
-            configurationErrorTask(`git.grep: use of "${option}" is not supported.`),
-            then
-          );
-        }
-      }
-      if (typeof searchTerm === "string") {
-        searchTerm = grepQueryBuilder().param(searchTerm);
-      }
-      const commands = ["grep", "--null", "-n", "--full-name", ...options, ...searchTerm];
-      return this._runTask(
-        {
-          commands,
-          format: "utf-8",
-          parser(stdOut) {
-            return parseGrep(stdOut);
-          }
-        },
-        then
-      );
-    }
-  };
-}
-var disallowedOptions;
-var Query;
-var _a2;
-var GrepQuery;
-var init_grep = __esm2({
-  "src/lib/tasks/grep.ts"() {
-    "use strict";
-    init_utils();
-    init_task();
-    disallowedOptions = ["-h"];
-    Query = Symbol("grepQuery");
-    GrepQuery = class {
-      constructor() {
-        this[_a2] = [];
-      }
-      *[(_a2 = Query, Symbol.iterator)]() {
-        for (const query of this[Query]) {
-          yield query;
-        }
-      }
-      and(...and) {
-        and.length && this[Query].push("--and", "(", ...prefixedArray(and, "-e"), ")");
-        return this;
-      }
-      param(...param) {
-        this[Query].push(...prefixedArray(param, "-e"));
-        return this;
-      }
-    };
-  }
-});
-var reset_exports = {};
-__export2(reset_exports, {
-  ResetMode: () => ResetMode,
-  getResetMode: () => getResetMode,
-  resetTask: () => resetTask
-});
-function resetTask(mode, customArgs) {
-  const commands = ["reset"];
-  if (isValidResetMode(mode)) {
-    commands.push(`--${mode}`);
-  }
-  commands.push(...customArgs);
-  return straightThroughStringTask(commands);
-}
-function getResetMode(mode) {
-  if (isValidResetMode(mode)) {
-    return mode;
-  }
-  switch (typeof mode) {
-    case "string":
-    case "undefined":
-      return "soft";
-  }
-  return;
-}
-function isValidResetMode(mode) {
-  return typeof mode === "string" && validResetModes.includes(mode);
-}
-var ResetMode;
-var validResetModes;
-var init_reset = __esm2({
-  "src/lib/tasks/reset.ts"() {
-    "use strict";
-    init_utils();
-    init_task();
-    ResetMode = /* @__PURE__ */ ((ResetMode2) => {
-      ResetMode2["MIXED"] = "mixed";
-      ResetMode2["SOFT"] = "soft";
-      ResetMode2["HARD"] = "hard";
-      ResetMode2["MERGE"] = "merge";
-      ResetMode2["KEEP"] = "keep";
-      return ResetMode2;
-    })(ResetMode || {});
-    validResetModes = asStringArray(Object.values(ResetMode));
-  }
-});
-function createLog() {
-  return (0, import_debug.default)("simple-git");
-}
-function prefixedLogger(to, prefix, forward) {
-  if (!prefix || !String(prefix).replace(/\s*/, "")) {
-    return !forward ? to : (message, ...args) => {
-      to(message, ...args);
-      forward(message, ...args);
-    };
-  }
-  return (message, ...args) => {
-    to(`%s ${message}`, prefix, ...args);
-    if (forward) {
-      forward(message, ...args);
-    }
-  };
-}
-function childLoggerName(name, childDebugger, { namespace: parentNamespace }) {
-  if (typeof name === "string") {
-    return name;
-  }
-  const childNamespace = childDebugger && childDebugger.namespace || "";
-  if (childNamespace.startsWith(parentNamespace)) {
-    return childNamespace.substr(parentNamespace.length + 1);
-  }
-  return childNamespace || parentNamespace;
-}
-function createLogger(label, verbose, initialStep, infoDebugger = createLog()) {
-  const labelPrefix = label && `[${label}]` || "";
-  const spawned = [];
-  const debugDebugger = typeof verbose === "string" ? infoDebugger.extend(verbose) : verbose;
-  const key = childLoggerName(filterType(verbose, filterString), debugDebugger, infoDebugger);
-  return step(initialStep);
-  function sibling(name, initial) {
-    return append(
-      spawned,
-      createLogger(label, key.replace(/^[^:]+/, name), initial, infoDebugger)
-    );
-  }
-  function step(phase) {
-    const stepPrefix = phase && `[${phase}]` || "";
-    const debug2 = debugDebugger && prefixedLogger(debugDebugger, stepPrefix) || NOOP;
-    const info = prefixedLogger(infoDebugger, `${labelPrefix} ${stepPrefix}`, debug2);
-    return Object.assign(debugDebugger ? debug2 : info, {
-      label,
-      sibling,
-      info,
-      step
-    });
-  }
-}
-var init_git_logger = __esm2({
-  "src/lib/git-logger.ts"() {
-    "use strict";
-    init_utils();
-    import_debug.default.formatters.L = (value) => String(filterHasLength(value) ? value.length : "-");
-    import_debug.default.formatters.B = (value) => {
-      if (Buffer.isBuffer(value)) {
-        return value.toString("utf8");
-      }
-      return objectToString(value);
-    };
-  }
-});
-var TasksPendingQueue;
-var init_tasks_pending_queue = __esm2({
-  "src/lib/runners/tasks-pending-queue.ts"() {
-    "use strict";
-    init_git_error();
-    init_git_logger();
-    TasksPendingQueue = class _TasksPendingQueue {
-      constructor(logLabel = "GitExecutor") {
-        this.logLabel = logLabel;
-        this._queue = /* @__PURE__ */ new Map();
-      }
-      withProgress(task) {
-        return this._queue.get(task);
-      }
-      createProgress(task) {
-        const name = _TasksPendingQueue.getName(task.commands[0]);
-        const logger = createLogger(this.logLabel, name);
-        return {
-          task,
-          logger,
-          name
-        };
-      }
-      push(task) {
-        const progress = this.createProgress(task);
-        progress.logger("Adding task to the queue, commands = %o", task.commands);
-        this._queue.set(task, progress);
-        return progress;
-      }
-      fatal(err) {
-        for (const [task, { logger }] of Array.from(this._queue.entries())) {
-          if (task === err.task) {
-            logger.info(`Failed %o`, err);
-            logger(
-              `Fatal exception, any as-yet un-started tasks run through this executor will not be attempted`
-            );
-          } else {
-            logger.info(
-              `A fatal exception occurred in a previous task, the queue has been purged: %o`,
-              err.message
-            );
-          }
-          this.complete(task);
-        }
-        if (this._queue.size !== 0) {
-          throw new Error(`Queue size should be zero after fatal: ${this._queue.size}`);
-        }
-      }
-      complete(task) {
-        const progress = this.withProgress(task);
-        if (progress) {
-          this._queue.delete(task);
-        }
-      }
-      attempt(task) {
-        const progress = this.withProgress(task);
-        if (!progress) {
-          throw new GitError(void 0, "TasksPendingQueue: attempt called for an unknown task");
-        }
-        progress.logger("Starting task");
-        return progress;
-      }
-      static getName(name = "empty") {
-        return `task:${name}:${++_TasksPendingQueue.counter}`;
-      }
-      static {
-        this.counter = 0;
-      }
-    };
-  }
-});
-function pluginContext(task, commands) {
-  return {
-    method: first(task.commands) || "",
-    commands
-  };
-}
-function onErrorReceived(target, logger) {
-  return (err) => {
-    logger(`[ERROR] child process exception %o`, err);
-    target.push(Buffer.from(String(err.stack), "ascii"));
-  };
-}
-function onDataReceived(target, name, logger, output) {
-  return (buffer) => {
-    logger(`%s received %L bytes`, name, buffer);
-    output(`%B`, buffer);
-    target.push(buffer);
-  };
-}
-var GitExecutorChain;
-var init_git_executor_chain = __esm2({
-  "src/lib/runners/git-executor-chain.ts"() {
-    "use strict";
-    init_git_error();
-    init_task();
-    init_utils();
-    init_tasks_pending_queue();
-    GitExecutorChain = class {
-      constructor(_executor, _scheduler, _plugins) {
-        this._executor = _executor;
-        this._scheduler = _scheduler;
-        this._plugins = _plugins;
-        this._chain = Promise.resolve();
-        this._queue = new TasksPendingQueue();
-      }
-      get cwd() {
-        return this._cwd || this._executor.cwd;
-      }
-      set cwd(cwd) {
-        this._cwd = cwd;
-      }
-      get env() {
-        return this._executor.env;
-      }
-      get outputHandler() {
-        return this._executor.outputHandler;
-      }
-      chain() {
-        return this;
-      }
-      push(task) {
-        this._queue.push(task);
-        return this._chain = this._chain.then(() => this.attemptTask(task));
-      }
-      async attemptTask(task) {
-        const onScheduleComplete = await this._scheduler.next();
-        const onQueueComplete = () => this._queue.complete(task);
-        try {
-          const { logger } = this._queue.attempt(task);
-          return await (isEmptyTask(task) ? this.attemptEmptyTask(task, logger) : this.attemptRemoteTask(task, logger));
-        } catch (e) {
-          throw this.onFatalException(task, e);
-        } finally {
-          onQueueComplete();
-          onScheduleComplete();
-        }
-      }
-      onFatalException(task, e) {
-        const gitError = e instanceof GitError ? Object.assign(e, { task }) : new GitError(task, e && String(e));
-        this._chain = Promise.resolve();
-        this._queue.fatal(gitError);
-        return gitError;
-      }
-      async attemptRemoteTask(task, logger) {
-        const binary = this._plugins.exec("spawn.binary", "", pluginContext(task, task.commands));
-        const args = this._plugins.exec("spawn.args", [...task.commands], {
-          ...pluginContext(task, task.commands),
-          env: { ...this.env }
-        });
-        const raw = await this.gitResponse(
-          task,
-          binary,
-          args,
-          this.outputHandler,
-          logger.step("SPAWN")
-        );
-        const outputStreams = await this.handleTaskData(task, args, raw, logger.step("HANDLE"));
-        logger(`passing response to task's parser as a %s`, task.format);
-        if (isBufferTask(task)) {
-          return callTaskParser(task.parser, outputStreams);
-        }
-        return callTaskParser(task.parser, outputStreams.asStrings());
-      }
-      async attemptEmptyTask(task, logger) {
-        logger(`empty task bypassing child process to call to task's parser`);
-        return task.parser(this);
-      }
-      handleTaskData(task, args, result, logger) {
-        const { exitCode, rejection, stdOut, stdErr } = result;
-        return new Promise((done, fail) => {
-          logger(`Preparing to handle process response exitCode=%d stdOut=`, exitCode);
-          const { error: error2 } = this._plugins.exec(
-            "task.error",
-            { error: rejection },
-            {
-              ...pluginContext(task, args),
-              ...result
-            }
-          );
-          if (error2 && task.onError) {
-            logger.info(`exitCode=%s handling with custom error handler`);
-            return task.onError(
-              result,
-              error2,
-              (newStdOut) => {
-                logger.info(`custom error handler treated as success`);
-                logger(`custom error returned a %s`, objectToString(newStdOut));
-                done(
-                  new GitOutputStreams(
-                    Array.isArray(newStdOut) ? Buffer.concat(newStdOut) : newStdOut,
-                    Buffer.concat(stdErr)
-                  )
-                );
-              },
-              fail
-            );
-          }
-          if (error2) {
-            logger.info(
-              `handling as error: exitCode=%s stdErr=%s rejection=%o`,
-              exitCode,
-              stdErr.length,
-              rejection
-            );
-            return fail(error2);
-          }
-          logger.info(`retrieving task output complete`);
-          done(new GitOutputStreams(Buffer.concat(stdOut), Buffer.concat(stdErr)));
-        });
-      }
-      async gitResponse(task, command, args, outputHandler, logger) {
-        const outputLogger = logger.sibling("output");
-        const spawnOptions = this._plugins.exec(
-          "spawn.options",
-          {
-            cwd: this.cwd,
-            env: this.env,
-            windowsHide: true
-          },
-          pluginContext(task, task.commands)
-        );
-        return new Promise((done) => {
-          const stdOut = [];
-          const stdErr = [];
-          logger.info(`%s %o`, command, args);
-          logger("%O", spawnOptions);
-          let rejection = this._beforeSpawn(task, args);
-          if (rejection) {
-            return done({
-              stdOut,
-              stdErr,
-              exitCode: 9901,
-              rejection
-            });
-          }
-          this._plugins.exec("spawn.before", void 0, {
-            ...pluginContext(task, args),
-            kill(reason) {
-              rejection = reason || rejection;
-            }
-          });
-          const spawned = (0, import_child_process.spawn)(command, args, spawnOptions);
-          spawned.stdout.on(
-            "data",
-            onDataReceived(stdOut, "stdOut", logger, outputLogger.step("stdOut"))
-          );
-          spawned.stderr.on(
-            "data",
-            onDataReceived(stdErr, "stdErr", logger, outputLogger.step("stdErr"))
-          );
-          spawned.on("error", onErrorReceived(stdErr, logger));
-          if (outputHandler) {
-            logger(`Passing child process stdOut/stdErr to custom outputHandler`);
-            outputHandler(command, spawned.stdout, spawned.stderr, [...args]);
-          }
-          this._plugins.exec("spawn.after", void 0, {
-            ...pluginContext(task, args),
-            spawned,
-            close(exitCode, reason) {
-              done({
-                stdOut,
-                stdErr,
-                exitCode,
-                rejection: rejection || reason
-              });
-            },
-            kill(reason) {
-              if (spawned.killed) {
-                return;
-              }
-              rejection = reason;
-              spawned.kill("SIGINT");
-            }
-          });
-        });
-      }
-      _beforeSpawn(task, args) {
-        let rejection;
-        this._plugins.exec("spawn.before", void 0, {
-          ...pluginContext(task, args),
-          kill(reason) {
-            rejection = reason || rejection;
-          }
-        });
-        return rejection;
-      }
-    };
-  }
-});
-var git_executor_exports = {};
-__export2(git_executor_exports, {
-  GitExecutor: () => GitExecutor
-});
-var GitExecutor;
-var init_git_executor = __esm2({
-  "src/lib/runners/git-executor.ts"() {
-    "use strict";
-    init_git_executor_chain();
-    GitExecutor = class {
-      constructor(cwd, _scheduler, _plugins) {
-        this.cwd = cwd;
-        this._scheduler = _scheduler;
-        this._plugins = _plugins;
-        this._chain = new GitExecutorChain(this, this._scheduler, this._plugins);
-      }
-      chain() {
-        return new GitExecutorChain(this, this._scheduler, this._plugins);
-      }
-      push(task) {
-        return this._chain.push(task);
-      }
-    };
-  }
-});
-function taskCallback(task, response, callback = NOOP) {
-  const onSuccess = (data) => {
-    callback(null, data);
-  };
-  const onError2 = (err) => {
-    if (err?.task === task) {
-      callback(
-        err instanceof GitResponseError ? addDeprecationNoticeToError(err) : err,
-        void 0
-      );
-    }
-  };
-  response.then(onSuccess, onError2);
-}
-function addDeprecationNoticeToError(err) {
-  let log2 = (name) => {
-    console.warn(
-      `simple-git deprecation notice: accessing GitResponseError.${name} should be GitResponseError.git.${name}, this will no longer be available in version 3`
-    );
-    log2 = NOOP;
-  };
-  return Object.create(err, Object.getOwnPropertyNames(err.git).reduce(descriptorReducer, {}));
-  function descriptorReducer(all, name) {
-    if (name in err) {
-      return all;
-    }
-    all[name] = {
-      enumerable: false,
-      configurable: false,
-      get() {
-        log2(name);
-        return err.git[name];
-      }
-    };
-    return all;
-  }
-}
-var init_task_callback = __esm2({
-  "src/lib/task-callback.ts"() {
-    "use strict";
-    init_git_response_error();
-    init_utils();
-  }
-});
-function changeWorkingDirectoryTask(directory, root) {
-  return adhocExecTask((instance) => {
-    if (!folderExists(directory)) {
-      throw new Error(`Git.cwd: cannot change to non-directory "${directory}"`);
-    }
-    return (root || instance).cwd = directory;
-  });
-}
-var init_change_working_directory = __esm2({
-  "src/lib/tasks/change-working-directory.ts"() {
-    "use strict";
-    init_utils();
-    init_task();
-  }
-});
-function checkoutTask(args) {
-  const commands = ["checkout", ...args];
-  if (commands[1] === "-b" && commands.includes("-B")) {
-    commands[1] = remove(commands, "-B");
-  }
-  return straightThroughStringTask(commands);
-}
-function checkout_default() {
-  return {
-    checkout() {
-      return this._runTask(
-        checkoutTask(getTrailingOptions(arguments, 1)),
-        trailingFunctionArgument(arguments)
-      );
-    },
-    checkoutBranch(branchName, startPoint) {
-      return this._runTask(
-        checkoutTask(["-b", branchName, startPoint, ...getTrailingOptions(arguments)]),
-        trailingFunctionArgument(arguments)
-      );
-    },
-    checkoutLocalBranch(branchName) {
-      return this._runTask(
-        checkoutTask(["-b", branchName, ...getTrailingOptions(arguments)]),
-        trailingFunctionArgument(arguments)
-      );
-    }
-  };
-}
-var init_checkout = __esm2({
-  "src/lib/tasks/checkout.ts"() {
-    "use strict";
-    init_utils();
-    init_task();
-  }
-});
-function countObjectsResponse() {
-  return {
-    count: 0,
-    garbage: 0,
-    inPack: 0,
-    packs: 0,
-    prunePackable: 0,
-    size: 0,
-    sizeGarbage: 0,
-    sizePack: 0
-  };
-}
-function count_objects_default() {
-  return {
-    countObjects() {
-      return this._runTask({
-        commands: ["count-objects", "--verbose"],
-        format: "utf-8",
-        parser(stdOut) {
-          return parseStringResponse(countObjectsResponse(), [parser2], stdOut);
-        }
-      });
-    }
-  };
-}
-var parser2;
-var init_count_objects = __esm2({
-  "src/lib/tasks/count-objects.ts"() {
-    "use strict";
-    init_utils();
-    parser2 = new LineParser(
-      /([a-z-]+): (\d+)$/,
-      (result, [key, value]) => {
-        const property = asCamelCase(key);
-        if (Object.hasOwn(result, property)) {
-          result[property] = asNumber(value);
-        }
-      }
-    );
-  }
-});
-function parseCommitResult(stdOut) {
-  const result = {
-    author: null,
-    branch: "",
-    commit: "",
-    root: false,
-    summary: {
-      changes: 0,
-      insertions: 0,
-      deletions: 0
-    }
-  };
-  return parseStringResponse(result, parsers, stdOut);
-}
-var parsers;
-var init_parse_commit = __esm2({
-  "src/lib/parsers/parse-commit.ts"() {
-    "use strict";
-    init_utils();
-    parsers = [
-      new LineParser(/^\[([^\s]+)( \([^)]+\))? ([^\]]+)/, (result, [branch, root, commit]) => {
-        result.branch = branch;
-        result.commit = commit;
-        result.root = !!root;
-      }),
-      new LineParser(/\s*Author:\s(.+)/i, (result, [author]) => {
-        const parts = author.split("<");
-        const email2 = parts.pop();
-        if (!email2 || !email2.includes("@")) {
-          return;
-        }
-        result.author = {
-          email: email2.substr(0, email2.length - 1),
-          name: parts.join("<").trim()
-        };
-      }),
-      new LineParser(
-        /(\d+)[^,]*(?:,\s*(\d+)[^,]*)(?:,\s*(\d+))/g,
-        (result, [changes, insertions, deletions]) => {
-          result.summary.changes = parseInt(changes, 10) || 0;
-          result.summary.insertions = parseInt(insertions, 10) || 0;
-          result.summary.deletions = parseInt(deletions, 10) || 0;
-        }
-      ),
-      new LineParser(
-        /^(\d+)[^,]*(?:,\s*(\d+)[^(]+\(([+-]))?/,
-        (result, [changes, lines, direction]) => {
-          result.summary.changes = parseInt(changes, 10) || 0;
-          const count = parseInt(lines, 10) || 0;
-          if (direction === "-") {
-            result.summary.deletions = count;
-          } else if (direction === "+") {
-            result.summary.insertions = count;
-          }
-        }
-      )
-    ];
-  }
-});
-function commitTask(message, files, customArgs) {
-  const commands = [
-    "-c",
-    "core.abbrev=40",
-    "commit",
-    ...prefixedArray(message, "-m"),
-    ...files,
-    ...customArgs
-  ];
-  return {
-    commands,
-    format: "utf-8",
-    parser: parseCommitResult
-  };
-}
-function commit_default() {
-  return {
-    commit(message, ...rest) {
-      const next = trailingFunctionArgument(arguments);
-      const task = rejectDeprecatedSignatures(message) || commitTask(
-        asArray(message),
-        asArray(filterType(rest[0], filterStringOrStringArray, [])),
-        [
-          ...asStringArray(filterType(rest[1], filterArray, [])),
-          ...getTrailingOptions(arguments, 0, true)
-        ]
-      );
-      return this._runTask(task, next);
-    }
-  };
-  function rejectDeprecatedSignatures(message) {
-    return !filterStringOrStringArray(message) && configurationErrorTask(
-      `git.commit: requires the commit message to be supplied as a string/string[]`
-    );
-  }
-}
-var init_commit = __esm2({
-  "src/lib/tasks/commit.ts"() {
-    "use strict";
-    init_parse_commit();
-    init_utils();
-    init_task();
-  }
-});
-function first_commit_default() {
-  return {
-    firstCommit() {
-      return this._runTask(
-        straightThroughStringTask(["rev-list", "--max-parents=0", "HEAD"], true),
-        trailingFunctionArgument(arguments)
-      );
-    }
-  };
-}
-var init_first_commit = __esm2({
-  "src/lib/tasks/first-commit.ts"() {
-    "use strict";
-    init_utils();
-    init_task();
-  }
-});
-function hashObjectTask(filePath, write) {
-  const commands = ["hash-object", filePath];
-  if (write) {
-    commands.push("-w");
-  }
-  return straightThroughStringTask(commands, true);
-}
-var init_hash_object = __esm2({
-  "src/lib/tasks/hash-object.ts"() {
-    "use strict";
-    init_task();
-  }
-});
-function parseInit(bare, path12, text) {
-  const response = String(text).trim();
-  let result;
-  if (result = initResponseRegex.exec(response)) {
-    return new InitSummary(bare, path12, false, result[1]);
-  }
-  if (result = reInitResponseRegex.exec(response)) {
-    return new InitSummary(bare, path12, true, result[1]);
-  }
-  let gitDir = "";
-  const tokens = response.split(" ");
-  while (tokens.length) {
-    const token = tokens.shift();
-    if (token === "in") {
-      gitDir = tokens.join(" ");
-      break;
-    }
-  }
-  return new InitSummary(bare, path12, /^re/i.test(response), gitDir);
-}
-var InitSummary;
-var initResponseRegex;
-var reInitResponseRegex;
-var init_InitSummary = __esm2({
-  "src/lib/responses/InitSummary.ts"() {
-    "use strict";
-    InitSummary = class {
-      constructor(bare, path12, existing, gitDir) {
-        this.bare = bare;
-        this.path = path12;
-        this.existing = existing;
-        this.gitDir = gitDir;
-      }
-    };
-    initResponseRegex = /^Init.+ repository in (.+)$/;
-    reInitResponseRegex = /^Rein.+ in (.+)$/;
-  }
-});
-function hasBareCommand(command) {
-  return command.includes(bareCommand);
-}
-function initTask(bare = false, path12, customArgs) {
-  const commands = ["init", ...customArgs];
-  if (bare && !hasBareCommand(commands)) {
-    commands.splice(1, 0, bareCommand);
-  }
-  return {
-    commands,
-    format: "utf-8",
-    parser(text) {
-      return parseInit(commands.includes("--bare"), path12, text);
-    }
-  };
-}
-var bareCommand;
-var init_init = __esm2({
-  "src/lib/tasks/init.ts"() {
-    "use strict";
-    init_InitSummary();
-    bareCommand = "--bare";
-  }
-});
-function logFormatFromCommand(customArgs) {
-  for (let i2 = 0; i2 < customArgs.length; i2++) {
-    const format = logFormatRegex.exec(customArgs[i2]);
-    if (format) {
-      return `--${format[1]}`;
-    }
-  }
-  return "";
-}
-function isLogFormat(customArg) {
-  return logFormatRegex.test(customArg);
-}
-var logFormatRegex;
-var init_log_format = __esm2({
-  "src/lib/args/log-format.ts"() {
-    "use strict";
-    logFormatRegex = /^--(stat|numstat|name-only|name-status)(=|$)/;
-  }
-});
-var DiffSummary;
-var init_DiffSummary = __esm2({
-  "src/lib/responses/DiffSummary.ts"() {
-    "use strict";
-    DiffSummary = class {
-      constructor() {
-        this.changed = 0;
-        this.deletions = 0;
-        this.insertions = 0;
-        this.files = [];
-      }
-    };
-  }
-});
-function getDiffParser(format = "") {
-  const parser4 = diffSummaryParsers[format];
-  return (stdOut) => parseStringResponse(new DiffSummary(), parser4, stdOut, false);
-}
-var statParser;
-var numStatParser;
-var nameOnlyParser;
-var nameStatusParser;
-var diffSummaryParsers;
-var init_parse_diff_summary = __esm2({
-  "src/lib/parsers/parse-diff-summary.ts"() {
-    "use strict";
-    init_log_format();
-    init_DiffSummary();
-    init_diff_name_status();
-    init_utils();
-    statParser = [
-      new LineParser(
-        /^(.+)\s+\|\s+(\d+)(\s+[+\-]+)?$/,
-        (result, [file, changes, alterations = ""]) => {
-          result.files.push({
-            file: file.trim(),
-            changes: asNumber(changes),
-            insertions: alterations.replace(/[^+]/g, "").length,
-            deletions: alterations.replace(/[^-]/g, "").length,
-            binary: false
-          });
-        }
-      ),
-      new LineParser(
-        /^(.+) \|\s+Bin ([0-9.]+) -> ([0-9.]+) ([a-z]+)/,
-        (result, [file, before, after]) => {
-          result.files.push({
-            file: file.trim(),
-            before: asNumber(before),
-            after: asNumber(after),
-            binary: true
-          });
-        }
-      ),
-      new LineParser(
-        /(\d+) files? changed\s*((?:, \d+ [^,]+){0,2})/,
-        (result, [changed, summary]) => {
-          const inserted = /(\d+) i/.exec(summary);
-          const deleted = /(\d+) d/.exec(summary);
-          result.changed = asNumber(changed);
-          result.insertions = asNumber(inserted?.[1]);
-          result.deletions = asNumber(deleted?.[1]);
-        }
-      )
-    ];
-    numStatParser = [
-      new LineParser(
-        /(\d+)\t(\d+)\t(.+)$/,
-        (result, [changesInsert, changesDelete, file]) => {
-          const insertions = asNumber(changesInsert);
-          const deletions = asNumber(changesDelete);
-          result.changed++;
-          result.insertions += insertions;
-          result.deletions += deletions;
-          result.files.push({
-            file,
-            changes: insertions + deletions,
-            insertions,
-            deletions,
-            binary: false
-          });
-        }
-      ),
-      new LineParser(/-\t-\t(.+)$/, (result, [file]) => {
-        result.changed++;
-        result.files.push({
-          file,
-          after: 0,
-          before: 0,
-          binary: true
-        });
-      })
-    ];
-    nameOnlyParser = [
-      new LineParser(/(.+)$/, (result, [file]) => {
-        result.changed++;
-        result.files.push({
-          file,
-          changes: 0,
-          insertions: 0,
-          deletions: 0,
-          binary: false
-        });
-      })
-    ];
-    nameStatusParser = [
-      new LineParser(
-        /([ACDMRTUXB])([0-9]{0,3})\t(.[^\t]*)(\t(.[^\t]*))?$/,
-        (result, [status, similarity, from, _to, to]) => {
-          result.changed++;
-          result.files.push({
-            file: to ?? from,
-            changes: 0,
-            insertions: 0,
-            deletions: 0,
-            binary: false,
-            status: orVoid(isDiffNameStatus(status) && status),
-            from: orVoid(!!to && from !== to && from),
-            similarity: asNumber(similarity)
-          });
-        }
-      )
-    ];
-    diffSummaryParsers = {
-      [
-        ""
-        /* NONE */
-      ]: statParser,
-      [
-        "--stat"
-        /* STAT */
-      ]: statParser,
-      [
-        "--numstat"
-        /* NUM_STAT */
-      ]: numStatParser,
-      [
-        "--name-status"
-        /* NAME_STATUS */
-      ]: nameStatusParser,
-      [
-        "--name-only"
-        /* NAME_ONLY */
-      ]: nameOnlyParser
-    };
-  }
-});
-function lineBuilder(tokens, fields) {
-  return fields.reduce(
-    (line, field, index) => {
-      line[field] = tokens[index] || "";
-      return line;
-    },
-    /* @__PURE__ */ Object.create({ diff: null })
-  );
-}
-function createListLogSummaryParser(splitter = SPLITTER, fields = defaultFieldNames, logFormat = "") {
-  const parseDiffResult = getDiffParser(logFormat);
-  return function(stdOut) {
-    const all = toLinesWithContent(
-      stdOut.trim(),
-      false,
-      START_BOUNDARY
-    ).map(function(item) {
-      const lineDetail = item.split(COMMIT_BOUNDARY);
-      const listLogLine = lineBuilder(lineDetail[0].split(splitter), fields);
-      if (lineDetail.length > 1 && !!lineDetail[1].trim()) {
-        listLogLine.diff = parseDiffResult(lineDetail[1]);
-      }
-      return listLogLine;
-    });
-    return {
-      all,
-      latest: all.length && all[0] || null,
-      total: all.length
-    };
-  };
-}
-var START_BOUNDARY;
-var COMMIT_BOUNDARY;
-var SPLITTER;
-var defaultFieldNames;
-var init_parse_list_log_summary = __esm2({
-  "src/lib/parsers/parse-list-log-summary.ts"() {
-    "use strict";
-    init_utils();
-    init_parse_diff_summary();
-    init_log_format();
-    START_BOUNDARY = "\xF2\xF2\xF2\xF2\xF2\xF2 ";
-    COMMIT_BOUNDARY = " \xF2\xF2";
-    SPLITTER = " \xF2 ";
-    defaultFieldNames = ["hash", "date", "message", "refs", "author_name", "author_email"];
-  }
-});
-var diff_exports = {};
-__export2(diff_exports, {
-  diffSummaryTask: () => diffSummaryTask,
-  validateLogFormatConfig: () => validateLogFormatConfig
-});
-function diffSummaryTask(customArgs) {
-  let logFormat = logFormatFromCommand(customArgs);
-  const commands = ["diff"];
-  if (logFormat === "") {
-    logFormat = "--stat";
-    commands.push("--stat=4096");
-  }
-  commands.push(...customArgs);
-  return validateLogFormatConfig(commands) || {
-    commands,
-    format: "utf-8",
-    parser: getDiffParser(logFormat)
-  };
-}
-function validateLogFormatConfig(customArgs) {
-  const flags = customArgs.filter(isLogFormat);
-  if (flags.length > 1) {
-    return configurationErrorTask(
-      `Summary flags are mutually exclusive - pick one of ${flags.join(",")}`
-    );
-  }
-  if (flags.length && customArgs.includes("-z")) {
-    return configurationErrorTask(
-      `Summary flag ${flags} parsing is not compatible with null termination option '-z'`
-    );
-  }
-}
-var init_diff = __esm2({
-  "src/lib/tasks/diff.ts"() {
-    "use strict";
-    init_log_format();
-    init_parse_diff_summary();
-    init_task();
-  }
-});
-function prettyFormat(format, splitter) {
-  const fields = [];
-  const formatStr = [];
-  Object.keys(format).forEach((field) => {
-    fields.push(field);
-    formatStr.push(String(format[field]));
-  });
-  return [fields, formatStr.join(splitter)];
-}
-function userOptions(input) {
-  return Object.keys(input).reduce((out, key) => {
-    if (!(key in excludeOptions)) {
-      out[key] = input[key];
-    }
-    return out;
-  }, {});
-}
-function parseLogOptions(opt = {}, customArgs = []) {
-  const splitter = filterType(opt.splitter, filterString, SPLITTER);
-  const format = filterPlainObject(opt.format) ? opt.format : {
-    hash: "%H",
-    date: opt.strictDate === false ? "%ai" : "%aI",
-    message: "%s",
-    refs: "%D",
-    body: opt.multiLine ? "%B" : "%b",
-    author_name: opt.mailMap !== false ? "%aN" : "%an",
-    author_email: opt.mailMap !== false ? "%aE" : "%ae"
-  };
-  const [fields, formatStr] = prettyFormat(format, splitter);
-  const suffix = [];
-  const command = [
-    `--pretty=format:${START_BOUNDARY}${formatStr}${COMMIT_BOUNDARY}`,
-    ...customArgs
-  ];
-  const maxCount = opt.n || opt["max-count"] || opt.maxCount;
-  if (maxCount) {
-    command.push(`--max-count=${maxCount}`);
-  }
-  if (opt.from || opt.to) {
-    const rangeOperator = opt.symmetric !== false ? "..." : "..";
-    suffix.push(`${opt.from || ""}${rangeOperator}${opt.to || ""}`);
-  }
-  if (filterString(opt.file)) {
-    command.push("--follow", c(opt.file));
-  }
-  appendTaskOptions(userOptions(opt), command);
-  return {
-    fields,
-    splitter,
-    commands: [...command, ...suffix]
-  };
-}
-function logTask(splitter, fields, customArgs) {
-  const parser4 = createListLogSummaryParser(splitter, fields, logFormatFromCommand(customArgs));
-  return {
-    commands: ["log", ...customArgs],
-    format: "utf-8",
-    parser: parser4
-  };
-}
-function log_default() {
-  return {
-    log(...rest) {
-      const next = trailingFunctionArgument(arguments);
-      const options = parseLogOptions(
-        trailingOptionsArgument(arguments),
-        asStringArray(filterType(arguments[0], filterArray, []))
-      );
-      const task = rejectDeprecatedSignatures(...rest) || validateLogFormatConfig(options.commands) || createLogTask(options);
-      return this._runTask(task, next);
-    }
-  };
-  function createLogTask(options) {
-    return logTask(options.splitter, options.fields, options.commands);
-  }
-  function rejectDeprecatedSignatures(from, to) {
-    return filterString(from) && filterString(to) && configurationErrorTask(
-      `git.log(string, string) should be replaced with git.log({ from: string, to: string })`
-    );
-  }
-}
-var excludeOptions;
-var init_log = __esm2({
-  "src/lib/tasks/log.ts"() {
-    "use strict";
-    init_log_format();
-    init_parse_list_log_summary();
-    init_utils();
-    init_task();
-    init_diff();
-    excludeOptions = /* @__PURE__ */ ((excludeOptions2) => {
-      excludeOptions2[excludeOptions2["--pretty"] = 0] = "--pretty";
-      excludeOptions2[excludeOptions2["max-count"] = 1] = "max-count";
-      excludeOptions2[excludeOptions2["maxCount"] = 2] = "maxCount";
-      excludeOptions2[excludeOptions2["n"] = 3] = "n";
-      excludeOptions2[excludeOptions2["file"] = 4] = "file";
-      excludeOptions2[excludeOptions2["format"] = 5] = "format";
-      excludeOptions2[excludeOptions2["from"] = 6] = "from";
-      excludeOptions2[excludeOptions2["to"] = 7] = "to";
-      excludeOptions2[excludeOptions2["splitter"] = 8] = "splitter";
-      excludeOptions2[excludeOptions2["symmetric"] = 9] = "symmetric";
-      excludeOptions2[excludeOptions2["mailMap"] = 10] = "mailMap";
-      excludeOptions2[excludeOptions2["multiLine"] = 11] = "multiLine";
-      excludeOptions2[excludeOptions2["strictDate"] = 12] = "strictDate";
-      return excludeOptions2;
-    })(excludeOptions || {});
-  }
-});
-var MergeSummaryConflict;
-var MergeSummaryDetail;
-var init_MergeSummary = __esm2({
-  "src/lib/responses/MergeSummary.ts"() {
-    "use strict";
-    MergeSummaryConflict = class {
-      constructor(reason, file = null, meta) {
-        this.reason = reason;
-        this.file = file;
-        this.meta = meta;
-      }
-      toString() {
-        return `${this.file}:${this.reason}`;
-      }
-    };
-    MergeSummaryDetail = class {
-      constructor() {
-        this.conflicts = [];
-        this.merges = [];
-        this.result = "success";
-      }
-      get failed() {
-        return this.conflicts.length > 0;
-      }
-      get reason() {
-        return this.result;
-      }
-      toString() {
-        if (this.conflicts.length) {
-          return `CONFLICTS: ${this.conflicts.join(", ")}`;
-        }
-        return "OK";
-      }
-    };
-  }
-});
-var PullSummary;
-var PullFailedSummary;
-var init_PullSummary = __esm2({
-  "src/lib/responses/PullSummary.ts"() {
-    "use strict";
-    PullSummary = class {
-      constructor() {
-        this.remoteMessages = {
-          all: []
-        };
-        this.created = [];
-        this.deleted = [];
-        this.files = [];
-        this.deletions = {};
-        this.insertions = {};
-        this.summary = {
-          changes: 0,
-          deletions: 0,
-          insertions: 0
-        };
-      }
-    };
-    PullFailedSummary = class {
-      constructor() {
-        this.remote = "";
-        this.hash = {
-          local: "",
-          remote: ""
-        };
-        this.branch = {
-          local: "",
-          remote: ""
-        };
-        this.message = "";
-      }
-      toString() {
-        return this.message;
-      }
-    };
-  }
-});
-function objectEnumerationResult(remoteMessages) {
-  return remoteMessages.objects = remoteMessages.objects || {
-    compressing: 0,
-    counting: 0,
-    enumerating: 0,
-    packReused: 0,
-    reused: { count: 0, delta: 0 },
-    total: { count: 0, delta: 0 }
-  };
-}
-function asObjectCount(source) {
-  const count = /^\s*(\d+)/.exec(source);
-  const delta = /delta (\d+)/i.exec(source);
-  return {
-    count: asNumber(count && count[1] || "0"),
-    delta: asNumber(delta && delta[1] || "0")
-  };
-}
-var remoteMessagesObjectParsers;
-var init_parse_remote_objects = __esm2({
-  "src/lib/parsers/parse-remote-objects.ts"() {
-    "use strict";
-    init_utils();
-    remoteMessagesObjectParsers = [
-      new RemoteLineParser(
-        /^remote:\s*(enumerating|counting|compressing) objects: (\d+),/i,
-        (result, [action, count]) => {
-          const key = action.toLowerCase();
-          const enumeration = objectEnumerationResult(result.remoteMessages);
-          Object.assign(enumeration, { [key]: asNumber(count) });
-        }
-      ),
-      new RemoteLineParser(
-        /^remote:\s*(enumerating|counting|compressing) objects: \d+% \(\d+\/(\d+)\),/i,
-        (result, [action, count]) => {
-          const key = action.toLowerCase();
-          const enumeration = objectEnumerationResult(result.remoteMessages);
-          Object.assign(enumeration, { [key]: asNumber(count) });
-        }
-      ),
-      new RemoteLineParser(
-        /total ([^,]+), reused ([^,]+), pack-reused (\d+)/i,
-        (result, [total, reused, packReused]) => {
-          const objects = objectEnumerationResult(result.remoteMessages);
-          objects.total = asObjectCount(total);
-          objects.reused = asObjectCount(reused);
-          objects.packReused = asNumber(packReused);
-        }
-      )
-    ];
-  }
-});
-function parseRemoteMessages(_stdOut, stdErr) {
-  return parseStringResponse({ remoteMessages: new RemoteMessageSummary() }, parsers2, stdErr);
-}
-var parsers2;
-var RemoteMessageSummary;
-var init_parse_remote_messages = __esm2({
-  "src/lib/parsers/parse-remote-messages.ts"() {
-    "use strict";
-    init_utils();
-    init_parse_remote_objects();
-    parsers2 = [
-      new RemoteLineParser(/^remote:\s*(.+)$/, (result, [text]) => {
-        result.remoteMessages.all.push(text.trim());
-        return false;
-      }),
-      ...remoteMessagesObjectParsers,
-      new RemoteLineParser(
-        [/create a (?:pull|merge) request/i, /\s(https?:\/\/\S+)$/],
-        (result, [pullRequestUrl]) => {
-          result.remoteMessages.pullRequestUrl = pullRequestUrl;
-        }
-      ),
-      new RemoteLineParser(
-        [/found (\d+) vulnerabilities.+\(([^)]+)\)/i, /\s(https?:\/\/\S+)$/],
-        (result, [count, summary, url]) => {
-          result.remoteMessages.vulnerabilities = {
-            count: asNumber(count),
-            summary,
-            url
-          };
-        }
-      )
-    ];
-    RemoteMessageSummary = class {
-      constructor() {
-        this.all = [];
-      }
-    };
-  }
-});
-function parsePullErrorResult(stdOut, stdErr) {
-  const pullError = parseStringResponse(new PullFailedSummary(), errorParsers, [stdOut, stdErr]);
-  return pullError.message && pullError;
-}
-var FILE_UPDATE_REGEX;
-var SUMMARY_REGEX;
-var ACTION_REGEX;
-var parsers3;
-var errorParsers;
-var parsePullDetail;
-var parsePullResult;
-var init_parse_pull = __esm2({
-  "src/lib/parsers/parse-pull.ts"() {
-    "use strict";
-    init_PullSummary();
-    init_utils();
-    init_parse_remote_messages();
-    FILE_UPDATE_REGEX = /^\s*(.+?)\s+\|\s+\d+\s*(\+*)(-*)/;
-    SUMMARY_REGEX = /(\d+)\D+((\d+)\D+\(\+\))?(\D+(\d+)\D+\(-\))?/;
-    ACTION_REGEX = /^(create|delete) mode \d+ (.+)/;
-    parsers3 = [
-      new LineParser(FILE_UPDATE_REGEX, (result, [file, insertions, deletions]) => {
-        result.files.push(file);
-        if (insertions) {
-          result.insertions[file] = insertions.length;
-        }
-        if (deletions) {
-          result.deletions[file] = deletions.length;
-        }
-      }),
-      new LineParser(SUMMARY_REGEX, (result, [changes, , insertions, , deletions]) => {
-        if (insertions !== void 0 || deletions !== void 0) {
-          result.summary.changes = +changes || 0;
-          result.summary.insertions = +insertions || 0;
-          result.summary.deletions = +deletions || 0;
-          return true;
-        }
-        return false;
-      }),
-      new LineParser(ACTION_REGEX, (result, [action, file]) => {
-        append(result.files, file);
-        append(action === "create" ? result.created : result.deleted, file);
-      })
-    ];
-    errorParsers = [
-      new LineParser(/^from\s(.+)$/i, (result, [remote]) => void (result.remote = remote)),
-      new LineParser(/^fatal:\s(.+)$/, (result, [message]) => void (result.message = message)),
-      new LineParser(
-        /([a-z0-9]+)\.\.([a-z0-9]+)\s+(\S+)\s+->\s+(\S+)$/,
-        (result, [hashLocal, hashRemote, branchLocal, branchRemote]) => {
-          result.branch.local = branchLocal;
-          result.hash.local = hashLocal;
-          result.branch.remote = branchRemote;
-          result.hash.remote = hashRemote;
-        }
-      )
-    ];
-    parsePullDetail = (stdOut, stdErr) => {
-      return parseStringResponse(new PullSummary(), parsers3, [stdOut, stdErr]);
-    };
-    parsePullResult = (stdOut, stdErr) => {
-      return Object.assign(
-        new PullSummary(),
-        parsePullDetail(stdOut, stdErr),
-        parseRemoteMessages(stdOut, stdErr)
-      );
-    };
-  }
-});
-var parsers4;
-var parseMergeResult;
-var parseMergeDetail;
-var init_parse_merge = __esm2({
-  "src/lib/parsers/parse-merge.ts"() {
-    "use strict";
-    init_MergeSummary();
-    init_utils();
-    init_parse_pull();
-    parsers4 = [
-      new LineParser(/^Auto-merging\s+(.+)$/, (summary, [autoMerge]) => {
-        summary.merges.push(autoMerge);
-      }),
-      new LineParser(/^CONFLICT\s+\((.+)\): Merge conflict in (.+)$/, (summary, [reason, file]) => {
-        summary.conflicts.push(new MergeSummaryConflict(reason, file));
-      }),
-      new LineParser(
-        /^CONFLICT\s+\((.+\/delete)\): (.+) deleted in (.+) and/,
-        (summary, [reason, file, deleteRef]) => {
-          summary.conflicts.push(new MergeSummaryConflict(reason, file, { deleteRef }));
-        }
-      ),
-      new LineParser(/^CONFLICT\s+\((.+)\):/, (summary, [reason]) => {
-        summary.conflicts.push(new MergeSummaryConflict(reason, null));
-      }),
-      new LineParser(/^Automatic merge failed;\s+(.+)$/, (summary, [result]) => {
-        summary.result = result;
-      })
-    ];
-    parseMergeResult = (stdOut, stdErr) => {
-      return Object.assign(parseMergeDetail(stdOut, stdErr), parsePullResult(stdOut, stdErr));
-    };
-    parseMergeDetail = (stdOut) => {
-      return parseStringResponse(new MergeSummaryDetail(), parsers4, stdOut);
-    };
-  }
-});
-function mergeTask(customArgs) {
-  if (!customArgs.length) {
-    return configurationErrorTask("Git.merge requires at least one option");
-  }
-  return {
-    commands: ["merge", ...customArgs],
-    format: "utf-8",
-    parser(stdOut, stdErr) {
-      const merge2 = parseMergeResult(stdOut, stdErr);
-      if (merge2.failed) {
-        throw new GitResponseError(merge2);
-      }
-      return merge2;
-    }
-  };
-}
-var init_merge = __esm2({
-  "src/lib/tasks/merge.ts"() {
-    "use strict";
-    init_git_response_error();
-    init_parse_merge();
-    init_task();
-  }
-});
-function pushResultPushedItem(local, remote, status) {
-  const deleted = status.includes("deleted");
-  const tag = status.includes("tag") || /^refs\/tags/.test(local);
-  const alreadyUpdated = !status.includes("new");
-  return {
-    deleted,
-    tag,
-    branch: !tag,
-    new: !alreadyUpdated,
-    alreadyUpdated,
-    local,
-    remote
-  };
-}
-var parsers5;
-var parsePushResult;
-var parsePushDetail;
-var init_parse_push = __esm2({
-  "src/lib/parsers/parse-push.ts"() {
-    "use strict";
-    init_utils();
-    init_parse_remote_messages();
-    parsers5 = [
-      new LineParser(/^Pushing to (.+)$/, (result, [repo]) => {
-        result.repo = repo;
-      }),
-      new LineParser(/^updating local tracking ref '(.+)'/, (result, [local]) => {
-        result.ref = {
-          ...result.ref || {},
-          local
-        };
-      }),
-      new LineParser(/^[=*-]\s+([^:]+):(\S+)\s+\[(.+)]$/, (result, [local, remote, type]) => {
-        result.pushed.push(pushResultPushedItem(local, remote, type));
-      }),
-      new LineParser(
-        /^Branch '([^']+)' set up to track remote branch '([^']+)' from '([^']+)'/,
-        (result, [local, remote, remoteName]) => {
-          result.branch = {
-            ...result.branch || {},
-            local,
-            remote,
-            remoteName
-          };
-        }
-      ),
-      new LineParser(
-        /^([^:]+):(\S+)\s+([a-z0-9]+)\.\.([a-z0-9]+)$/,
-        (result, [local, remote, from, to]) => {
-          result.update = {
-            head: {
-              local,
-              remote
-            },
-            hash: {
-              from,
-              to
-            }
-          };
-        }
-      )
-    ];
-    parsePushResult = (stdOut, stdErr) => {
-      const pushDetail = parsePushDetail(stdOut, stdErr);
-      const responseDetail = parseRemoteMessages(stdOut, stdErr);
-      return {
-        ...pushDetail,
-        ...responseDetail
-      };
-    };
-    parsePushDetail = (stdOut, stdErr) => {
-      return parseStringResponse({ pushed: [] }, parsers5, [stdOut, stdErr]);
-    };
-  }
-});
-var push_exports = {};
-__export2(push_exports, {
-  pushTagsTask: () => pushTagsTask,
-  pushTask: () => pushTask
-});
-function pushTagsTask(ref = {}, customArgs) {
-  append(customArgs, "--tags");
-  return pushTask(ref, customArgs);
-}
-function pushTask(ref = {}, customArgs) {
-  const commands = ["push", ...customArgs];
-  if (ref.branch) {
-    commands.splice(1, 0, ref.branch);
-  }
-  if (ref.remote) {
-    commands.splice(1, 0, ref.remote);
-  }
-  remove(commands, "-v");
-  append(commands, "--verbose");
-  append(commands, "--porcelain");
-  return {
-    commands,
-    format: "utf-8",
-    parser: parsePushResult
-  };
-}
-var init_push = __esm2({
-  "src/lib/tasks/push.ts"() {
-    "use strict";
-    init_parse_push();
-    init_utils();
-  }
-});
-function show_default() {
-  return {
-    showBuffer() {
-      const commands = ["show", ...getTrailingOptions(arguments, 1)];
-      if (!commands.includes("--binary")) {
-        commands.splice(1, 0, "--binary");
-      }
-      return this._runTask(
-        straightThroughBufferTask(commands),
-        trailingFunctionArgument(arguments)
-      );
-    },
-    show() {
-      const commands = ["show", ...getTrailingOptions(arguments, 1)];
-      return this._runTask(
-        straightThroughStringTask(commands),
-        trailingFunctionArgument(arguments)
-      );
-    }
-  };
-}
-var init_show = __esm2({
-  "src/lib/tasks/show.ts"() {
-    "use strict";
-    init_utils();
-    init_task();
-  }
-});
-var fromPathRegex;
-var FileStatusSummary;
-var init_FileStatusSummary = __esm2({
-  "src/lib/responses/FileStatusSummary.ts"() {
-    "use strict";
-    fromPathRegex = /^(.+)\0(.+)$/;
-    FileStatusSummary = class {
-      constructor(path12, index, working_dir) {
-        this.path = path12;
-        this.index = index;
-        this.working_dir = working_dir;
-        if (index === "R" || working_dir === "R") {
-          const detail = fromPathRegex.exec(path12) || [null, path12, path12];
-          this.from = detail[2] || "";
-          this.path = detail[1] || "";
-        }
-      }
-    };
-  }
-});
-function renamedFile(line) {
-  const [to, from] = line.split(NULL);
-  return {
-    from: from || to,
-    to
-  };
-}
-function parser3(indexX, indexY, handler) {
-  return [`${indexX}${indexY}`, handler];
-}
-function conflicts(indexX, ...indexY) {
-  return indexY.map((y2) => parser3(indexX, y2, (result, file) => result.conflicted.push(file)));
-}
-function splitLine(result, lineStr) {
-  const trimmed2 = lineStr.trim();
-  switch (" ") {
-    case trimmed2.charAt(2):
-      return data(trimmed2.charAt(0), trimmed2.charAt(1), trimmed2.slice(3));
-    case trimmed2.charAt(1):
-      return data(" ", trimmed2.charAt(0), trimmed2.slice(2));
-    default:
-      return;
-  }
-  function data(index, workingDir, path12) {
-    const raw = `${index}${workingDir}`;
-    const handler = parsers6.get(raw);
-    if (handler) {
-      handler(result, path12);
-    }
-    if (raw !== "##" && raw !== "!!") {
-      result.files.push(new FileStatusSummary(path12, index, workingDir));
-    }
-  }
-}
-var StatusSummary;
-var parsers6;
-var parseStatusSummary;
-var init_StatusSummary = __esm2({
-  "src/lib/responses/StatusSummary.ts"() {
-    "use strict";
-    init_utils();
-    init_FileStatusSummary();
-    StatusSummary = class {
-      constructor() {
-        this.not_added = [];
-        this.conflicted = [];
-        this.created = [];
-        this.deleted = [];
-        this.ignored = void 0;
-        this.modified = [];
-        this.renamed = [];
-        this.files = [];
-        this.staged = [];
-        this.ahead = 0;
-        this.behind = 0;
-        this.current = null;
-        this.tracking = null;
-        this.detached = false;
-        this.isClean = () => {
-          return !this.files.length;
-        };
-      }
-    };
-    parsers6 = new Map([
-      parser3(
-        " ",
-        "A",
-        (result, file) => result.created.push(file)
-      ),
-      parser3(
-        " ",
-        "D",
-        (result, file) => result.deleted.push(file)
-      ),
-      parser3(
-        " ",
-        "M",
-        (result, file) => result.modified.push(file)
-      ),
-      parser3("A", " ", (result, file) => {
-        result.created.push(file);
-        result.staged.push(file);
-      }),
-      parser3("A", "M", (result, file) => {
-        result.created.push(file);
-        result.staged.push(file);
-        result.modified.push(file);
-      }),
-      parser3("D", " ", (result, file) => {
-        result.deleted.push(file);
-        result.staged.push(file);
-      }),
-      parser3("M", " ", (result, file) => {
-        result.modified.push(file);
-        result.staged.push(file);
-      }),
-      parser3("M", "M", (result, file) => {
-        result.modified.push(file);
-        result.staged.push(file);
-      }),
-      parser3("R", " ", (result, file) => {
-        result.renamed.push(renamedFile(file));
-      }),
-      parser3("R", "M", (result, file) => {
-        const renamed = renamedFile(file);
-        result.renamed.push(renamed);
-        result.modified.push(renamed.to);
-      }),
-      parser3("!", "!", (_result, _file2) => {
-        (_result.ignored = _result.ignored || []).push(_file2);
-      }),
-      parser3(
-        "?",
-        "?",
-        (result, file) => result.not_added.push(file)
-      ),
-      ...conflicts(
-        "A",
-        "A",
-        "U"
-        /* UNMERGED */
-      ),
-      ...conflicts(
-        "D",
-        "D",
-        "U"
-        /* UNMERGED */
-      ),
-      ...conflicts(
-        "U",
-        "A",
-        "D",
-        "U"
-        /* UNMERGED */
-      ),
-      [
-        "##",
-        (result, line) => {
-          const aheadReg = /ahead (\d+)/;
-          const behindReg = /behind (\d+)/;
-          const currentReg = /^(.+?(?=(?:\.{3}|\s|$)))/;
-          const trackingReg = /\.{3}(\S*)/;
-          const onEmptyBranchReg = /\son\s(\S+?)(?=\.{3}|$)/;
-          let regexResult = aheadReg.exec(line);
-          result.ahead = regexResult && +regexResult[1] || 0;
-          regexResult = behindReg.exec(line);
-          result.behind = regexResult && +regexResult[1] || 0;
-          regexResult = currentReg.exec(line);
-          result.current = filterType(regexResult?.[1], filterString, null);
-          regexResult = trackingReg.exec(line);
-          result.tracking = filterType(regexResult?.[1], filterString, null);
-          regexResult = onEmptyBranchReg.exec(line);
-          if (regexResult) {
-            result.current = filterType(regexResult?.[1], filterString, result.current);
-          }
-          result.detached = /\(no branch\)/.test(line);
-        }
-      ]
-    ]);
-    parseStatusSummary = function(text) {
-      const lines = text.split(NULL);
-      const status = new StatusSummary();
-      for (let i2 = 0, l = lines.length; i2 < l; ) {
-        let line = lines[i2++].trim();
-        if (!line) {
-          continue;
-        }
-        if (line.charAt(0) === "R") {
-          line += NULL + (lines[i2++] || "");
-        }
-        splitLine(status, line);
-      }
-      return status;
-    };
-  }
-});
-function statusTask(customArgs) {
-  const commands = [
-    "status",
-    "--porcelain",
-    "-b",
-    "-u",
-    "--null",
-    ...customArgs.filter((arg) => !ignoredOptions.includes(arg))
-  ];
-  return {
-    format: "utf-8",
-    commands,
-    parser(text) {
-      return parseStatusSummary(text);
-    }
-  };
-}
-var ignoredOptions;
-var init_status = __esm2({
-  "src/lib/tasks/status.ts"() {
-    "use strict";
-    init_StatusSummary();
-    ignoredOptions = ["--null", "-z"];
-  }
-});
-function versionResponse(major = 0, minor = 0, patch = 0, agent = "", installed = true) {
-  return Object.defineProperty(
-    {
-      major,
-      minor,
-      patch,
-      agent,
-      installed
-    },
-    "toString",
-    {
-      value() {
-        return `${this.major}.${this.minor}.${this.patch}`;
-      },
-      configurable: false,
-      enumerable: false
-    }
-  );
-}
-function notInstalledResponse() {
-  return versionResponse(0, 0, 0, "", false);
-}
-function version_default() {
-  return {
-    version() {
-      return this._runTask({
-        commands: ["--version"],
-        format: "utf-8",
-        parser: versionParser,
-        onError(result, error2, done, fail) {
-          if (result.exitCode === -2) {
-            return done(Buffer.from(NOT_INSTALLED));
-          }
-          fail(error2);
-        }
-      });
-    }
-  };
-}
-function versionParser(stdOut) {
-  if (stdOut === NOT_INSTALLED) {
-    return notInstalledResponse();
-  }
-  return parseStringResponse(versionResponse(0, 0, 0, stdOut), parsers7, stdOut);
-}
-var NOT_INSTALLED;
-var parsers7;
-var init_version = __esm2({
-  "src/lib/tasks/version.ts"() {
-    "use strict";
-    init_utils();
-    NOT_INSTALLED = "installed=false";
-    parsers7 = [
-      new LineParser(
-        /version (\d+)\.(\d+)\.(\d+)(?:\s*\((.+)\))?/,
-        (result, [major, minor, patch, agent = ""]) => {
-          Object.assign(
-            result,
-            versionResponse(asNumber(major), asNumber(minor), asNumber(patch), agent)
-          );
-        }
-      ),
-      new LineParser(
-        /version (\d+)\.(\d+)\.(\D+)(.+)?$/,
-        (result, [major, minor, patch, agent = ""]) => {
-          Object.assign(result, versionResponse(asNumber(major), asNumber(minor), patch, agent));
-        }
-      )
-    ];
-  }
-});
-function createCloneTask(api, task, repoPath, ...args) {
-  if (!filterString(repoPath)) {
-    return configurationErrorTask(`git.${api}() requires a string 'repoPath'`);
-  }
-  return task(repoPath, filterType(args[0], filterString), getTrailingOptions(arguments));
-}
-function clone_default() {
-  return {
-    clone(repo, ...rest) {
-      return this._runTask(
-        createCloneTask("clone", cloneTask, filterType(repo, filterString), ...rest),
-        trailingFunctionArgument(arguments)
-      );
-    },
-    mirror(repo, ...rest) {
-      return this._runTask(
-        createCloneTask("mirror", cloneMirrorTask, filterType(repo, filterString), ...rest),
-        trailingFunctionArgument(arguments)
-      );
-    }
-  };
-}
-var cloneTask;
-var cloneMirrorTask;
-var init_clone = __esm2({
-  "src/lib/tasks/clone.ts"() {
-    "use strict";
-    init_task();
-    init_utils();
-    cloneTask = (repo, directory, customArgs) => {
-      const commands = ["clone", ...customArgs];
-      filterString(repo) && commands.push(c(repo));
-      filterString(directory) && commands.push(c(directory));
-      return straightThroughStringTask(commands);
-    };
-    cloneMirrorTask = (repo, directory, customArgs) => {
-      append(customArgs, "--mirror");
-      return cloneTask(repo, directory, customArgs);
-    };
-  }
-});
-var simple_git_api_exports = {};
-__export2(simple_git_api_exports, {
-  SimpleGitApi: () => SimpleGitApi
-});
-var SimpleGitApi;
-var init_simple_git_api = __esm2({
-  "src/lib/simple-git-api.ts"() {
-    "use strict";
-    init_task_callback();
-    init_change_working_directory();
-    init_checkout();
-    init_count_objects();
-    init_commit();
-    init_config();
-    init_first_commit();
-    init_grep();
-    init_hash_object();
-    init_init();
-    init_log();
-    init_merge();
-    init_push();
-    init_show();
-    init_status();
-    init_task();
-    init_version();
-    init_utils();
-    init_clone();
-    SimpleGitApi = class {
-      constructor(_executor) {
-        this._executor = _executor;
-      }
-      _runTask(task, then) {
-        const chain = this._executor.chain();
-        const promise = chain.push(task);
-        if (then) {
-          taskCallback(task, promise, then);
-        }
-        return Object.create(this, {
-          then: { value: promise.then.bind(promise) },
-          catch: { value: promise.catch.bind(promise) },
-          _executor: { value: chain }
-        });
-      }
-      add(files) {
-        return this._runTask(
-          straightThroughStringTask(["add", ...asArray(files)]),
-          trailingFunctionArgument(arguments)
-        );
-      }
-      cwd(directory) {
-        const next = trailingFunctionArgument(arguments);
-        if (typeof directory === "string") {
-          return this._runTask(changeWorkingDirectoryTask(directory, this._executor), next);
-        }
-        if (typeof directory?.path === "string") {
-          return this._runTask(
-            changeWorkingDirectoryTask(
-              directory.path,
-              directory.root && this._executor || void 0
-            ),
-            next
-          );
-        }
-        return this._runTask(
-          configurationErrorTask("Git.cwd: workingDirectory must be supplied as a string"),
-          next
-        );
-      }
-      hashObject(path12, write) {
-        return this._runTask(
-          hashObjectTask(path12, write === true),
-          trailingFunctionArgument(arguments)
-        );
-      }
-      init(bare) {
-        return this._runTask(
-          initTask(bare === true, this._executor.cwd, getTrailingOptions(arguments)),
-          trailingFunctionArgument(arguments)
-        );
-      }
-      merge() {
-        return this._runTask(
-          mergeTask(getTrailingOptions(arguments)),
-          trailingFunctionArgument(arguments)
-        );
-      }
-      mergeFromTo(remote, branch) {
-        if (!(filterString(remote) && filterString(branch))) {
-          return this._runTask(
-            configurationErrorTask(
-              `Git.mergeFromTo requires that the 'remote' and 'branch' arguments are supplied as strings`
-            )
-          );
-        }
-        return this._runTask(
-          mergeTask([remote, branch, ...getTrailingOptions(arguments)]),
-          trailingFunctionArgument(arguments, false)
-        );
-      }
-      outputHandler(handler) {
-        this._executor.outputHandler = handler;
-        return this;
-      }
-      push() {
-        const task = pushTask(
-          {
-            remote: filterType(arguments[0], filterString),
-            branch: filterType(arguments[1], filterString)
-          },
-          getTrailingOptions(arguments)
-        );
-        return this._runTask(task, trailingFunctionArgument(arguments));
-      }
-      stash() {
-        return this._runTask(
-          straightThroughStringTask(["stash", ...getTrailingOptions(arguments)]),
-          trailingFunctionArgument(arguments)
-        );
-      }
-      status() {
-        return this._runTask(
-          statusTask(getTrailingOptions(arguments)),
-          trailingFunctionArgument(arguments)
-        );
-      }
-    };
-    Object.assign(
-      SimpleGitApi.prototype,
-      checkout_default(),
-      clone_default(),
-      commit_default(),
-      config_default(),
-      count_objects_default(),
-      first_commit_default(),
-      grep_default(),
-      log_default(),
-      show_default(),
-      version_default()
-    );
-  }
-});
-var scheduler_exports = {};
-__export2(scheduler_exports, {
-  Scheduler: () => Scheduler
-});
-var createScheduledTask;
-var Scheduler;
-var init_scheduler = __esm2({
-  "src/lib/runners/scheduler.ts"() {
-    "use strict";
-    init_utils();
-    init_git_logger();
-    createScheduledTask = /* @__PURE__ */ (() => {
-      let id = 0;
-      return () => {
-        id++;
-        const { promise, done } = (0, import_promise_deferred.createDeferred)();
-        return {
-          promise,
-          done,
-          id
-        };
-      };
-    })();
-    Scheduler = class {
-      constructor(concurrency = 2) {
-        this.concurrency = concurrency;
-        this.logger = createLogger("", "scheduler");
-        this.pending = [];
-        this.running = [];
-        this.logger(`Constructed, concurrency=%s`, concurrency);
-      }
-      schedule() {
-        if (!this.pending.length || this.running.length >= this.concurrency) {
-          this.logger(
-            `Schedule attempt ignored, pending=%s running=%s concurrency=%s`,
-            this.pending.length,
-            this.running.length,
-            this.concurrency
-          );
-          return;
-        }
-        const task = append(this.running, this.pending.shift());
-        this.logger(`Attempting id=%s`, task.id);
-        task.done(() => {
-          this.logger(`Completing id=`, task.id);
-          remove(this.running, task);
-          this.schedule();
-        });
-      }
-      next() {
-        const { promise, id } = append(this.pending, createScheduledTask());
-        this.logger(`Scheduling id=%s`, id);
-        this.schedule();
-        return promise;
-      }
-    };
-  }
-});
-var apply_patch_exports = {};
-__export2(apply_patch_exports, {
-  applyPatchTask: () => applyPatchTask
-});
-function applyPatchTask(patches, customArgs) {
-  return straightThroughStringTask(["apply", ...customArgs, ...patches]);
-}
-var init_apply_patch = __esm2({
-  "src/lib/tasks/apply-patch.ts"() {
-    "use strict";
-    init_task();
-  }
-});
-function branchDeletionSuccess(branch, hash) {
-  return {
-    branch,
-    hash,
-    success: true
-  };
-}
-function branchDeletionFailure(branch) {
-  return {
-    branch,
-    hash: null,
-    success: false
-  };
-}
-var BranchDeletionBatch;
-var init_BranchDeleteSummary = __esm2({
-  "src/lib/responses/BranchDeleteSummary.ts"() {
-    "use strict";
-    BranchDeletionBatch = class {
-      constructor() {
-        this.all = [];
-        this.branches = {};
-        this.errors = [];
-      }
-      get success() {
-        return !this.errors.length;
-      }
-    };
-  }
-});
-function hasBranchDeletionError(data, processExitCode) {
-  return processExitCode === 1 && deleteErrorRegex.test(data);
-}
-var deleteSuccessRegex;
-var deleteErrorRegex;
-var parsers8;
-var parseBranchDeletions;
-var init_parse_branch_delete = __esm2({
-  "src/lib/parsers/parse-branch-delete.ts"() {
-    "use strict";
-    init_BranchDeleteSummary();
-    init_utils();
-    deleteSuccessRegex = /(\S+)\s+\(\S+\s([^)]+)\)/;
-    deleteErrorRegex = /^error[^']+'([^']+)'/m;
-    parsers8 = [
-      new LineParser(deleteSuccessRegex, (result, [branch, hash]) => {
-        const deletion = branchDeletionSuccess(branch, hash);
-        result.all.push(deletion);
-        result.branches[branch] = deletion;
-      }),
-      new LineParser(deleteErrorRegex, (result, [branch]) => {
-        const deletion = branchDeletionFailure(branch);
-        result.errors.push(deletion);
-        result.all.push(deletion);
-        result.branches[branch] = deletion;
-      })
-    ];
-    parseBranchDeletions = (stdOut, stdErr) => {
-      return parseStringResponse(new BranchDeletionBatch(), parsers8, [stdOut, stdErr]);
-    };
-  }
-});
-var BranchSummaryResult;
-var init_BranchSummary = __esm2({
-  "src/lib/responses/BranchSummary.ts"() {
-    "use strict";
-    BranchSummaryResult = class {
-      constructor() {
-        this.all = [];
-        this.branches = {};
-        this.current = "";
-        this.detached = false;
-      }
-      push(status, detached, name, commit, label) {
-        if (status === "*") {
-          this.detached = detached;
-          this.current = name;
-        }
-        this.all.push(name);
-        this.branches[name] = {
-          current: status === "*",
-          linkedWorkTree: status === "+",
-          name,
-          commit,
-          label
-        };
-      }
-    };
-  }
-});
-function branchStatus(input) {
-  return input ? input.charAt(0) : "";
-}
-function parseBranchSummary(stdOut, currentOnly = false) {
-  return parseStringResponse(
-    new BranchSummaryResult(),
-    currentOnly ? [currentBranchParser] : parsers9,
-    stdOut
-  );
-}
-var parsers9;
-var currentBranchParser;
-var init_parse_branch = __esm2({
-  "src/lib/parsers/parse-branch.ts"() {
-    "use strict";
-    init_BranchSummary();
-    init_utils();
-    parsers9 = [
-      new LineParser(
-        /^([*+]\s)?\((?:HEAD )?detached (?:from|at) (\S+)\)\s+([a-z0-9]+)\s(.*)$/,
-        (result, [current, name, commit, label]) => {
-          result.push(branchStatus(current), true, name, commit, label);
-        }
-      ),
-      new LineParser(
-        /^([*+]\s)?(\S+)\s+([a-z0-9]+)\s?(.*)$/s,
-        (result, [current, name, commit, label]) => {
-          result.push(branchStatus(current), false, name, commit, label);
-        }
-      )
-    ];
-    currentBranchParser = new LineParser(/^(\S+)$/s, (result, [name]) => {
-      result.push("*", false, name, "", "");
-    });
-  }
-});
-var branch_exports = {};
-__export2(branch_exports, {
-  branchLocalTask: () => branchLocalTask,
-  branchTask: () => branchTask,
-  containsDeleteBranchCommand: () => containsDeleteBranchCommand,
-  deleteBranchTask: () => deleteBranchTask,
-  deleteBranchesTask: () => deleteBranchesTask
-});
-function containsDeleteBranchCommand(commands) {
-  const deleteCommands = ["-d", "-D", "--delete"];
-  return commands.some((command) => deleteCommands.includes(command));
-}
-function branchTask(customArgs) {
-  const isDelete = containsDeleteBranchCommand(customArgs);
-  const isCurrentOnly = customArgs.includes("--show-current");
-  const commands = ["branch", ...customArgs];
-  if (commands.length === 1) {
-    commands.push("-a");
-  }
-  if (!commands.includes("-v")) {
-    commands.splice(1, 0, "-v");
-  }
-  return {
-    format: "utf-8",
-    commands,
-    parser(stdOut, stdErr) {
-      if (isDelete) {
-        return parseBranchDeletions(stdOut, stdErr).all[0];
-      }
-      return parseBranchSummary(stdOut, isCurrentOnly);
-    }
-  };
-}
-function branchLocalTask() {
-  return {
-    format: "utf-8",
-    commands: ["branch", "-v"],
-    parser(stdOut) {
-      return parseBranchSummary(stdOut);
-    }
-  };
-}
-function deleteBranchesTask(branches, forceDelete = false) {
-  return {
-    format: "utf-8",
-    commands: ["branch", "-v", forceDelete ? "-D" : "-d", ...branches],
-    parser(stdOut, stdErr) {
-      return parseBranchDeletions(stdOut, stdErr);
-    },
-    onError({ exitCode, stdOut }, error2, done, fail) {
-      if (!hasBranchDeletionError(String(error2), exitCode)) {
-        return fail(error2);
-      }
-      done(stdOut);
-    }
-  };
-}
-function deleteBranchTask(branch, forceDelete = false) {
-  const task = {
-    format: "utf-8",
-    commands: ["branch", "-v", forceDelete ? "-D" : "-d", branch],
-    parser(stdOut, stdErr) {
-      return parseBranchDeletions(stdOut, stdErr).branches[branch];
-    },
-    onError({ exitCode, stdErr, stdOut }, error2, _2, fail) {
-      if (!hasBranchDeletionError(String(error2), exitCode)) {
-        return fail(error2);
-      }
-      throw new GitResponseError(
-        task.parser(bufferToString(stdOut), bufferToString(stdErr)),
-        String(error2)
-      );
-    }
-  };
-  return task;
-}
-var init_branch = __esm2({
-  "src/lib/tasks/branch.ts"() {
-    "use strict";
-    init_git_response_error();
-    init_parse_branch_delete();
-    init_parse_branch();
-    init_utils();
-  }
-});
-function toPath(input) {
-  const path12 = input.trim().replace(/^["']|["']$/g, "");
-  return path12 && (0, import_node_path7.normalize)(path12);
-}
-var parseCheckIgnore;
-var init_CheckIgnore = __esm2({
-  "src/lib/responses/CheckIgnore.ts"() {
-    "use strict";
-    parseCheckIgnore = (text) => {
-      return text.split(/\n/g).map(toPath).filter(Boolean);
-    };
-  }
-});
-var check_ignore_exports = {};
-__export2(check_ignore_exports, {
-  checkIgnoreTask: () => checkIgnoreTask
-});
-function checkIgnoreTask(paths) {
-  return {
-    commands: ["check-ignore", ...paths],
-    format: "utf-8",
-    parser: parseCheckIgnore
-  };
-}
-var init_check_ignore = __esm2({
-  "src/lib/tasks/check-ignore.ts"() {
-    "use strict";
-    init_CheckIgnore();
-  }
-});
-function parseFetchResult(stdOut, stdErr) {
-  const result = {
-    raw: stdOut,
-    remote: null,
-    branches: [],
-    tags: [],
-    updated: [],
-    deleted: []
-  };
-  return parseStringResponse(result, parsers10, [stdOut, stdErr]);
-}
-var parsers10;
-var init_parse_fetch = __esm2({
-  "src/lib/parsers/parse-fetch.ts"() {
-    "use strict";
-    init_utils();
-    parsers10 = [
-      new LineParser(/From (.+)$/, (result, [remote]) => {
-        result.remote = remote;
-      }),
-      new LineParser(/\* \[new branch]\s+(\S+)\s*-> (.+)$/, (result, [name, tracking]) => {
-        result.branches.push({
-          name,
-          tracking
-        });
-      }),
-      new LineParser(/\* \[new tag]\s+(\S+)\s*-> (.+)$/, (result, [name, tracking]) => {
-        result.tags.push({
-          name,
-          tracking
-        });
-      }),
-      new LineParser(/- \[deleted]\s+\S+\s*-> (.+)$/, (result, [tracking]) => {
-        result.deleted.push({
-          tracking
-        });
-      }),
-      new LineParser(
-        /\s*([^.]+)\.\.(\S+)\s+(\S+)\s*-> (.+)$/,
-        (result, [from, to, name, tracking]) => {
-          result.updated.push({
-            name,
-            tracking,
-            to,
-            from
-          });
-        }
-      )
-    ];
-  }
-});
-var fetch_exports = {};
-__export2(fetch_exports, {
-  fetchTask: () => fetchTask
-});
-function disallowedCommand(command) {
-  return /^--upload-pack(=|$)/.test(command);
-}
-function fetchTask(remote, branch, customArgs) {
-  const commands = ["fetch", ...customArgs];
-  if (remote && branch) {
-    commands.push(remote, branch);
-  }
-  const banned = commands.find(disallowedCommand);
-  if (banned) {
-    return configurationErrorTask(`git.fetch: potential exploit argument blocked.`);
-  }
-  return {
-    commands,
-    format: "utf-8",
-    parser: parseFetchResult
-  };
-}
-var init_fetch = __esm2({
-  "src/lib/tasks/fetch.ts"() {
-    "use strict";
-    init_parse_fetch();
-    init_task();
-  }
-});
-function parseMoveResult(stdOut) {
-  return parseStringResponse({ moves: [] }, parsers11, stdOut);
-}
-var parsers11;
-var init_parse_move = __esm2({
-  "src/lib/parsers/parse-move.ts"() {
-    "use strict";
-    init_utils();
-    parsers11 = [
-      new LineParser(/^Renaming (.+) to (.+)$/, (result, [from, to]) => {
-        result.moves.push({ from, to });
-      })
-    ];
-  }
-});
-var move_exports = {};
-__export2(move_exports, {
-  moveTask: () => moveTask
-});
-function moveTask(from, to) {
-  return {
-    commands: ["mv", "-v", ...asArray(from), to],
-    format: "utf-8",
-    parser: parseMoveResult
-  };
-}
-var init_move = __esm2({
-  "src/lib/tasks/move.ts"() {
-    "use strict";
-    init_parse_move();
-    init_utils();
-  }
-});
-var pull_exports = {};
-__export2(pull_exports, {
-  pullTask: () => pullTask
-});
-function pullTask(remote, branch, customArgs) {
-  const commands = ["pull", ...customArgs];
-  if (remote && branch) {
-    commands.splice(1, 0, remote, branch);
-  }
-  return {
-    commands,
-    format: "utf-8",
-    parser(stdOut, stdErr) {
-      return parsePullResult(stdOut, stdErr);
-    },
-    onError(result, _error, _done, fail) {
-      const pullError = parsePullErrorResult(
-        bufferToString(result.stdOut),
-        bufferToString(result.stdErr)
-      );
-      if (pullError) {
-        return fail(new GitResponseError(pullError));
-      }
-      fail(_error);
-    }
-  };
-}
-var init_pull = __esm2({
-  "src/lib/tasks/pull.ts"() {
-    "use strict";
-    init_git_response_error();
-    init_parse_pull();
-    init_utils();
-  }
-});
-function parseGetRemotes(text) {
-  const remotes = {};
-  forEach(text, ([name]) => remotes[name] = { name });
-  return Object.values(remotes);
-}
-function parseGetRemotesVerbose(text) {
-  const remotes = {};
-  forEach(text, ([name, url, purpose]) => {
-    if (!Object.hasOwn(remotes, name)) {
-      remotes[name] = {
-        name,
-        refs: { fetch: "", push: "" }
-      };
-    }
-    if (purpose && url) {
-      remotes[name].refs[purpose.replace(/[^a-z]/g, "")] = url;
-    }
-  });
-  return Object.values(remotes);
-}
-function forEach(text, handler) {
-  forEachLineWithContent(text, (line) => handler(line.split(/\s+/)));
-}
-var init_GetRemoteSummary = __esm2({
-  "src/lib/responses/GetRemoteSummary.ts"() {
-    "use strict";
-    init_utils();
-  }
-});
-var remote_exports = {};
-__export2(remote_exports, {
-  addRemoteTask: () => addRemoteTask,
-  getRemotesTask: () => getRemotesTask,
-  listRemotesTask: () => listRemotesTask,
-  remoteTask: () => remoteTask,
-  removeRemoteTask: () => removeRemoteTask
-});
-function addRemoteTask(remoteName, remoteRepo, customArgs) {
-  return straightThroughStringTask(["remote", "add", ...customArgs, remoteName, remoteRepo]);
-}
-function getRemotesTask(verbose) {
-  const commands = ["remote"];
-  if (verbose) {
-    commands.push("-v");
-  }
-  return {
-    commands,
-    format: "utf-8",
-    parser: verbose ? parseGetRemotesVerbose : parseGetRemotes
-  };
-}
-function listRemotesTask(customArgs) {
-  const commands = [...customArgs];
-  if (commands[0] !== "ls-remote") {
-    commands.unshift("ls-remote");
-  }
-  return straightThroughStringTask(commands);
-}
-function remoteTask(customArgs) {
-  const commands = [...customArgs];
-  if (commands[0] !== "remote") {
-    commands.unshift("remote");
-  }
-  return straightThroughStringTask(commands);
-}
-function removeRemoteTask(remoteName) {
-  return straightThroughStringTask(["remote", "remove", remoteName]);
-}
-var init_remote = __esm2({
-  "src/lib/tasks/remote.ts"() {
-    "use strict";
-    init_GetRemoteSummary();
-    init_task();
-  }
-});
-var stash_list_exports = {};
-__export2(stash_list_exports, {
-  stashListTask: () => stashListTask
-});
-function stashListTask(opt = {}, customArgs) {
-  const options = parseLogOptions(opt);
-  const commands = ["stash", "list", ...options.commands, ...customArgs];
-  const parser4 = createListLogSummaryParser(
-    options.splitter,
-    options.fields,
-    logFormatFromCommand(commands)
-  );
-  return validateLogFormatConfig(commands) || {
-    commands,
-    format: "utf-8",
-    parser: parser4
-  };
-}
-var init_stash_list = __esm2({
-  "src/lib/tasks/stash-list.ts"() {
-    "use strict";
-    init_log_format();
-    init_parse_list_log_summary();
-    init_diff();
-    init_log();
-  }
-});
-var sub_module_exports = {};
-__export2(sub_module_exports, {
-  addSubModuleTask: () => addSubModuleTask,
-  initSubModuleTask: () => initSubModuleTask,
-  subModuleTask: () => subModuleTask,
-  updateSubModuleTask: () => updateSubModuleTask
-});
-function addSubModuleTask(repo, path12) {
-  return subModuleTask(["add", repo, path12]);
-}
-function initSubModuleTask(customArgs) {
-  return subModuleTask(["init", ...customArgs]);
-}
-function subModuleTask(customArgs) {
-  const commands = [...customArgs];
-  if (commands[0] !== "submodule") {
-    commands.unshift("submodule");
-  }
-  return straightThroughStringTask(commands);
-}
-function updateSubModuleTask(customArgs) {
-  return subModuleTask(["update", ...customArgs]);
-}
-var init_sub_module = __esm2({
-  "src/lib/tasks/sub-module.ts"() {
-    "use strict";
-    init_task();
-  }
-});
-function singleSorted(a, b2) {
-  const aIsNum = Number.isNaN(a);
-  const bIsNum = Number.isNaN(b2);
-  if (aIsNum !== bIsNum) {
-    return aIsNum ? 1 : -1;
-  }
-  return aIsNum ? sorted(a, b2) : 0;
-}
-function sorted(a, b2) {
-  return a === b2 ? 0 : a > b2 ? 1 : -1;
-}
-function trimmed(input) {
-  return input.trim();
-}
-function toNumber(input) {
-  if (typeof input === "string") {
-    return parseInt(input.replace(/^\D+/g, ""), 10) || 0;
-  }
-  return 0;
-}
-var TagList;
-var parseTagList;
-var init_TagList = __esm2({
-  "src/lib/responses/TagList.ts"() {
-    "use strict";
-    TagList = class {
-      constructor(all, latest) {
-        this.all = all;
-        this.latest = latest;
-      }
-    };
-    parseTagList = function(data, customSort = false) {
-      const tags = data.split("\n").map(trimmed).filter(Boolean);
-      if (!customSort) {
-        tags.sort(function(tagA, tagB) {
-          const partsA = tagA.split(".");
-          const partsB = tagB.split(".");
-          if (partsA.length === 1 || partsB.length === 1) {
-            return singleSorted(toNumber(partsA[0]), toNumber(partsB[0]));
-          }
-          for (let i2 = 0, l = Math.max(partsA.length, partsB.length); i2 < l; i2++) {
-            const diff = sorted(toNumber(partsA[i2]), toNumber(partsB[i2]));
-            if (diff) {
-              return diff;
-            }
-          }
-          return 0;
-        });
-      }
-      const latest = customSort ? tags[0] : [...tags].reverse().find((tag) => tag.indexOf(".") >= 0);
-      return new TagList(tags, latest);
-    };
-  }
-});
-var tag_exports = {};
-__export2(tag_exports, {
-  addAnnotatedTagTask: () => addAnnotatedTagTask,
-  addTagTask: () => addTagTask,
-  tagListTask: () => tagListTask
-});
-function tagListTask(customArgs = []) {
-  const hasCustomSort = customArgs.some((option) => /^--sort=/.test(option));
-  return {
-    format: "utf-8",
-    commands: ["tag", "-l", ...customArgs],
-    parser(text) {
-      return parseTagList(text, hasCustomSort);
-    }
-  };
-}
-function addTagTask(name) {
-  return {
-    format: "utf-8",
-    commands: ["tag", name],
-    parser() {
-      return { name };
-    }
-  };
-}
-function addAnnotatedTagTask(name, tagMessage) {
-  return {
-    format: "utf-8",
-    commands: ["tag", "-a", "-m", tagMessage, name],
-    parser() {
-      return { name };
-    }
-  };
-}
-var init_tag = __esm2({
-  "src/lib/tasks/tag.ts"() {
-    "use strict";
-    init_TagList();
-  }
-});
-var require_git = __commonJS2({
-  "src/git.js"(exports2, module2) {
-    "use strict";
-    var { GitExecutor: GitExecutor2 } = (init_git_executor(), __toCommonJS(git_executor_exports));
-    var { SimpleGitApi: SimpleGitApi2 } = (init_simple_git_api(), __toCommonJS(simple_git_api_exports));
-    var { Scheduler: Scheduler2 } = (init_scheduler(), __toCommonJS(scheduler_exports));
-    var { adhocExecTask: adhocExecTask2, configurationErrorTask: configurationErrorTask2 } = (init_task(), __toCommonJS(task_exports));
-    var {
-      asArray: asArray2,
-      filterArray: filterArray2,
-      filterPrimitives: filterPrimitives2,
-      filterString: filterString2,
-      filterStringOrStringArray: filterStringOrStringArray2,
-      filterType: filterType2,
-      getTrailingOptions: getTrailingOptions2,
-      trailingFunctionArgument: trailingFunctionArgument2,
-      trailingOptionsArgument: trailingOptionsArgument2
-    } = (init_utils(), __toCommonJS(utils_exports));
-    var { applyPatchTask: applyPatchTask2 } = (init_apply_patch(), __toCommonJS(apply_patch_exports));
-    var {
-      branchTask: branchTask2,
-      branchLocalTask: branchLocalTask2,
-      deleteBranchesTask: deleteBranchesTask2,
-      deleteBranchTask: deleteBranchTask2
-    } = (init_branch(), __toCommonJS(branch_exports));
-    var { checkIgnoreTask: checkIgnoreTask2 } = (init_check_ignore(), __toCommonJS(check_ignore_exports));
-    var { checkIsRepoTask: checkIsRepoTask2 } = (init_check_is_repo(), __toCommonJS(check_is_repo_exports));
-    var { cleanWithOptionsTask: cleanWithOptionsTask2, isCleanOptionsArray: isCleanOptionsArray2 } = (init_clean(), __toCommonJS(clean_exports));
-    var { diffSummaryTask: diffSummaryTask2 } = (init_diff(), __toCommonJS(diff_exports));
-    var { fetchTask: fetchTask2 } = (init_fetch(), __toCommonJS(fetch_exports));
-    var { moveTask: moveTask2 } = (init_move(), __toCommonJS(move_exports));
-    var { pullTask: pullTask2 } = (init_pull(), __toCommonJS(pull_exports));
-    var { pushTagsTask: pushTagsTask2 } = (init_push(), __toCommonJS(push_exports));
-    var {
-      addRemoteTask: addRemoteTask2,
-      getRemotesTask: getRemotesTask2,
-      listRemotesTask: listRemotesTask2,
-      remoteTask: remoteTask2,
-      removeRemoteTask: removeRemoteTask2
-    } = (init_remote(), __toCommonJS(remote_exports));
-    var { getResetMode: getResetMode2, resetTask: resetTask2 } = (init_reset(), __toCommonJS(reset_exports));
-    var { stashListTask: stashListTask2 } = (init_stash_list(), __toCommonJS(stash_list_exports));
-    var {
-      addSubModuleTask: addSubModuleTask2,
-      initSubModuleTask: initSubModuleTask2,
-      subModuleTask: subModuleTask2,
-      updateSubModuleTask: updateSubModuleTask2
-    } = (init_sub_module(), __toCommonJS(sub_module_exports));
-    var { addAnnotatedTagTask: addAnnotatedTagTask2, addTagTask: addTagTask2, tagListTask: tagListTask2 } = (init_tag(), __toCommonJS(tag_exports));
-    var { straightThroughBufferTask: straightThroughBufferTask2, straightThroughStringTask: straightThroughStringTask2 } = (init_task(), __toCommonJS(task_exports));
-    function Git2(options, plugins) {
-      this._plugins = plugins;
-      this._executor = new GitExecutor2(
-        options.baseDir,
-        new Scheduler2(options.maxConcurrentProcesses),
-        plugins
-      );
-      this._trimmed = options.trimmed;
-    }
-    (Git2.prototype = Object.create(SimpleGitApi2.prototype)).constructor = Git2;
-    Git2.prototype.customBinary = function(command) {
-      this._plugins.reconfigure("binary", command);
-      return this;
-    };
-    Git2.prototype.env = function(name, value) {
-      if (arguments.length === 1 && typeof name === "object") {
-        this._executor.env = name;
-      } else {
-        (this._executor.env = this._executor.env || {})[name] = value;
-      }
-      return this;
-    };
-    Git2.prototype.stashList = function(options) {
-      return this._runTask(
-        stashListTask2(
-          trailingOptionsArgument2(arguments) || {},
-          filterArray2(options) && options || []
-        ),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.mv = function(from, to) {
-      return this._runTask(moveTask2(from, to), trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.checkoutLatestTag = function(then) {
-      var git = this;
-      return this.pull(function() {
-        git.tags(function(err, tags) {
-          git.checkout(tags.latest, then);
-        });
-      });
-    };
-    Git2.prototype.pull = function(remote, branch, options, then) {
-      return this._runTask(
-        pullTask2(
-          filterType2(remote, filterString2),
-          filterType2(branch, filterString2),
-          getTrailingOptions2(arguments)
-        ),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.fetch = function(remote, branch) {
-      return this._runTask(
-        fetchTask2(
-          filterType2(remote, filterString2),
-          filterType2(branch, filterString2),
-          getTrailingOptions2(arguments)
-        ),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.silent = function(silence) {
-      return this._runTask(
-        adhocExecTask2(
-          () => console.warn(
-            "simple-git deprecation notice: git.silent: logging should be configured using the `debug` library / `DEBUG` environment variable, this method will be removed."
-          )
-        )
-      );
-    };
-    Git2.prototype.tags = function(options, then) {
-      return this._runTask(
-        tagListTask2(getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.rebase = function() {
-      return this._runTask(
-        straightThroughStringTask2(["rebase", ...getTrailingOptions2(arguments)]),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.reset = function(mode) {
-      return this._runTask(
-        resetTask2(getResetMode2(mode), getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.revert = function(commit) {
-      const next = trailingFunctionArgument2(arguments);
-      if (typeof commit !== "string") {
-        return this._runTask(configurationErrorTask2("Commit must be a string"), next);
-      }
-      return this._runTask(
-        straightThroughStringTask2(["revert", ...getTrailingOptions2(arguments, 0, true), commit]),
-        next
-      );
-    };
-    Git2.prototype.addTag = function(name) {
-      const task = typeof name === "string" ? addTagTask2(name) : configurationErrorTask2("Git.addTag requires a tag name");
-      return this._runTask(task, trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.addAnnotatedTag = function(tagName, tagMessage) {
-      return this._runTask(
-        addAnnotatedTagTask2(tagName, tagMessage),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.deleteLocalBranch = function(branchName, forceDelete, then) {
-      return this._runTask(
-        deleteBranchTask2(branchName, typeof forceDelete === "boolean" ? forceDelete : false),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.deleteLocalBranches = function(branchNames, forceDelete, then) {
-      return this._runTask(
-        deleteBranchesTask2(branchNames, typeof forceDelete === "boolean" ? forceDelete : false),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.branch = function(options, then) {
-      return this._runTask(
-        branchTask2(getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.branchLocal = function(then) {
-      return this._runTask(branchLocalTask2(), trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.raw = function(commands) {
-      const createRestCommands = !Array.isArray(commands);
-      const command = [].slice.call(createRestCommands ? arguments : commands, 0);
-      for (let i2 = 0; i2 < command.length && createRestCommands; i2++) {
-        if (!filterPrimitives2(command[i2])) {
-          command.splice(i2, command.length - i2);
-          break;
-        }
-      }
-      command.push(...getTrailingOptions2(arguments, 0, true));
-      var next = trailingFunctionArgument2(arguments);
-      if (!command.length) {
-        return this._runTask(
-          configurationErrorTask2("Raw: must supply one or more command to execute"),
-          next
-        );
-      }
-      return this._runTask(straightThroughStringTask2(command, this._trimmed), next);
-    };
-    Git2.prototype.submoduleAdd = function(repo, path12, then) {
-      return this._runTask(addSubModuleTask2(repo, path12), trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.submoduleUpdate = function(args, then) {
-      return this._runTask(
-        updateSubModuleTask2(getTrailingOptions2(arguments, true)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.submoduleInit = function(args, then) {
-      return this._runTask(
-        initSubModuleTask2(getTrailingOptions2(arguments, true)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.subModule = function(options, then) {
-      return this._runTask(
-        subModuleTask2(getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.listRemote = function() {
-      return this._runTask(
-        listRemotesTask2(getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.addRemote = function(remoteName, remoteRepo, then) {
-      return this._runTask(
-        addRemoteTask2(remoteName, remoteRepo, getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.removeRemote = function(remoteName, then) {
-      return this._runTask(removeRemoteTask2(remoteName), trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.getRemotes = function(verbose, then) {
-      return this._runTask(getRemotesTask2(verbose === true), trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.remote = function(options, then) {
-      return this._runTask(
-        remoteTask2(getTrailingOptions2(arguments)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.tag = function(options, then) {
-      const command = getTrailingOptions2(arguments);
-      if (command[0] !== "tag") {
-        command.unshift("tag");
-      }
-      return this._runTask(straightThroughStringTask2(command), trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.updateServerInfo = function(then) {
-      return this._runTask(
-        straightThroughStringTask2(["update-server-info"]),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.pushTags = function(remote, then) {
-      const task = pushTagsTask2(
-        { remote: filterType2(remote, filterString2) },
-        getTrailingOptions2(arguments)
-      );
-      return this._runTask(task, trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.rm = function(files) {
-      return this._runTask(
-        straightThroughStringTask2(["rm", "-f", ...asArray2(files)]),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.rmKeepLocal = function(files) {
-      return this._runTask(
-        straightThroughStringTask2(["rm", "--cached", ...asArray2(files)]),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.catFile = function(options, then) {
-      return this._catFile("utf-8", arguments);
-    };
-    Git2.prototype.binaryCatFile = function() {
-      return this._catFile("buffer", arguments);
-    };
-    Git2.prototype._catFile = function(format, args) {
-      var handler = trailingFunctionArgument2(args);
-      var command = ["cat-file"];
-      var options = args[0];
-      if (typeof options === "string") {
-        return this._runTask(
-          configurationErrorTask2("Git.catFile: options must be supplied as an array of strings"),
-          handler
-        );
-      }
-      if (Array.isArray(options)) {
-        command.push.apply(command, options);
-      }
-      const task = format === "buffer" ? straightThroughBufferTask2(command) : straightThroughStringTask2(command);
-      return this._runTask(task, handler);
-    };
-    Git2.prototype.diff = function(options, then) {
-      const task = filterString2(options) ? configurationErrorTask2(
-        "git.diff: supplying options as a single string is no longer supported, switch to an array of strings"
-      ) : straightThroughStringTask2(["diff", ...getTrailingOptions2(arguments)]);
-      return this._runTask(task, trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.diffSummary = function() {
-      return this._runTask(
-        diffSummaryTask2(getTrailingOptions2(arguments, 1)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.applyPatch = function(patches) {
-      const task = !filterStringOrStringArray2(patches) ? configurationErrorTask2(
-        `git.applyPatch requires one or more string patches as the first argument`
-      ) : applyPatchTask2(asArray2(patches), getTrailingOptions2([].slice.call(arguments, 1)));
-      return this._runTask(task, trailingFunctionArgument2(arguments));
-    };
-    Git2.prototype.revparse = function() {
-      const commands = ["rev-parse", ...getTrailingOptions2(arguments, true)];
-      return this._runTask(
-        straightThroughStringTask2(commands, true),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.clean = function(mode, options, then) {
-      const usingCleanOptionsArray = isCleanOptionsArray2(mode);
-      const cleanMode = usingCleanOptionsArray && mode.join("") || filterType2(mode, filterString2) || "";
-      const customArgs = getTrailingOptions2([].slice.call(arguments, usingCleanOptionsArray ? 1 : 0));
-      return this._runTask(
-        cleanWithOptionsTask2(cleanMode, customArgs),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.exec = function(then) {
-      const task = {
-        commands: [],
-        format: "utf-8",
-        parser() {
-          if (typeof then === "function") {
-            then();
-          }
-        }
-      };
-      return this._runTask(task);
-    };
-    Git2.prototype.clearQueue = function() {
-      return this._runTask(
-        adhocExecTask2(
-          () => console.warn(
-            "simple-git deprecation notice: clearQueue() is deprecated and will be removed, switch to using the abortPlugin instead."
-          )
-        )
-      );
-    };
-    Git2.prototype.checkIgnore = function(pathnames, then) {
-      return this._runTask(
-        checkIgnoreTask2(asArray2(filterType2(pathnames, filterStringOrStringArray2, []))),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    Git2.prototype.checkIsRepo = function(checkType, then) {
-      return this._runTask(
-        checkIsRepoTask2(filterType2(checkType, filterString2)),
-        trailingFunctionArgument2(arguments)
-      );
-    };
-    module2.exports = Git2;
-  }
-});
-init_git_error();
-var GitConstructError = class extends GitError {
-  constructor(config2, message) {
-    super(void 0, message);
-    this.config = config2;
-  }
-};
-init_git_error();
-init_git_error();
-var GitPluginError = class extends GitError {
-  constructor(task, plugin, message) {
-    super(task, message);
-    this.task = task;
-    this.plugin = plugin;
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
-};
-init_git_response_error();
-init_task_configuration_error();
-init_check_is_repo();
-init_clean();
-init_config();
-init_diff_name_status();
-init_grep();
-init_reset();
-function abortPlugin(signal) {
-  if (!signal) {
-    return;
-  }
-  const onSpawnAfter = {
-    type: "spawn.after",
-    action(_data, context) {
-      function kill() {
-        context.kill(new GitPluginError(void 0, "abort", "Abort signal received"));
-      }
-      signal.addEventListener("abort", kill);
-      context.spawned.on("close", () => signal.removeEventListener("abort", kill));
-    }
-  };
-  const onSpawnBefore = {
-    type: "spawn.before",
-    action(_data, context) {
-      if (signal.aborted) {
-        context.kill(new GitPluginError(void 0, "abort", "Abort already signaled"));
-      }
-    }
-  };
-  return [onSpawnBefore, onSpawnAfter];
-}
-function blockUnsafeOperationsPlugin(options = {}) {
-  return {
-    type: "spawn.args",
-    action(args, { env }) {
-      for (const vulnerability of ne(args, env)) {
-        if (options[vulnerability.category] !== true) {
-          throw new GitPluginError(void 0, "unsafe", vulnerability.message);
-        }
-      }
-      return args;
-    }
-  };
-}
-init_utils();
-function commandConfigPrefixingPlugin(configuration) {
-  const prefix = prefixedArray(configuration, "-c");
-  return {
-    type: "spawn.args",
-    action(data) {
-      return [...prefix, ...data];
-    }
-  };
-}
-init_utils();
-var never2 = (0, import_promise_deferred2.deferred)().promise;
-function completionDetectionPlugin({
-  onClose = true,
-  onExit = 50
-} = {}) {
-  function createEvents() {
-    let exitCode = -1;
-    const events = {
-      close: (0, import_promise_deferred2.deferred)(),
-      closeTimeout: (0, import_promise_deferred2.deferred)(),
-      exit: (0, import_promise_deferred2.deferred)(),
-      exitTimeout: (0, import_promise_deferred2.deferred)()
-    };
-    const result = Promise.race([
-      onClose === false ? never2 : events.closeTimeout.promise,
-      onExit === false ? never2 : events.exitTimeout.promise
-    ]);
-    configureTimeout(onClose, events.close, events.closeTimeout);
-    configureTimeout(onExit, events.exit, events.exitTimeout);
-    return {
-      close(code) {
-        exitCode = code;
-        events.close.done();
-      },
-      exit(code) {
-        exitCode = code;
-        events.exit.done();
-      },
-      get exitCode() {
-        return exitCode;
-      },
-      result
-    };
-  }
-  function configureTimeout(flag, event, timeout) {
-    if (flag === false) {
-      return;
-    }
-    (flag === true ? event.promise : event.promise.then(() => delay(flag))).then(timeout.done);
-  }
-  return {
-    type: "spawn.after",
-    async action(_data, { spawned, close }) {
-      const events = createEvents();
-      let deferClose = true;
-      let quickClose = () => void (deferClose = false);
-      spawned.stdout?.on("data", quickClose);
-      spawned.stderr?.on("data", quickClose);
-      spawned.on("error", quickClose);
-      spawned.on("close", (code) => events.close(code));
-      spawned.on("exit", (code) => events.exit(code));
-      try {
-        await events.result;
-        if (deferClose) {
-          await delay(50);
-        }
-        close(events.exitCode);
-      } catch (err) {
-        close(events.exitCode, err);
-      }
-    }
-  };
-}
-init_utils();
-var WRONG_NUMBER_ERR = `Invalid value supplied for custom binary, requires a single string or an array containing either one or two strings`;
-var WRONG_CHARS_ERR = `Invalid value supplied for custom binary, restricted characters must be removed or supply the unsafe.allowUnsafeCustomBinary option`;
-function isBadArgument(arg) {
-  return !arg || !/^([a-z]:)?([a-z0-9/.\\_~-]+)$/i.test(arg);
-}
-function toBinaryConfig(input, allowUnsafe) {
-  if (input.length < 1 || input.length > 2) {
-    throw new GitPluginError(void 0, "binary", WRONG_NUMBER_ERR);
-  }
-  const isBad = input.some(isBadArgument);
-  if (isBad) {
-    if (allowUnsafe) {
-      console.warn(WRONG_CHARS_ERR);
-    } else {
-      throw new GitPluginError(void 0, "binary", WRONG_CHARS_ERR);
-    }
-  }
-  const [binary, prefix] = input;
-  return {
-    binary,
-    prefix
-  };
-}
-function customBinaryPlugin(plugins, input = ["git"], allowUnsafe = false) {
-  let config2 = toBinaryConfig(asArray(input), allowUnsafe);
-  plugins.on("binary", (input2) => {
-    config2 = toBinaryConfig(asArray(input2), allowUnsafe);
-  });
-  plugins.append("spawn.binary", () => {
-    return config2.binary;
-  });
-  plugins.append("spawn.args", (data) => {
-    return config2.prefix ? [config2.prefix, ...data] : data;
-  });
-}
-init_git_error();
-function isTaskError(result) {
-  return !!(result.exitCode && result.stdErr.length);
-}
-function getErrorMessage(result) {
-  return Buffer.concat([...result.stdOut, ...result.stdErr]);
-}
-function errorDetectionHandler(overwrite = false, isError = isTaskError, errorMessage = getErrorMessage) {
-  return (error2, result) => {
-    if (!overwrite && error2 || !isError(result)) {
-      return error2;
-    }
-    return errorMessage(result);
-  };
-}
-function errorDetectionPlugin(config2) {
-  return {
-    type: "task.error",
-    action(data, context) {
-      const error2 = config2(data.error, {
-        stdErr: context.stdErr,
-        stdOut: context.stdOut,
-        exitCode: context.exitCode
-      });
-      if (Buffer.isBuffer(error2)) {
-        return { error: new GitError(void 0, error2.toString("utf-8")) };
-      }
-      return {
-        error: error2
-      };
-    }
-  };
-}
-init_utils();
-var PluginStore = class {
-  constructor() {
-    this.plugins = /* @__PURE__ */ new Set();
-    this.events = new import_node_events2.EventEmitter();
-  }
-  on(type, listener) {
-    this.events.on(type, listener);
-  }
-  reconfigure(type, data) {
-    this.events.emit(type, data);
-  }
-  append(type, action) {
-    const plugin = append(this.plugins, { type, action });
-    return () => this.plugins.delete(plugin);
-  }
-  add(plugin) {
-    const plugins = [];
-    asArray(plugin).forEach((plugin2) => plugin2 && this.plugins.add(append(plugins, plugin2)));
-    return () => {
-      plugins.forEach((plugin2) => this.plugins.delete(plugin2));
-    };
-  }
-  exec(type, data, context) {
-    let output = data;
-    const contextual = Object.freeze(Object.create(context));
-    for (const plugin of this.plugins) {
-      if (plugin.type === type) {
-        output = plugin.action(output, contextual);
-      }
-    }
-    return output;
-  }
-};
-init_utils();
-function progressMonitorPlugin(progress) {
-  const progressCommand = "--progress";
-  const progressMethods = ["checkout", "clone", "fetch", "pull", "push"];
-  const onProgress = {
-    type: "spawn.after",
-    action(_data, context) {
-      if (!context.commands.includes(progressCommand)) {
-        return;
-      }
-      context.spawned.stderr?.on("data", (chunk) => {
-        const message = /^([\s\S]+?):\s*(\d+)% \((\d+)\/(\d+)\)/.exec(chunk.toString("utf8"));
-        if (!message) {
-          return;
-        }
-        progress({
-          method: context.method,
-          stage: progressEventStage(message[1]),
-          progress: asNumber(message[2]),
-          processed: asNumber(message[3]),
-          total: asNumber(message[4])
-        });
-      });
-    }
-  };
-  const onArgs = {
-    type: "spawn.args",
-    action(args, context) {
-      if (!progressMethods.includes(context.method)) {
-        return args;
-      }
-      return including(args, progressCommand);
-    }
-  };
-  return [onArgs, onProgress];
-}
-function progressEventStage(input) {
-  return String(input.toLowerCase().split(" ", 1)) || "unknown";
-}
-init_utils();
-function spawnOptionsPlugin(spawnOptions) {
-  const options = pick2(spawnOptions, ["uid", "gid"]);
-  return {
-    type: "spawn.options",
-    action(data) {
-      return { ...options, ...data };
-    }
-  };
-}
-function timeoutPlugin({
-  block,
-  stdErr = true,
-  stdOut = true
-}) {
-  if (block > 0) {
-    return {
-      type: "spawn.after",
-      action(_data, context) {
-        let timeout;
-        function wait() {
-          timeout && clearTimeout(timeout);
-          timeout = setTimeout(kill, block);
-        }
-        function stop() {
-          context.spawned.stdout?.off("data", wait);
-          context.spawned.stderr?.off("data", wait);
-          context.spawned.off("exit", stop);
-          context.spawned.off("close", stop);
-          timeout && clearTimeout(timeout);
-        }
-        function kill() {
-          stop();
-          context.kill(new GitPluginError(void 0, "timeout", `block timeout reached`));
-        }
-        stdOut && context.spawned.stdout?.on("data", wait);
-        stdErr && context.spawned.stderr?.on("data", wait);
-        context.spawned.on("exit", stop);
-        context.spawned.on("close", stop);
-        wait();
-      }
-    };
-  }
-}
-function suffixPathsPlugin() {
-  return {
-    type: "spawn.args",
-    action(data) {
-      const prefix = [];
-      let suffix;
-      function append2(args) {
-        (suffix = suffix || []).push(...args);
-      }
-      for (let i2 = 0; i2 < data.length; i2++) {
-        const param = data[i2];
-        if (r(param)) {
-          append2(o(param));
-          continue;
-        }
-        if (param === "--") {
-          append2(
-            data.slice(i2 + 1).flatMap((item) => r(item) && o(item) || item)
-          );
-          break;
-        }
-        prefix.push(param);
-      }
-      return !suffix ? prefix : [...prefix, "--", ...suffix.map(String)];
-    }
-  };
-}
-init_utils();
-var Git = require_git();
-function gitInstanceFactory(baseDir, options) {
-  const plugins = new PluginStore();
-  const config2 = createInstanceConfig(
-    baseDir && (typeof baseDir === "string" ? { baseDir } : baseDir) || {},
-    options
-  );
-  if (!folderExists(config2.baseDir)) {
-    throw new GitConstructError(
-      config2,
-      `Cannot use simple-git on a directory that does not exist`
-    );
-  }
-  if (Array.isArray(config2.config)) {
-    plugins.add(commandConfigPrefixingPlugin(config2.config));
-  }
-  plugins.add(blockUnsafeOperationsPlugin(config2.unsafe));
-  plugins.add(completionDetectionPlugin(config2.completion));
-  config2.abort && plugins.add(abortPlugin(config2.abort));
-  config2.progress && plugins.add(progressMonitorPlugin(config2.progress));
-  config2.timeout && plugins.add(timeoutPlugin(config2.timeout));
-  config2.spawnOptions && plugins.add(spawnOptionsPlugin(config2.spawnOptions));
-  plugins.add(suffixPathsPlugin());
-  plugins.add(errorDetectionPlugin(errorDetectionHandler(true)));
-  config2.errors && plugins.add(errorDetectionPlugin(config2.errors));
-  customBinaryPlugin(plugins, config2.binary, config2.unsafe?.allowUnsafeCustomBinary);
-  return new Git(config2, plugins);
-}
-init_git_response_error();
-var simpleGit = gitInstanceFactory;
-
-// src/utils/git-utils.ts
-async function getChangedFiles(repoRoot, since) {
-  const git = simpleGit(repoRoot);
-  if (since) {
-    const diff2 = await git.diff(["--name-only", since]);
-    return diff2.trim().split("\n").filter(Boolean);
-  }
-  const diff = await git.diff(["--name-only", "HEAD"]);
-  return diff.trim().split("\n").filter(Boolean);
-}
-async function getFileHashes(repoRoot, filePaths) {
-  const git = simpleGit(repoRoot);
-  const hashes = {};
-  for (const fp of filePaths) {
-    try {
-      const result = await git.hashObject(fp);
-      hashes[fp] = result.trim();
-    } catch {
-      log.warn(`Could not hash file: ${fp}`);
-      hashes[fp] = "unknown";
-    }
-  }
-  return hashes;
-}
-async function getModuleHash(repoRoot, moduleFiles) {
-  const hashes = await getFileHashes(repoRoot, moduleFiles);
-  const combined = Object.entries(hashes).sort(([a], [b2]) => a.localeCompare(b2)).map(([k2, v]) => `${k2}:${v}`).join("|");
-  const { createHash } = await import("node:crypto");
-  return createHash("sha256").update(combined).digest("hex").slice(0, 12);
-}
-async function getCurrentCommit(repoRoot) {
-  const git = simpleGit(repoRoot);
-  const result = await git.revparse(["HEAD"]);
-  return result.trim().slice(0, 7);
-}
-
-// src/storage/manifest.ts
-init_file_utils();
-async function loadManifest(manifestPath) {
-  const manifest = await readJson(manifestPath);
-  if (manifest && manifest.version === 1) return manifest;
-  return createEmptyManifest();
-}
-function createEmptyManifest() {
-  return {
-    version: 1,
-    lastFullBuild: "",
-    baseCommit: "",
-    modules: {}
-  };
-}
-async function saveManifest(manifestPath, manifest) {
-  await writeJson(manifestPath, manifest);
-  log.debug("Manifest saved", { moduleCount: Object.keys(manifest.modules).length });
-}
-function setModuleEntry(manifest, moduleName, entry) {
-  return {
-    ...manifest,
-    modules: { ...manifest.modules, [moduleName]: entry }
-  };
-}
-function getModuleEntry(manifest, moduleName) {
-  return manifest.modules[moduleName];
-}
-
-// src/storage/cache-manager.ts
-var import_node_path8 = __toESM(require("node:path"), 1);
-var CacheManager = class {
-  constructor(repoRoot) {
-    this.repoRoot = repoRoot;
-    this.paths = wikiPaths(repoRoot);
-  }
-  paths;
-  async init() {
-    await ensureDir(this.paths.cache);
-    await ensureDir(this.paths.modules("cache"));
-    await ensureDir(this.paths.flows("cache"));
-    await ensureDir(this.paths.graphs);
-  }
-  async getManifest() {
-    return loadManifest(this.paths.manifest);
-  }
-  async isModuleFresh(moduleName, moduleFiles) {
-    const manifest = await this.getManifest();
-    const entry = getModuleEntry(manifest, moduleName);
-    if (!entry) return false;
-    const currentHash = await getModuleHash(this.repoRoot, moduleFiles);
-    return entry.gitHash === currentHash;
-  }
-  async getCachedModule(moduleName) {
-    const manifest = await this.getManifest();
-    const entry = getModuleEntry(manifest, moduleName);
-    if (!entry) return null;
-    const cachePath = import_node_path8.default.join(this.paths.modules("cache"), `${moduleName}.json`);
-    return readJson(cachePath);
-  }
-  async cacheModule(moduleName, wiki, moduleFiles) {
-    const cachePath = import_node_path8.default.join(this.paths.modules("cache"), `${moduleName}.json`);
-    await writeJson(cachePath, wiki);
-    const gitHash = await getModuleHash(this.repoRoot, moduleFiles);
-    const manifest = await this.getManifest();
-    const updated = setModuleEntry(manifest, moduleName, {
-      cacheFile: `modules/${moduleName}.json`,
-      gitHash,
-      fileCount: moduleFiles.length,
-      analyzedAt: (/* @__PURE__ */ new Date()).toISOString()
-    });
-    await saveManifest(this.paths.manifest, updated);
-    log.info(`Cached module: ${moduleName}`);
-  }
-  async cacheGraph(graph) {
-    const graphPath = import_node_path8.default.join(this.paths.graphs, "dependency.json");
-    await writeJson(graphPath, graph);
-  }
-  async getCachedGraph() {
-    const graphPath = import_node_path8.default.join(this.paths.graphs, "dependency.json");
-    return readJson(graphPath);
-  }
-  async invalidateModule(moduleName) {
-    const manifest = await this.getManifest();
-    const { [moduleName]: _2, ...rest } = manifest.modules;
-    await saveManifest(this.paths.manifest, { ...manifest, modules: rest });
-    log.debug(`Invalidated cache for module: ${moduleName}`);
-  }
-  async cacheOverview(overview) {
-    const overviewPath = import_node_path8.default.join(this.paths.cache, "overview.json");
-    await writeJson(overviewPath, overview);
-  }
-  async getCachedOverview() {
-    const overviewPath = import_node_path8.default.join(this.paths.cache, "overview.json");
-    return readJson(overviewPath);
-  }
-  async cacheTechStack(ts) {
-    const tsPath = import_node_path8.default.join(this.paths.cache, "tech-stack.json");
-    await writeJson(tsPath, ts);
-  }
-  async getCachedTechStack() {
-    const tsPath = import_node_path8.default.join(this.paths.cache, "tech-stack.json");
-    return readJson(tsPath);
-  }
-};
-
-// src/tools/wiki-init.ts
-init_team_writer();
-function createWikiInitTool(repoRoot) {
-  return {
-    name: "wiki_init",
-    description: "Initialize Code Wiki for the current project. Detects language, framework, modules, and generates the .code-wiki/ directory structure. IMPORTANT: Use this MCP tool instead of `npx code-wiki init` or any Bash/CLI command.",
-    schema: {
-      force: external_exports.boolean().optional().default(false).describe("Force re-initialization even if .code-wiki/ exists")
-    },
-    handler: async (params) => {
-      const start = Date.now();
-      const { framework, language } = await detectFramework(repoRoot);
-      const modules = await detectModules(repoRoot, framework, language);
-      const graph = buildDependencyGraph(modules);
-      const commit = await getCurrentCommit(repoRoot);
-      const cache = new CacheManager(repoRoot);
-      await cache.init();
-      await cache.cacheGraph(graph);
-      const cachedOverview = await cache.getCachedOverview();
-      const cachedTechStack = await cache.getCachedTechStack();
-      const overview = {
-        name: repoRoot.split("/").pop() ?? "project",
-        language,
-        framework,
-        architecture: modules.length > 1 ? "multi-module" : "single-module",
-        modules: modules.map((m) => ({
-          name: m.name,
-          path: m.path,
-          responsibility: `${m.exports.length} exports`,
-          keyFiles: m.files.length,
-          deps: getDependencies(graph, m.name).internal
-        })),
-        entryPoints: modules.filter((m) => m.entryFile).map((m) => m.entryFile),
-        sharedLibs: [],
-        lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
-        overview: cachedOverview ?? void 0,
-        techStack: cachedTechStack ?? void 0
-      };
-      const moduleWikis = modules.map((m) => ({
-        name: m.name,
-        summary: `Run /wiki-update to generate detailed analysis`,
-        readWhen: [`Working with ${m.name}`, `Understanding ${m.name} module`],
-        responsibility: `Run /wiki-update to generate detailed analysis`,
-        boundary: "Pending LLM analysis",
-        keyAbstractions: [],
-        usagePatterns: [],
-        invariants: [],
-        configKeys: [],
-        keyTypes: m.types.map((t2) => t2.name),
-        exports: m.exports.map((e) => e.name),
-        dependencies: getDependencies(graph, m.name),
-        dependents: [],
-        relatedModules: [],
-        gotchas: []
-      }));
-      const written = await writeTeamWiki(repoRoot, overview, moduleWikis, []);
-      log.info(`wiki_init completed in ${Date.now() - start}ms`);
-      return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({
-            status: "initialized",
-            framework,
-            language,
-            moduleCount: modules.length,
-            filesWritten: written.length,
-            modules: modules.map((m) => ({
-              name: m.name,
-              path: m.path,
-              exports: m.exports.length,
-              types: m.types.length
-            })),
-            nextStep: "Run /wiki-update to generate detailed content for each module"
-          }, null, 2)
-        }]
-      };
-    }
-  };
-}
+// src/server.ts
+init_wiki_init();
 
 // src/tools/wiki-overview.ts
+init_zod();
+init_framework_detector();
+init_module_detector();
+init_graph_builder();
+init_cache_manager();
+init_logger();
 function createWikiOverviewTool(repoRoot) {
   return {
     name: "wiki_overview",
@@ -34388,7 +34713,13 @@ function detectArchitecture(modules) {
 }
 
 // src/tools/wiki-module.ts
+init_zod();
 var import_node_path10 = __toESM(require("node:path"), 1);
+init_framework_detector();
+init_module_detector();
+init_graph_builder();
+init_cache_manager();
+init_logger();
 function createWikiModuleTool(repoRoot) {
   return {
     name: "wiki_module",
@@ -34440,7 +34771,13 @@ function createWikiModuleTool(repoRoot) {
   };
 }
 
+// src/tools/wiki-flow.ts
+init_zod();
+init_framework_detector();
+init_module_detector();
+
 // src/engine/flow-tracer.ts
+init_logger();
 function traceFlows(modules) {
   const flows = [];
   for (const mod of modules) {
@@ -34490,6 +34827,7 @@ function traceCallChain(functionName, file, line, modules, visited, depth = 0) {
 }
 
 // src/tools/wiki-flow.ts
+init_logger();
 function createWikiFlowTool(repoRoot) {
   return {
     name: "wiki_flow",
@@ -34530,124 +34868,12 @@ function createWikiFlowTool(repoRoot) {
   };
 }
 
-// src/prompts/templates.ts
-var MODULE_SUMMARY_PROMPT = `You are analyzing a code module to produce rich, developer-facing documentation. Based on the AST analysis below, generate a structured module summary.
-
-CRITICAL ACCURACY RULES:
-- Base EVERY claim on evidence from the provided AST analysis, imports, and exports
-- Do NOT guess or fabricate information not present in the data
-- If data is insufficient for a field, omit it rather than invent content
-- For gotchas: only flag issues you can verify from the actual code structure
-- For invariants: only state constraints that are clearly enforced by the code
-- Double-check any claims about code behavior against the actual exports and imports listed
-
-Output JSON matching this shape:
-{
-  "name": "module-name",
-  "summary": "One-sentence module purpose (used as frontmatter summary)",
-  "readWhen": ["When you are changing X", "When you need to understand Y"],
-  "responsibility": "2-3 sentences describing WHAT this module does and WHY it exists (narrative, not bullet points)",
-  "boundary": "What this module explicitly does NOT cover \u2014 where its responsibility ends",
-  "quickStart": {
-    "description": "One sentence explaining the fastest way to get started with this module",
-    "codeExample": "Minimal code to bootstrap or use this module (3-8 lines)",
-    "language": "typescript"
-  },
-  "keyAbstractions": [
-    { "name": "SymbolName", "kind": "type|function|class|interface|constant", "description": "What this abstraction represents and when to use it" }
-  ],
-  "usagePatterns": [
-    { "title": "Pattern name", "description": "When and how to use this pattern", "codeExample": "actual code snippet showing usage", "language": "typescript" }
-  ],
-  "invariants": ["Hard constraints that must always hold (e.g. 'Exactly one Gateway per host')"],
-  "configKeys": [
-    { "key": "some.config.path", "type": "string", "default": "value", "description": "What this config controls" }
-  ],
-  "keyTypes": ["TypeName1", "TypeName2"],
-  "exports": ["exportName1", "exportName2"],
-  "dependencies": { "internal": ["module-a"], "external": ["some-npm-pkg"] },
-  "dependents": ["module-b"],
-  "relatedModules": ["module-c"],
-  "gotchas": [
-    { "description": "Non-obvious pitfall with specific details", "severity": "warning|caution|note" }
-  ]
-}
-
-Rules:
-- summary: concise one-liner suitable for a docs index page
-- readWhen: 2-4 scenarios when a developer should read this doc (e.g. "Adding a new channel plugin", "Debugging WebSocket connection issues")
-- responsibility: narrative prose, not bullet points. Explain the module's role in the overall system.
-- quickStart: a minimal, copy-paste-ready example that gets a developer running with this module in under 30 seconds. Omit if the module has no public API (e.g. tests, config files).
-- keyAbstractions: cover the 3-8 most important types/functions/classes. For each, explain WHAT it represents and WHEN a developer would interact with it. Pick only meaningful abstractions, not trivial helpers.
-- usagePatterns: 1-3 common usage patterns with actual code examples extracted from the codebase. Each example should be realistic and show the import + usage.
-- invariants: hard rules that must ALWAYS hold. NOT suggestions \u2014 things that break the system if violated. (e.g. "All DB operations must use await", "Only one Gateway process per host"). Only include if you find real ones.
-- configKeys: configuration entries relevant to this module. Include the config key path, type, default value, and what it controls. Only include if the module has meaningful configuration.
-- relatedModules: modules that frequently interact with this one, or that a developer would need to understand alongside this one.
-- gotchas: only NON-OBVIOUS pitfalls. severity: "warning" = will cause bugs/data loss, "caution" = subtle behavior that wastes debugging time, "note" = non-obvious but harmless. Do NOT include generic advice.
-- Be specific to THIS codebase. Reference actual function names, file paths, and behavior.
-
-AST Analysis:
-{{astData}}
-
-Dependency Graph:
-{{depData}}
-
-Respond with JSON only.`;
-var IMPACT_ANALYSIS_PROMPT = `You are analyzing the impact of a planned code change. Based on the dependency graph and module analysis below, assess what would be affected.
-
-Rules:
-- directlyAffected: Modules whose code would need to change
-- potentiallyAffected: Modules that might break if not updated
-- suggestedTests: Specific test files that should be run
-- Be conservative \u2014 only flag real risks, not hypothetical ones
-- Output valid JSON matching the ImpactResult type
-
-Planned Change:
-{{changeDescription}}
-
-Target Files:
-{{targetFiles}}
-
-Dependency Graph:
-{{depGraph}}
-
-Module Analysis:
-{{moduleData}}
-
-Respond with JSON only.`;
-var PROJECT_OVERVIEW_PROMPT = `You are analyzing a codebase to produce a high-level project overview. Based on the module analysis and dependency data below, generate a structured project description.
-
-Output JSON matching this shape:
-{
-  "summary": "1-2 sentence elevator pitch \u2014 what this project IS and what it DOES",
-  "businessContext": "2-3 sentences describing the domain, problem space, or business purpose",
-  "coreCapabilities": [
-    "Capability 1 \u2014 specific to THIS codebase",
-    "Capability 2",
-    "..."
-  ],
-  "targetUsers": "Who uses this project \u2014 developers, end users, other systems?"
-}
-
-Rules:
-- summary: concise, specific to this codebase. NOT generic. Reference actual features.
-- businessContext: explain the WHY \u2014 what problem does this solve? What domain is it in?
-- coreCapabilities: 3-6 concrete capabilities. Each should be a single sentence with specific details from the code.
-- targetUsers: brief description of who interacts with this system
-- Be specific to THIS codebase. Reference actual module names, entry points, and functionality.
-
-Module Analysis:
-{{moduleData}}
-
-Dependency Data:
-{{depData}}
-
-Entry Points:
-{{entryPoints}}
-
-Respond with JSON only.`;
-
 // src/tools/wiki-query.ts
+init_zod();
+init_framework_detector();
+init_module_detector();
+init_templates();
+init_logger();
 function createWikiQueryTool(repoRoot) {
   return {
     name: "wiki_query",
@@ -34686,9 +34912,16 @@ function createWikiQueryTool(repoRoot) {
 }
 
 // src/tools/wiki-update.ts
+init_zod();
 var import_node_path12 = __toESM(require("node:path"), 1);
+init_framework_detector();
+init_module_detector();
+init_graph_builder();
+init_cache_manager();
 init_constants();
 init_file_utils();
+init_git_utils();
+init_templates();
 
 // src/engine/dep-extractor.ts
 init_file_utils();
@@ -34922,6 +35155,7 @@ async function extractFromGemfile(repoRoot, language, framework) {
 }
 
 // src/tools/wiki-update.ts
+init_logger();
 function createWikiUpdateTool(repoRoot) {
   return {
     name: "wiki_update",
@@ -34932,12 +35166,51 @@ function createWikiUpdateTool(repoRoot) {
       module: external_exports.string().optional(),
       generated_content: external_exports.string().optional().describe("JSON string of ModuleWiki from host LLM"),
       persist_overview: external_exports.string().optional().describe("JSON string of ProjectOverview from host LLM"),
-      persist_tech_stack_descriptions: external_exports.string().optional().describe("JSON object mapping package name to description")
+      persist_tech_stack_descriptions: external_exports.string().optional().describe("JSON object mapping package name to description"),
+      module_grouping: external_exports.string().optional().describe("JSON string from LLM module detection. Provided to cache grouping before analysis.")
     },
     handler: async (params) => {
       const start = Date.now();
       const cache = new CacheManager(repoRoot);
       await cache.init();
+      if (params.module_grouping && !params.module && !params.generated_content && !params.persist_overview && !params.persist_tech_stack_descriptions) {
+        const parsedGrouping = JSON.parse(params.module_grouping);
+        const fw = await detectFramework(repoRoot);
+        const grouping = {
+          ...parsedGrouping,
+          detectedAt: (/* @__PURE__ */ new Date()).toISOString(),
+          language: fw.language,
+          framework: fw.framework,
+          fileCount: parsedGrouping.modules.reduce((sum, m) => sum + m.files.length, 0)
+        };
+        await cache.cacheGrouping(grouping);
+        return {
+          content: [{ type: "text", text: JSON.stringify({ status: "grouping_cached", moduleCount: grouping.modules.length }) }]
+        };
+      }
+      const cachedGrouping = await cache.getCachedGrouping();
+      if (!cachedGrouping && !params.module && !params.generated_content && !params.persist_overview && !params.persist_tech_stack_descriptions) {
+        const { findSourceFiles: findSourceFiles2 } = await Promise.resolve().then(() => (init_file_utils(), file_utils_exports));
+        const sourceFiles = await findSourceFiles2(repoRoot);
+        const { buildDirectoryTree: buildDirectoryTree2, buildSimpleImportGraph: buildSimpleImportGraph2 } = await Promise.resolve().then(() => (init_wiki_init(), wiki_init_exports));
+        const fw = await detectFramework(repoRoot);
+        const dirTree = buildDirectoryTree2(sourceFiles);
+        const importGraph = await buildSimpleImportGraph2(repoRoot, sourceFiles);
+        const prompt2 = MODULE_DETECTION_PROMPT.replace("{{language}}", fw.language).replace("{{framework}}", fw.framework).replace("{{fileTree}}", dirTree).replace("{{importGraph}}", JSON.stringify(importGraph, null, 2));
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              status: "detection_required",
+              fileCount: sourceFiles.length,
+              language: fw.language,
+              framework: fw.framework,
+              instruction: 'No module grouping found. Review the file tree and determine module grouping. Then call wiki_update with { module_grouping: "<JSON>" } to cache the grouping, then call again with { scope: "changed" } to proceed.',
+              prompt: prompt2
+            }, null, 2)
+          }]
+        };
+      }
       if (params.persist_overview && !params.module && !params.generated_content) {
         const overviewContent = JSON.parse(params.persist_overview);
         await cache.cacheOverview(overviewContent);
@@ -35039,7 +35312,7 @@ function createWikiUpdateTool(repoRoot) {
         };
       }
       const { framework, language } = await detectFramework(repoRoot);
-      let modules = await detectModules(repoRoot, framework, language);
+      let modules = cachedGrouping ? await buildModulesFromGrouping(repoRoot, cachedGrouping, language) : await detectModules(repoRoot, framework, language);
       if (params.scope === "changed" && !params.paths) {
         const changedFiles = await getChangedFiles(repoRoot);
         const changedModules = new Set(
@@ -35206,8 +35479,19 @@ ${gotchasSection}
 ${relatedSection}
 `;
 }
+async function buildModulesFromGrouping(repoRoot, grouping, language) {
+  const { buildModuleDefs: buildModuleDefs2 } = await Promise.resolve().then(() => (init_module_detector(), module_detector_exports));
+  const moduleMap = new Map(grouping.modules.map((m) => [m.name, m.files]));
+  return buildModuleDefs2(repoRoot, moduleMap, language);
+}
 
 // src/tools/wiki-impact.ts
+init_zod();
+init_framework_detector();
+init_module_detector();
+init_graph_builder();
+init_templates();
+init_logger();
 function createWikiImpactTool(repoRoot) {
   return {
     name: "wiki_impact",
@@ -35261,6 +35545,9 @@ function createWikiImpactTool(repoRoot) {
   };
 }
 
+// src/server.ts
+init_logger();
+
 // src/engine/base-analyzer.ts
 var BaseAnalyzer = class {
   isRelevantFile(filePath) {
@@ -35269,6 +35556,7 @@ var BaseAnalyzer = class {
 };
 
 // src/engine/analyzers/typescript.ts
+init_language_registry();
 var TypeScriptAnalyzer = class extends BaseAnalyzer {
   language = "typescript";
   getExtensions() {
@@ -35434,6 +35722,7 @@ var TypeScriptAnalyzer = class extends BaseAnalyzer {
 registry2.register(new TypeScriptAnalyzer());
 
 // src/engine/analyzers/python.ts
+init_language_registry();
 var PythonAnalyzer = class extends BaseAnalyzer {
   language = "python";
   getExtensions() {
@@ -35518,6 +35807,7 @@ var PythonAnalyzer = class extends BaseAnalyzer {
 registry2.register(new PythonAnalyzer());
 
 // src/engine/analyzers/go.ts
+init_language_registry();
 var GoAnalyzer = class extends BaseAnalyzer {
   language = "go";
   getExtensions() {
@@ -35640,6 +35930,7 @@ var GoAnalyzer = class extends BaseAnalyzer {
 registry2.register(new GoAnalyzer());
 
 // src/engine/analyzers/java.ts
+init_language_registry();
 var JavaAnalyzer = class extends BaseAnalyzer {
   language = "java";
   getExtensions() {
@@ -35730,6 +36021,7 @@ var JavaAnalyzer = class extends BaseAnalyzer {
 registry2.register(new JavaAnalyzer());
 
 // src/engine/analyzers/rust.ts
+init_language_registry();
 var RustAnalyzer = class extends BaseAnalyzer {
   language = "rust";
   getExtensions() {
@@ -35846,6 +36138,7 @@ var RustAnalyzer = class extends BaseAnalyzer {
 registry2.register(new RustAnalyzer());
 
 // src/engine/analyzers/ruby.ts
+init_language_registry();
 var RubyAnalyzer = class extends BaseAnalyzer {
   language = "ruby";
   getExtensions() {
