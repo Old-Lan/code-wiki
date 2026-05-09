@@ -195,3 +195,40 @@ Project Context:
 {{projectContext}}
 
 Respond with JSON only.`;
+
+export const MODULE_DETECTION_PROMPT = `You are analyzing a project's directory structure to divide its files into meaningful business-domain modules.
+
+PRINCIPLES:
+- Group by business domain, not technical layer
+- A domain's router/service/model/schema/repository belong together in ONE module
+- Shared infrastructure (core, utils, config, middleware) stays as separate infrastructure modules
+- Aim for 5-30 files per module. If a domain has <5 files, consider merging with a related domain
+- Module names: lowercase English, hyphen-separated, concise (e.g. "sales", "user-auth", "game-engine")
+
+PROJECT INFO:
+- Language: {{language}}
+- Framework: {{framework}}
+
+FILE TREE:
+{{fileTree}}
+
+IMPORT GRAPH (module-level dependencies):
+{{importGraph}}
+
+Respond with JSON matching this shape:
+{
+  "modules": [
+    {
+      "name": "module-name",
+      "files": ["relative/path/to/file1.py", "relative/path/to/file2.py"],
+      "reason": "Brief explanation of what this module covers"
+    }
+  ]
+}
+
+Rules:
+- Every source file must appear in exactly one module
+- "files" must use relative paths from the project root
+- "reason" should be 1-2 sentences describing the module's business purpose
+- If the project is too small for meaningful decomposition (<10 files), use a single module
+- Do NOT create modules with only 1-2 files unless they are genuinely isolated infrastructure`;

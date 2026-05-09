@@ -1,4 +1,4 @@
-import type { ModuleWiki, DependencyGraph, Manifest, ProjectOverview, TechStack } from '../types.js';
+import type { ModuleWiki, DependencyGraph, Manifest, ProjectOverview, TechStack, ModuleGrouping } from '../types.js';
 import { wikiPaths } from '../constants.js';
 import { readJson, writeJson, ensureDir } from '../utils/file-utils.js';
 import { getModuleHash } from '../utils/git-utils.js';
@@ -93,5 +93,16 @@ export class CacheManager {
   async getCachedTechStack(): Promise<TechStack | null> {
     const tsPath = path.join(this.paths.cache, 'tech-stack.json');
     return readJson<TechStack>(tsPath);
+  }
+
+  async cacheGrouping(grouping: ModuleGrouping): Promise<void> {
+    const groupingPath = path.join(this.paths.cache, 'grouping.json');
+    await writeJson(groupingPath, grouping);
+    log.info(`Cached module grouping: ${grouping.modules.length} modules`);
+  }
+
+  async getCachedGrouping(): Promise<ModuleGrouping | null> {
+    const groupingPath = path.join(this.paths.cache, 'grouping.json');
+    return readJson<ModuleGrouping>(groupingPath);
   }
 }

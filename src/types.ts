@@ -212,6 +212,20 @@ export interface Manifest {
   modules: Record<string, ModuleCacheEntry>;
 }
 
+// ── LLM Module Grouping ──
+
+export interface ModuleGrouping {
+  modules: Array<{
+    name: string;
+    files: string[];
+    reason: string;
+  }>;
+  detectedAt: string;
+  language: SupportedLanguage;
+  framework: Framework;
+  fileCount: number;
+}
+
 // ── Tool Input/Output ──
 
 export interface WikiOverviewInput {
