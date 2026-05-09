@@ -9,9 +9,10 @@ import { CacheManager } from '../storage/cache-manager.js';
 import { wikiPaths } from '../constants.js';
 import { ensureDir, writeFile } from '../utils/file-utils.js';
 import { getCurrentCommit, getChangedFiles } from '../utils/git-utils.js';
-import { MODULE_SUMMARY_PROMPT, PROJECT_OVERVIEW_PROMPT, TECH_STACK_DESCRIPTION_PROMPT } from '../prompts/templates.js';
+import { MODULE_SUMMARY_PROMPT, PROJECT_OVERVIEW_PROMPT, TECH_STACK_DESCRIPTION_PROMPT, MODULE_DETECTION_PROMPT } from '../prompts/templates.js';
 import { extractDependencies } from '../engine/dep-extractor.js';
 import { log } from '../utils/logger.js';
+import type { ModuleGrouping } from '../types.js';
 
 export function createWikiUpdateTool(repoRoot: string): ToolDefinition {
   return {
@@ -24,11 +25,61 @@ export function createWikiUpdateTool(repoRoot: string): ToolDefinition {
       generated_content: z.string().optional().describe('JSON string of ModuleWiki from host LLM'),
       persist_overview: z.string().optional().describe('JSON string of ProjectOverview from host LLM'),
       persist_tech_stack_descriptions: z.string().optional().describe('JSON object mapping package name to description'),
+      module_grouping: z.string().optional().describe('JSON string from LLM module detection. Provided to cache grouping before analysis.'),
     },
     handler: async (params) => {
       const start = Date.now();
       const cache = new CacheManager(repoRoot);
       await cache.init();
+
+      // Handle module_grouping caching
+      if (params.module_grouping && !params.module && !params.generated_content && !params.persist_overview && !params.persist_tech_stack_descriptions) {
+        const parsedGrouping = JSON.parse(params.module_grouping);
+        const fw = await detectFramework(repoRoot);
+        const grouping: ModuleGrouping = {
+          ...parsedGrouping,
+          detectedAt: new Date().toISOString(),
+          language: fw.language,
+          framework: fw.framework,
+          fileCount: parsedGrouping.modules.reduce((sum: number, m: { files: string[] }) => sum + m.files.length, 0),
+        };
+        await cache.cacheGrouping(grouping);
+        return {
+          content: [{ type: 'text' as const, text: JSON.stringify({ status: 'grouping_cached', moduleCount: grouping.modules.length }) }],
+        };
+      }
+
+      // Check for cached grouping; if none, return detection prompt
+      const cachedGrouping = await cache.getCachedGrouping();
+      if (!cachedGrouping && !params.module && !params.generated_content && !params.persist_overview && !params.persist_tech_stack_descriptions) {
+        const { findSourceFiles } = await import('../utils/file-utils.js');
+        const sourceFiles = await findSourceFiles(repoRoot);
+        const { buildDirectoryTree, buildSimpleImportGraph } = await import('./wiki-init.js');
+        const fw = await detectFramework(repoRoot);
+
+        const dirTree = buildDirectoryTree(sourceFiles);
+        const importGraph = await buildSimpleImportGraph(repoRoot, sourceFiles);
+
+        const prompt = MODULE_DETECTION_PROMPT
+          .replace('{{language}}', fw.language)
+          .replace('{{framework}}', fw.framework)
+          .replace('{{fileTree}}', dirTree)
+          .replace('{{importGraph}}', JSON.stringify(importGraph, null, 2));
+
+        return {
+          content: [{
+            type: 'text' as const,
+            text: JSON.stringify({
+              status: 'detection_required',
+              fileCount: sourceFiles.length,
+              language: fw.language,
+              framework: fw.framework,
+              instruction: 'No module grouping found. Review the file tree and determine module grouping. Then call wiki_update with { module_grouping: "<JSON>" } to cache the grouping, then call again with { scope: "changed" } to proceed.',
+              prompt,
+            }, null, 2),
+          }],
+        };
+      }
 
       // Persist overview content
       if (params.persist_overview && !params.module && !params.generated_content) {
@@ -146,7 +197,9 @@ export function createWikiUpdateTool(repoRoot: string): ToolDefinition {
 
       // Mode 1: Analyze and return data for host LLM
       const { framework, language } = await detectFramework(repoRoot);
-      let modules = await detectModules(repoRoot, framework, language);
+      let modules = cachedGrouping
+        ? await buildModulesFromGrouping(repoRoot, cachedGrouping, language)
+        : await detectModules(repoRoot, framework, language);
 
       // Filter to changed modules if scope="changed"
       if (params.scope === 'changed' && !params.paths) {
@@ -331,4 +384,10 @@ ${gotchasSection}
 
 ${relatedSection}
 `;
+}
+
+async function buildModulesFromGrouping(repoRoot: string, grouping: ModuleGrouping, language: string) {
+  const { buildModuleDefs } = await import('../engine/module-detector.js');
+  const moduleMap = new Map(grouping.modules.map(m => [m.name, m.files]));
+  return buildModuleDefs(repoRoot, moduleMap, language as any);
 }
