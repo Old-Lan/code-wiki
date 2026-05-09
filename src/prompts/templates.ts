@@ -1,5 +1,13 @@
 export const MODULE_SUMMARY_PROMPT = `You are analyzing a code module to produce rich, developer-facing documentation. Based on the AST analysis below, generate a structured module summary.
 
+CRITICAL ACCURACY RULES:
+- Base EVERY claim on evidence from the provided AST analysis, imports, and exports
+- Do NOT guess or fabricate information not present in the data
+- If data is insufficient for a field, omit it rather than invent content
+- For gotchas: only flag issues you can verify from the actual code structure
+- For invariants: only state constraints that are clearly enforced by the code
+- Double-check any claims about code behavior against the actual exports and imports listed
+
 Output JSON matching this shape:
 {
   "name": "module-name",

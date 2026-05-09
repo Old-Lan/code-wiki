@@ -3,7 +3,7 @@
 export type SupportedLanguage = 'typescript' | 'python' | 'go' | 'java' | 'rust' | 'ruby';
 
 export type Framework =
-  | 'nextjs' | 'django' | 'spring-boot' | 'rails'
+  | 'nextjs' | 'fastapi' | 'django' | 'spring-boot' | 'rails'
   | 'go-standard' | 'rust-workspace' | 'generic';
 
 // ── AST Analysis ──

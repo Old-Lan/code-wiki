@@ -42,7 +42,7 @@ export function createWikiInitTool(repoRoot: string): ToolDefinition {
           keyFiles: m.files.length,
           deps: getDependencies(graph, m.name).internal,
         })),
-        entryPoints: modules.filter(m => m.entryFile).map(m => m.path),
+        entryPoints: modules.filter(m => m.entryFile).map(m => m.entryFile!),
         sharedLibs: [],
         lastUpdated: new Date().toISOString(),
         overview: cachedOverview ?? undefined,

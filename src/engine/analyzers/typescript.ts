@@ -52,6 +52,44 @@ export class TypeScriptAnalyzer extends BaseAnalyzer {
       return;
     }
 
+    // React component: export default function PascalCase
+    m = line.match(/^export\s+default\s+function\s+([A-Z]\w*)/);
+    if (m) {
+      exports.push({ name: m[1], kind: 'function', file, line: lineNum, isDefault: true });
+      functions.push({ name: m[1], file, line: lineNum, params: [], isExported: true });
+      return;
+    }
+
+    // Default export with expression: export default ComponentName (standalone)
+    m = line.match(/^export\s+default\s+([A-Z]\w+)\s*;?\s*$/);
+    if (m) {
+      exports.push({ name: m[1], kind: 'variable', file, line: lineNum, isDefault: true });
+      return;
+    }
+
+    // Default export wrapped: export default memo(ComponentName) / export default React.memo(ComponentName)
+    m = line.match(/^export\s+default\s+(?:\w+\.\s*)?(\w+)\s*\(\s*([A-Z]\w*)\s*\)/);
+    if (m) {
+      exports.push({ name: m[2], kind: 'variable', file, line: lineNum, isDefault: true });
+      return;
+    }
+
+    // React component export: export function PascalCase or export const PascalCase = () =>
+    m = line.match(/^export\s+function\s+([A-Z]\w*)/);
+    if (m) {
+      exports.push({ name: m[1], kind: 'function', file, line: lineNum, isDefault: false });
+      functions.push({ name: m[1], file, line: lineNum, params: [], isExported: true });
+      return;
+    }
+
+    // React component: export const PascalCase = () => or export const PascalCase = function
+    m = line.match(/^export\s+const\s+([A-Z]\w*)\s*=\s*(?:\([^)]*\)|\w+)\s*=>/);
+    if (m) {
+      exports.push({ name: m[1], kind: 'function', file, line: lineNum, isDefault: false });
+      functions.push({ name: m[1], file, line: lineNum, params: [], isExported: true });
+      return;
+    }
+
     // Named export: export function / export async function
     m = line.match(/^export\s+(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)(?:\s*:\s*(.+?))?$/);
     if (m) {

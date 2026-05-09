@@ -115,7 +115,11 @@ export class PythonAnalyzer extends BaseAnalyzer {
   private isExternal(source: string): boolean {
     if (source.startsWith('.')) return false;
     const root = source.split('.')[0];
-    return !STDLIB_PREFIXES.includes(root) || true; // Python stdlib is also external from project perspective
+    // Project-internal packages common in FastAPI/Python apps
+    const internalRoots = ['src', 'app', 'lib', 'core', 'modules', 'api', 'utils', 'models', 'schemas', 'services', 'algorithm', 'agents', 'routers', 'config', 'repositories', 'middleware', 'regulations', 'test', 'common'];
+    if (internalRoots.includes(root)) return false;
+    // Everything else (stdlib, third-party) is external
+    return true;
   }
 }
 

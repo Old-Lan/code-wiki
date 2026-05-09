@@ -75,8 +75,8 @@ async function groupFilesIntoModules(
     return groupNextjsModules(projectRoot, files);
   }
 
-  // Detect FastAPI structure: app/{module}/
-  if (language === 'python') {
+  // FastAPI-specific grouping (both 'fastapi' framework and Python projects)
+  if (framework === 'fastapi' || language === 'python') {
     const fastApiGrouping = await groupFastApiModules(projectRoot, files);
     if (fastApiGrouping) return fastApiGrouping;
   }
@@ -95,32 +95,65 @@ async function groupFastApiModules(
   projectRoot: string,
   files: string[],
 ): Promise<Map<string, string[]> | null> {
-  // Check for app/ directory structure (FastAPI convention)
-  const appFiles = files.filter(f => f.startsWith('app/') || f.startsWith('src/app/'));
-  if (appFiles.length === 0) return null;
+  // Detect common FastAPI source prefixes
+  const prefixes = ['app/', 'src/app/', 'src/'];
+  let matchedPrefix: string | null = null;
 
-  const prefix = files.some(f => f.startsWith('src/app/')) ? 'src/app/' : 'app/';
+  for (const prefix of prefixes) {
+    const matching = files.filter(f => f.startsWith(prefix));
+    if (matching.length >= 3) {
+      matchedPrefix = prefix;
+      break;
+    }
+  }
+
+  if (!matchedPrefix) return null;
+
   const moduleMap = new Map<string, string[]>();
 
+  // Known FastAPI sub-directory patterns for fine-grained grouping
+  const knownDirs = new Set([
+    'core', 'modules', 'module', 'api', 'routers', 'routes',
+    'models', 'schemas', 'services', 'algorithm', 'algorithms',
+    'agents', 'utils', 'lib', 'middleware', 'config',
+    'repositories', 'tests', 'test', 'migrations',
+  ]);
+
   for (const file of files) {
-    if (file.startsWith(prefix)) {
-      const afterPrefix = file.slice(prefix.length);
+    if (file.startsWith(matchedPrefix)) {
+      const afterPrefix = file.slice(matchedPrefix.length);
       const parts = afterPrefix.split(path.sep);
 
-      if (parts.length > 1) {
-        // Group by first directory under app/ (e.g., app/agents/ → "agents")
-        const moduleName = parts[0];
-        const existing = moduleMap.get(moduleName) ?? [];
-        existing.push(file);
-        moduleMap.set(moduleName, existing);
+      if (parts.length > 1 && parts[0]) {
+        const firstDir = parts[0];
+
+        if (knownDirs.has(firstDir)) {
+          // For modules/ directory, group by sub-directory (e.g., modules/sales → sales)
+          if ((firstDir === 'modules' || firstDir === 'module') && parts.length > 2 && parts[1]) {
+            const moduleName = parts[1];
+            const existing = moduleMap.get(moduleName) ?? [];
+            existing.push(file);
+            moduleMap.set(moduleName, existing);
+          } else {
+            // Group by known directory name
+            const existing = moduleMap.get(firstDir) ?? [];
+            existing.push(file);
+            moduleMap.set(firstDir, existing);
+          }
+        } else {
+          // Unknown directory under src/ — group by first directory
+          const existing = moduleMap.get(firstDir) ?? [];
+          existing.push(file);
+          moduleMap.set(firstDir, existing);
+        }
       } else {
-        // Files directly in app/ (like main.py, __init__.py) → "core"
-        const existing = moduleMap.get('core') ?? [];
+        // Files directly in the prefix dir (e.g., src/main.py) → "root"
+        const existing = moduleMap.get('root') ?? [];
         existing.push(file);
-        moduleMap.set('core', existing);
+        moduleMap.set('root', existing);
       }
     } else {
-      // Files outside app/ (like config files at project root)
+      // Files outside src/ (config files, scripts, etc.)
       const parts = file.split(path.sep);
       const moduleName = parts.length > 1 ? parts[0] : 'root';
       const existing = moduleMap.get(moduleName) ?? [];
@@ -250,8 +283,17 @@ async function buildModuleDefs(
 }
 
 function findEntryFile(files: string[]): string | undefined {
-  const entryNames = ['index.ts', 'index.tsx', 'index.js', 'main.ts', 'main.go', '__init__.py', 'mod.rs', 'index.rb'];
-  return files.find(f => entryNames.includes(path.basename(f)));
+  // Prioritized entry file names (first match wins)
+  const entryNames = [
+    'main.ts', 'main.tsx', 'main.js', 'main.jsx', 'main.py', 'main.go',
+    'app.ts', 'app.tsx', 'app.js', 'app.jsx', 'app.py',
+    'index.ts', 'index.tsx', 'index.js', 'index.jsx',
+    'manage.py', 'server.ts', 'server.js', 'server.py',
+    '__init__.py', '__main__.py',
+    'mod.rs', 'index.rb',
+  ];
+  const entrySet = new Set(entryNames);
+  return files.find(f => entrySet.has(path.basename(f)));
 }
 
 async function analyzeModuleFiles(

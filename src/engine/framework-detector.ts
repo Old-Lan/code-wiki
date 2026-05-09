@@ -17,7 +17,33 @@ type FrameworkDetector = {
   detect: (root: string) => Promise<boolean>;
 };
 
+function computeMonorepoLanguage(
+  subProjects: Array<{ name: string; path: string; framework: Framework; language: SupportedLanguage }>,
+): SupportedLanguage {
+  const counts: Record<string, number> = {};
+  for (const sub of subProjects) {
+    counts[sub.language] = (counts[sub.language] ?? 0) + 1;
+  }
+  const sorted = Object.entries(counts).sort(([, a], [, b]) => b - a);
+  return (sorted[0]?.[0] as SupportedLanguage) ?? 'typescript';
+}
+
 const detectors: FrameworkDetector[] = [
+  {
+    framework: 'fastapi',
+    language: 'python',
+    detect: async (root) => {
+      try {
+        const content = await fs.readFile(path.join(root, 'pyproject.toml'), 'utf-8');
+        return content.includes('fastapi') || content.includes('uvicorn');
+      } catch {
+        try {
+          const content = await fs.readFile(path.join(root, 'requirements.txt'), 'utf-8');
+          return content.includes('fastapi') || content.includes('uvicorn');
+        } catch { return false; }
+      }
+    },
+  },
   {
     framework: 'nextjs', language: 'typescript',
     detect: async (root) => {
@@ -102,8 +128,9 @@ export async function detectFramework(repoRoot: string): Promise<DetectionResult
   // Check for monorepo pattern first
   const subProjects = await detectMonorepoSubProjects(repoRoot).catch(() => []);
   if (subProjects.length > 0) {
-    log.info(`Detected monorepo with ${subProjects.length} sub-projects: ${subProjects.map(s => s.name).join(', ')}`);
-    return { framework: 'generic', language: 'typescript', configFiles: [], isMonorepo: true, subProjects };
+    const language = computeMonorepoLanguage(subProjects);
+    log.info(`Detected monorepo with ${subProjects.length} sub-projects: ${subProjects.map(s => s.name).join(', ')}, primary language: ${language}`);
+    return { framework: 'generic', language, configFiles: [], isMonorepo: true, subProjects };
   }
 
   // Single project detection
@@ -118,10 +145,10 @@ export async function detectFramework(repoRoot: string): Promise<DetectionResult
     }
   }
 
-  // Check FastAPI (no dedicated framework type, but detected for module grouping)
+  // Check FastAPI
   if (await detectFastAPI(repoRoot)) {
     log.info('Detected FastAPI project');
-    return { framework: 'generic', language: 'python', configFiles: [], isMonorepo: false, subProjects: [] };
+    return { framework: 'fastapi', language: 'python', configFiles: [], isMonorepo: false, subProjects: [] };
   }
 
   // Fallback: detect primary language from file extensions
@@ -158,7 +185,7 @@ async function detectMonorepoSubProjects(
       results.push({
         name: entry.name,
         path: subPath,
-        framework: 'generic',
+        framework: isFastAPI ? 'fastapi' : 'generic',
         language: 'python',
       });
     }
